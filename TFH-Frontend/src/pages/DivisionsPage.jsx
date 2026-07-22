@@ -41,7 +41,7 @@ export default function DivisionsPage({ title, group }) {
   return (
     <div className="page-container">
       <div className="divisions-header">
-        <PageHeading title={title} />
+        <PageHeading title={title} centered />
         {seasons.length > 0 && <SeasonDropdown seasons={seasons} value={seasonId} onChange={setSeasonId} />}
       </div>
 

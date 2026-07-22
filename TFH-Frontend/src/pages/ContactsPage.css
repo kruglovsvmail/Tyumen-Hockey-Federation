@@ -47,9 +47,12 @@
   color: var(--body1);
 }
 .contacts-link {
-  font-weight: 700;
+  font-weight: 400;
   color: var(--body1) !important;
 }
 .contacts-link:hover {
   color: var(--acc) !important;
+}
+.contacts-link--vk {
+  text-decoration: underline;
 }

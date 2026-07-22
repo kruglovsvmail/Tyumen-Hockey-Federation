@@ -49,7 +49,7 @@ export default function NewsPanel() {
   return (
     <div className="glass-card news-panel">
       <div className="news-panel__header">
-        <div className="news-panel__title font-display">Лента новостей</div>
+        <div className="news-panel__title font-display">АКТУАЛЬНО</div>
         {isAdmin && (
           <button type="button" className="news-panel__add" onClick={() => setEditingItem({})}>
             + Добавить новость

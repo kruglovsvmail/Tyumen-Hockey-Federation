@@ -79,7 +79,7 @@ export default function ContactsPage({ title }) {
             <div className="contacts-block">
               <div className="contacts-label">Соцсети</div>
               <a
-                className="contacts-value contacts-link"
+                className="contacts-value contacts-link contacts-link--vk"
                 href={contacts.vkUrl}
                 target="_blank"
                 rel="noopener noreferrer"

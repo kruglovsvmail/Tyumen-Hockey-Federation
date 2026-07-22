@@ -1,3 +1,37 @@
+.partnership-cta {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  text-transform: uppercase;
+}
+.partnership-cta__text {
+  margin: 0;
+  max-width: 100%;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: .3px;
+  line-height: 1.6;
+  color: var(--body1);
+}
+.partnership-cta__contacts {
+  margin: 4px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.partnership-cta__contacts a {
+  color: var(--acc) !important;
+}
+.partnership-cta__divider {
+  color: var(--muted);
+}
+
 .partners-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

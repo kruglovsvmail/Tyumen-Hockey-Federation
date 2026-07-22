@@ -48,6 +48,18 @@ export default function PartnershipPage({ title }) {
     <div className="page-container">
       <PageHeading title={title} />
 
+      <div className="glass-card partnership-cta">
+        <p className="partnership-cta__text">
+          Сотрудничество с нашей федерацией — это возможность укрепить имидж вашей организации.
+        </p>
+        <p className="partnership-cta__text">Свяжитесь с нами, чтобы обсудить варианты взаимодействия!</p>
+        <p className="partnership-cta__contacts">
+          <a href="mailto:tgoo-fh@mail.ru">tgoo-fh@mail.ru</a>
+          <span className="partnership-cta__divider">·</span>
+          <a href="tel:+79088737607">8 908 873-76-07</a>
+        </p>
+      </div>
+
       {error && <PlaceholderSection>Не удалось загрузить данные: {error}</PlaceholderSection>}
       {!error && loading && <Loader />}
 

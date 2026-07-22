@@ -5,7 +5,7 @@
 export const NAV = [
   {
     key: 'fed',
-    label: 'О федерации',
+    label: 'Федерациия',
     items: [
       { label: 'Организация', to: '/organizatsiya' },
       { label: 'Руководство', to: '/rukovodstvo' },
@@ -26,7 +26,7 @@ export const NAV = [
       {
         label: 'Дивизионы «Любитель»',
         to: '/divizion-lubitel',
-        pageTitle: 'ХОККЕЮ С ШАЙБОЙ СРЕДИ ЛЮБИТЕЛЬСКИХ КОМАНД СТАРШЕ ВОСЕМНАДЦАТИ ЛЕТ',
+        pageTitle: 'ГОРОДСКОЙ ЧЕМПИОНАТ ПО ХОККЕЮ С ШАЙБОЙ СРЕДИ ЛЮБИТЕЛЬСКИХ КОМАНД СТАРШЕ ВОСЕМНАДЦАТИ ЛЕТ',
         group: 'lubitel',
       },
       {
