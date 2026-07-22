@@ -1,0 +1,106 @@
+.partners-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.partner-card {
+  position: relative;
+  padding: 20px;
+  border-radius: 22px;
+  background: var(--glass);
+  backdrop-filter: blur(12px) saturate(1.7);
+  -webkit-backdrop-filter: blur(12px) saturate(1.7);
+  border: 1px solid var(--glassbrd);
+  box-shadow: var(--pshadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  transition: border-color .25s, box-shadow .25s;
+}
+.partner-card--clickable {
+  cursor: pointer;
+}
+.partner-card--clickable:hover,
+.partner-card--clickable:focus-visible {
+  border-color: var(--accbrd);
+  outline: none;
+}
+
+.partner-card__actions {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  gap: 6px;
+  z-index: 1;
+}
+.partner-card__action {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--accbrd);
+  background: var(--navbg);
+  color: var(--navtext);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+}
+.partner-card__action:hover {
+  background: var(--chip);
+  color: var(--acc);
+}
+.partner-card__action--danger:hover {
+  background: #fde2e2;
+  color: #dc2626;
+}
+
+.partner-card__logo {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  object-fit: contain;
+  padding: 12px;
+}
+.partner-card__logo--placeholder {
+  background: var(--inner);
+  border: 1px dashed var(--innerbrd);
+}
+
+.partner-card__name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--head);
+  line-height: 1.3;
+}
+.partner-card__description {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--label);
+}
+
+.partner-add-card {
+  min-height: 240px;
+  border-radius: 22px;
+  border: 1px dashed var(--accbrd);
+  background: var(--chip);
+  color: var(--acc);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .25s;
+}
+.partner-add-card:hover {
+  background: var(--chipStrong);
+}

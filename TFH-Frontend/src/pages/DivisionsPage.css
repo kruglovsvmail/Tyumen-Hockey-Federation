@@ -1,0 +1,174 @@
+.divisions-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.season-dropdown {
+  position: relative;
+  width: fit-content;
+}
+
+.season-dropdown__trigger {
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  color: var(--navtext);
+  background: transparent;
+  border: none;
+  transition: background .3s, color .3s;
+  cursor: pointer;
+}
+.season-dropdown__trigger:hover {
+  background: var(--chip);
+  color: var(--acc);
+}
+
+.season-dropdown__panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  padding-top: 6px;
+  z-index: 60;
+}
+
+.season-dropdown__panel-inner {
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  border-radius: 16px;
+  background: var(--navbg);
+  backdrop-filter: blur(14px) saturate(1.6);
+  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  border: 1px solid var(--glassbrd);
+  box-shadow: var(--pshadow2);
+  white-space: nowrap;
+  animation: menuIn .22s cubic-bezier(.2, .8, .2, 1);
+}
+
+.season-dropdown__item {
+  font-family: inherit;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13.5px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: var(--navtext);
+  background: none;
+  border: none;
+  text-align: left;
+}
+.season-dropdown__item:hover,
+.season-dropdown__item.is-active {
+  background: var(--chip);
+}
+
+.divisions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 16px;
+}
+
+.division-card {
+  padding: 26px;
+  border-radius: 22px;
+  background: var(--glass);
+  backdrop-filter: blur(12px) saturate(1.7);
+  -webkit-backdrop-filter: blur(12px) saturate(1.7);
+  border: 1px solid var(--glassbrd);
+  box-shadow: var(--pshadow);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.division-card__top {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.division-card__logo {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  object-fit: contain;
+}
+.division-card__logo--placeholder {
+  border: 1px dashed var(--innerbrd);
+}
+
+.division-card__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.division-card__name {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--head);
+  line-height: 1.3;
+}
+.division-card__description {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--label);
+}
+.division-card__description--clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.division-card__toggle {
+  align-self: flex-start;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--acc);
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.division-card__stats {
+  display: flex;
+  gap: 24px;
+  padding-top: 14px;
+  border-top: 1px solid var(--divider);
+}
+.division-card__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.division-card__stat-value {
+  font-family: 'Aire Exterior', 'Russo One', sans-serif;
+  font-size: 22px;
+  color: var(--accnum);
+}
+.division-card__stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--label);
+}
+
+.division-card__badge {
+  margin-left: auto;
+  align-self: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--acc);
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--accbrd);
+  white-space: nowrap;
+}

@@ -1,0 +1,91 @@
+.album-detail__back {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--navtext) !important;
+  width: fit-content;
+}
+.album-detail__back:hover {
+  color: var(--acc) !important;
+}
+
+.album-detail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.album-detail__upload {
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px dashed var(--accbrd);
+  background: var(--chip);
+  color: var(--acc);
+  cursor: pointer;
+  transition: background .25s;
+}
+.album-detail__upload:hover {
+  background: var(--chipStrong);
+}
+
+.gallery-grid {
+  display: grid;
+  /* auto-fill, не auto-fit — как и в сетке альбомов: квадратные миниатюры не должны
+     растягиваться на всю строку, если фото мало (это годится только для широких 16:9 видео) */
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.gallery-thumb {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--glassbrd);
+  background: var(--inner);
+}
+
+.gallery-thumb__open {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  background: none;
+}
+.gallery-thumb__open img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .25s;
+}
+.gallery-thumb__open:hover img {
+  transform: scale(1.05);
+}
+
+.gallery-thumb__delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--accbrd);
+  background: rgba(255, 255, 255, .85);
+  color: var(--navtext);
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.gallery-thumb__delete:hover {
+  background: #fde2e2;
+  color: #dc2626;
+}

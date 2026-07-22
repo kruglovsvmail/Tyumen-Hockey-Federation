@@ -1,0 +1,55 @@
+.contacts-card {
+  position: relative;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.contacts-card__edit {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--accbrd);
+  background: var(--navbg);
+  color: var(--navtext);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+}
+.contacts-card__edit:hover {
+  background: var(--chip);
+  color: var(--acc);
+}
+
+.contacts-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.contacts-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--acc);
+}
+.contacts-value {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--body1);
+}
+.contacts-link {
+  font-weight: 700;
+  color: var(--body1) !important;
+}
+.contacts-link:hover {
+  color: var(--acc) !important;
+}

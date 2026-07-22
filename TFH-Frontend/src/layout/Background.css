@@ -1,0 +1,163 @@
+/* Декоративный фон — 3D ледовая арена на чистом CSS (без WebGL). Упрощённая версия
+   прототипа: перенесены борта/лёд/разметка/дрейф/снег, но опущена мелкая геометрия
+   3D-каркасов ворот (были бы почти не видны за размытым стеклом карточек контента). */
+
+.ice-scene {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  background:
+    radial-gradient(1400px 800px at 50% 28%, var(--scene1) 0%, var(--scene2) 48%, transparent 100%),
+    var(--pgbg);
+}
+
+.ice-scene__perspective {
+  position: absolute;
+  inset: 0;
+  perspective: 1250px;
+}
+
+.ice-scene__rig {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 1s cubic-bezier(.2, .8, .2, 1);
+}
+
+.ice-scene__drift {
+  transform-style: preserve-3d;
+  animation: drift 16s ease-in-out infinite alternate;
+}
+
+.ice-scene__boards {
+  position: absolute;
+  left: -1030px;
+  top: -590px;
+  width: 2060px;
+  height: 1180px;
+  border-radius: 220px;
+  border: 2px solid var(--boardsbrd);
+  box-shadow: var(--boardsglow);
+}
+
+.ice-scene__ice {
+  position: absolute;
+  left: -1000px;
+  top: -560px;
+  width: 2000px;
+  height: 1120px;
+  border-radius: 195px;
+  overflow: hidden;
+  background: linear-gradient(155deg, var(--icefill1), var(--icefill2) 55%, var(--icefill3));
+  border: 2px solid var(--icebrd);
+  box-shadow: var(--iceshadow);
+}
+
+.ice-scene__line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+.ice-scene__line--red-center {
+  left: 50%;
+  width: 12px;
+  margin-left: -6px;
+  background: var(--linered);
+}
+.ice-scene__line--blue {
+  width: 9px;
+  background: var(--lineblue);
+}
+
+.ice-scene__goal-line {
+  position: absolute;
+  top: 1.5%;
+  bottom: 1.5%;
+  width: 4px;
+  background: var(--linered);
+}
+
+.ice-scene__center-circle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 350px;
+  height: 350px;
+  transform: translate(-50%, -50%);
+  border: 5px solid var(--lineblue);
+  border-radius: 50%;
+}
+
+.ice-scene__logo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 336px;
+  height: 336px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  object-fit: cover;
+  opacity: .4;
+  filter: saturate(.6);
+}
+
+.ice-scene__faceoff-circle {
+  position: absolute;
+  width: 230px;
+  height: 230px;
+  transform: translate(-50%, -50%);
+  border: 4px solid var(--linered);
+  border-radius: 50%;
+}
+
+.ice-scene__net {
+  position: absolute;
+  top: 50%;
+  width: 61px;
+  height: 122px;
+  transform: translateY(-50%);
+  background: rgba(115, 160, 215, .45);
+}
+.ice-scene__net--left { left: 7.5%; border-radius: 0 122px 122px 0; }
+.ice-scene__net--right { right: 7.5%; border-radius: 122px 0 0 122px; }
+
+.ice-scene__dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  transform: translate(-50%, -50%);
+  background: var(--linered);
+  border-radius: 50%;
+}
+.ice-scene__dot--floating {
+  /* left/top задаются инлайн-стилем на конкретных угловых точках вбрасывания */
+}
+.ice-scene__dot--center {
+  width: 16px;
+  height: 16px;
+  background: var(--lineblue);
+}
+
+.ice-scene__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 120%, var(--vig), transparent 60%);
+}
+
+.ice-scene__snow {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.ice-scene__flake {
+  position: absolute;
+  top: -10px;
+  border-radius: 50%;
+  background: var(--flake);
+}

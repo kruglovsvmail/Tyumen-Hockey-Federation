@@ -1,0 +1,12 @@
+.stats-form-modal__row {
+  display: flex;
+  gap: 8px;
+}
+.stats-form-modal__value {
+  flex: 0 0 35%;
+  min-width: 0;
+}
+.stats-form-modal__label {
+  flex: 1;
+  min-width: 0;
+}

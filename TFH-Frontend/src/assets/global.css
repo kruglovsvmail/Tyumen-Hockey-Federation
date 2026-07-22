@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- Design tokens (перенесены из прототипа Claude Design, см. design_handoff) --- */
+:root {
+  --pgbg: #d9e7f3;
+  --scene1: #f6fbff;
+  --scene2: #d5e5f2;
+  --vig: rgba(140, 175, 205, .20);
+
+  --glass: rgba(255, 255, 255, .4);
+  --glassbrd: rgba(18, 49, 74, .45);
+  --glassbrd2: rgba(18, 49, 74, .5);
+
+  --navbg: rgba(255, 255, 255, .6);
+  --navbrd: rgba(18, 49, 74, .35);
+  --navtext: #33536e;
+
+  --inner: rgba(255, 255, 255, .8);
+  --innerbrd: rgba(18, 49, 74, .3);
+  --divider: rgba(18, 49, 74, .2);
+
+  --chip: rgba(25, 130, 185, .09);
+  --chipStrong: rgba(25, 130, 185, .13);
+  --accbrd: rgba(18, 49, 74, .5);
+
+  --head: #12314a;
+  --body1: #33536e;
+  --body2: #42607a;
+  --label: #5d7d95;
+  --muted: #7191a8;
+  --acc: #0f83bd;
+  --accnum: #0d78b0;
+  --accbtn: #0c6d9f;
+  --headglow: rgba(120, 185, 235, .35);
+  --flake: rgba(140, 180, 215, .65);
+
+  --pshadow: 0 26px 70px rgba(85, 125, 170, .22), inset 0 1.5px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(160, 195, 225, .45), inset 2px 24px 44px -22px rgba(255, 255, 255, .95);
+  --pshadow2: 0 20px 50px rgba(85, 125, 170, .20);
+
+  --icefill1: rgba(255, 255, 255, .85);
+  --icefill2: rgba(242, 248, 253, .7);
+  --icefill3: rgba(226, 239, 249, .8);
+  --icebrd: rgba(150, 190, 225, .45);
+  --iceshadow: inset 0 0 190px rgba(170, 205, 240, .25), 0 0 130px rgba(150, 190, 230, .28);
+  --lineblue: rgba(70, 135, 205, .42);
+  --linered: rgba(215, 85, 100, .42);
+  --crease: rgba(70, 135, 205, .18);
+  --boardsbrd: rgba(150, 190, 225, .5);
+  --boardsglow: 0 0 60px rgba(150, 190, 230, .3), 0 0 0 26px rgba(150, 190, 225, .07);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--pgbg);
+  font-family: 'Manrope', sans-serif;
+  color: var(--body1);
+}
+
+a { color: var(--accnum); text-decoration: none; }
+a:hover { color: var(--accbtn); }
+
+/* Скроллбар: ширина полосы зарезервирована всегда (8px), поэтому появление/исчезновение
+   никогда не двигает вёрстку. В покое — прозрачный (визуально не виден), проявляется
+   во время скролла (класс is-scrolling добавляется в scrollbarAutoHide.js) или при
+   наведении курсора прямо на него. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+html.is-scrolling {
+  scrollbar-color: var(--glassbrd2) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+  transition: background .3s;
+}
+html.is-scrolling::-webkit-scrollbar-thumb {
+  background: var(--glassbrd2);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--acc);
+}
+
+@font-face {
+  font-family: 'Aire Exterior';
+  src: url('/image/fonts/AireExterior.ttf') format('truetype');
+  font-display: swap;
+}
+
+.font-display {
+  font-family: 'Aire Exterior', 'Russo One', sans-serif;
+}
+
+@keyframes fallA { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(5vw, 106vh, 0); } }
+@keyframes fallB { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-6vw, 106vh, 0); } }
+@keyframes drift { from { transform: rotateZ(-1.1deg); } to { transform: rotateZ(1.1deg); } }
+@keyframes menuIn { from { transform: translateY(-8px); } to { transform: translateY(0); } }
+@keyframes tabIn { from { transform: translateY(26px); } to { transform: translateY(0); } }

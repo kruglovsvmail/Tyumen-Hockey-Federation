@@ -1,0 +1,133 @@
+.page-container {
+  max-width: 1220px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.page-heading {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.page-heading__title {
+  margin: 0;
+  font-size: 36px;
+  color: var(--head);
+}
+.page-heading__subtitle {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.glass-card {
+  padding: 30px;
+  border-radius: 22px;
+  background: var(--glass);
+  backdrop-filter: blur(12px) saturate(1.7);
+  -webkit-backdrop-filter: blur(12px) saturate(1.7);
+  border: 1px solid var(--glassbrd);
+  box-shadow: var(--pshadow);
+}
+
+.placeholder-card {
+  animation: tabIn .3s cubic-bezier(.2, .8, .2, 1);
+}
+.placeholder-card p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--body2);
+}
+
+/* Постраничная навигация — общая для любых списков (видео, и т.д.) */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.pagination__nav,
+.pagination__page {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--accbrd);
+  background: var(--glass);
+  color: var(--navtext);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pagination__nav:hover,
+.pagination__page:hover {
+  background: var(--chip);
+  color: var(--acc);
+}
+.pagination__nav:disabled {
+  opacity: .4;
+  cursor: default;
+  background: none;
+}
+.pagination__page.is-active {
+  background: var(--acc);
+  border-color: var(--acc);
+  color: #fff;
+}
+
+/* Главная — hero-блок */
+.hero {
+  display: flex;
+  align-items: center;
+  gap: 44px;
+  padding: 0 0 4px;
+  flex-wrap: wrap;
+}
+.hero__logo {
+  width: 170px;
+  height: 170px;
+  flex: none;
+  filter: drop-shadow(0 0 30px var(--headglow));
+}
+.hero__title {
+  margin: 0;
+  flex: 1;
+  min-width: 320px;
+  font-size: clamp(24px, 3.0vw, 42px);
+  line-height: 1.22;
+  color: var(--head);
+  text-shadow: 0 0 50px var(--headglow);
+  letter-spacing: 1px;
+}
+.hero__pills {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.hero__pill-link {
+  cursor: pointer;
+  font-family: 'Aire Exterior', 'Russo One', sans-serif;
+  font-size: 18px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  padding: 10px 30px;
+  border-radius: 999px;
+  color: var(--acc) !important;
+  border: 1px solid var(--accbrd);
+  background: var(--glass);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--pshadow2);
+}

@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#0f83bd"/><circle cx="100" cy="100" r="60" fill="none" stroke="#fff" stroke-width="6"/><text x="100" y="112" font-size="46" text-anchor="middle" fill="#fff" font-family="sans-serif">ХК</text></svg></template>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&amp;family=Manrope:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+:root{--pgbg:#d9e7f3;--scene1:#f6fbff;--scene2:#d5e5f2;--vig:rgba(140,175,205,.20);--glass:rgba(255,255,255,.4);--glassbrd:rgba(18,49,74,.45);--glassbrd2:rgba(18,49,74,.5);--navbg:rgba(255,255,255,.6);--navbrd:rgba(18,49,74,.35);--navtext:#33536e;--inner:rgba(255,255,255,.8);--innerbrd:rgba(18,49,74,.3);--divider:rgba(18,49,74,.2);--brd35:rgba(18,49,74,.45);--arrowbg:rgba(255,255,255,.9);--overlay:rgba(215,232,244,.7);--chip:rgba(25,130,185,.09);--chipStrong:rgba(25,130,185,.13);--accbrd:rgba(18,49,74,.5);--head:#12314a;--body1:#33536e;--body2:#42607a;--label:#5d7d95;--muted:#7191a8;--acc:#0f83bd;--accnum:#0d78b0;--accbtn:#0c6d9f;--headglow:rgba(120,185,235,.35);--flake:rgba(140,180,215,.65);--pshadow:0 26px 70px rgba(85,125,170,.22),inset 0 1.5px 0 rgba(255,255,255,1),inset 0 -1px 0 rgba(160,195,225,.45),inset 2px 24px 44px -22px rgba(255,255,255,.95);--pshadow2:0 20px 50px rgba(85,125,170,.20);--icefill1:rgba(255,255,255,.85);--icefill2:rgba(242,248,253,.7);--icefill3:rgba(226,239,249,.8);--icebrd:rgba(150,190,225,.45);--iceshadow:inset 0 0 190px rgba(170,205,240,.25),0 0 130px rgba(150,190,230,.28);--lineblue:rgba(70,135,205,.42);--linered:rgba(215,85,100,.42);--crease:rgba(70,135,205,.18);--boardsbrd:rgba(150,190,225,.5);--boardsglow:0 0 60px rgba(150,190,230,.3),0 0 0 26px rgba(150,190,225,.07)}
+html,body{margin:0;padding:0;background:var(--pgbg);font-family:'Manrope',sans-serif;overflow:hidden}
+a{color:var(--accnum);text-decoration:none}a:hover{color:var(--accbtn)}
+@font-face{font-family:'Aire Exterior';src:url('uploads/ofont.ru_Aire Exterior.ttf') format('truetype');font-display:swap}
+*{box-sizing:border-box}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--glassbrd2);border-radius:6px}
+@keyframes fallA{from{transform:translate3d(0,0,0)}to{transform:translate3d(5vw,106vh,0)}}
+@keyframes fallB{from{transform:translate3d(0,0,0)}to{transform:translate3d(-6vw,106vh,0)}}
+@keyframes drift{from{transform:rotateZ(-1.1deg)}to{transform:rotateZ(1.1deg)}}
+@keyframes pulseGlow{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes tabIn{from{transform:translateY(26px)}to{transform:translateY(0)}}
+@keyframes menuIn{from{transform:translateY(-8px)}to{transform:translateY(0)}}
+</style>
+<script src="image-slot.js"></script>
+</helmet>
+<div style="position:fixed;inset:0;overflow:hidden;background:radial-gradient(1400px 800px at 50% 28%, var(--scene1) 0%, var(--scene2) 48%, transparent 100%), var(--pgbg); {{ sceneVis }}">
+  <div style="position:absolute;inset:0;perspective:1250px">
+    <div style="position:absolute;left:50%;top:50%;transform-style:preserve-3d;will-change:transform;transform:translate(-50%,-50%) translateY(15vh) rotateX(63deg) rotateZ(0deg) scale(1.05); {{ rigDyn }}">
+      <div style="transform-style:preserve-3d;animation:drift 16s ease-in-out infinite alternate">
+        <div style="position:absolute;left:-1030px;top:-590px;width:2060px;height:1180px;border-radius:220px;border:2px solid var(--boardsbrd);box-shadow:var(--boardsglow);background:transparent"></div>
+        <div style="position:absolute;left:-1000px;top:-560px;width:2000px;height:1120px;border-radius:195px;overflow:hidden;background:linear-gradient(155deg, var(--icefill1), var(--icefill2) 55%, var(--icefill3));border:2px solid var(--icebrd);box-shadow:var(--iceshadow)">
+          <div style="position:absolute;left:50%;top:0;bottom:0;width:12px;margin-left:-6px;background:var(--linered)"></div>
+          <div style="position:absolute;left:33%;top:0;bottom:0;width:9px;background:var(--lineblue)"></div>
+          <div style="position:absolute;left:67%;top:0;bottom:0;width:9px;background:var(--lineblue)"></div>
+          <div style="position:absolute;left:7.5%;top:1.5%;bottom:1.5%;width:4px;background:var(--linered)"></div>
+          <div style="position:absolute;right:7.5%;top:1.5%;bottom:1.5%;width:4px;background:var(--linered)"></div>
+          <div style="position:absolute;left:50%;top:50%;width:350px;height:350px;transform:translate(-50%,-50%);border:5px solid var(--lineblue);border-radius:50%"></div>
+          <img src="uploads/logo-1784360346721.webp" alt="" style="position:absolute;left:50%;top:50%;width:336px;height:336px;transform:translate(-50%,-50%);border-radius:50%;object-fit:cover;opacity:.4;filter:saturate(.6)">
+          <div style="position:absolute;left:19%;top:26%;width:230px;height:230px;transform:translate(-50%,-50%);border:4px solid var(--linered);border-radius:50%">
+            <div style="position:absolute;left:50%;top:50%;width:22px;height:22px;transform:translate(-50%,-50%);background:var(--linered);border-radius:50%"></div>
+            <div style="position:absolute;left:calc(50% - 52px);top:calc(50% - 19px);width:26px;height:38px;border-top:4px solid var(--linered);border-bottom:4px solid var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% - 28px);top:calc(50% - 26px);width:4px;height:52px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 26px);top:calc(50% - 19px);width:26px;height:38px;border-top:4px solid var(--linered);border-bottom:4px solid var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 24px);top:calc(50% - 26px);width:4px;height:52px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% - 30px);top:-24px;width:4px;height:20px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 26px);top:-24px;width:4px;height:20px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% - 30px);bottom:-24px;width:4px;height:20px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 26px);bottom:-24px;width:4px;height:20px;background:var(--linered)"></div>
+          </div>
+          <div style="position:absolute;left:19%;top:74%;width:230px;height:230px;transform:translate(-50%,-50%);border:4px solid var(--linered);border-radius:50%">
+            <div style="position:absolute;left:50%;top:50%;width:22px;height:22px;transform:translate(-50%,-50%);background:var(--linered);border-radius:50%"></div>
+            <div style="position:absolute;left:calc(50% - 52px);top:calc(50% - 19px);width:26px;height:38px;border-top:4px solid var(--linered);border-bottom:4px solid var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% - 28px);top:calc(50% - 26px);width:4px;height:52px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 26px);top:calc(50% - 19px);width:26px;height:38px;border-top:4px solid var(--linered);border-bottom:4px solid var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 24px);top:calc(50% - 26px);width:4px;height:52px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% - 30px);top:-24px;width:4px;height:20px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 26px);top:-24px;width:4px;height:20px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% - 30px);bottom:-24px;width:4px;height:20px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 26px);bottom:-24px;width:4px;height:20px;background:var(--linered)"></div>
+          </div>
+          <div style="position:absolute;left:81%;top:26%;width:230px;height:230px;transform:translate(-50%,-50%);border:4px solid var(--linered);border-radius:50%">
+            <div style="position:absolute;left:50%;top:50%;width:22px;height:22px;transform:translate(-50%,-50%);background:var(--linered);border-radius:50%"></div>
+            <div style="position:absolute;left:calc(50% - 52px);top:calc(50% - 19px);width:26px;height:38px;border-top:4px solid var(--linered);border-bottom:4px solid var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% - 28px);top:calc(50% - 26px);width:4px;height:52px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 26px);top:calc(50% - 19px);width:26px;height:38px;border-top:4px solid var(--linered);border-bottom:4px solid var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 24px);top:calc(50% - 26px);width:4px;height:52px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% - 30px);top:-24px;width:4px;height:20px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 26px);top:-24px;width:4px;height:20px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% - 30px);bottom:-24px;width:4px;height:20px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 26px);bottom:-24px;width:4px;height:20px;background:var(--linered)"></div>
+          </div>
+          <div style="position:absolute;left:81%;top:74%;width:230px;height:230px;transform:translate(-50%,-50%);border:4px solid var(--linered);border-radius:50%">
+            <div style="position:absolute;left:50%;top:50%;width:22px;height:22px;transform:translate(-50%,-50%);background:var(--linered);border-radius:50%"></div>
+            <div style="position:absolute;left:calc(50% - 52px);top:calc(50% - 19px);width:26px;height:38px;border-top:4px solid var(--linered);border-bottom:4px solid var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% - 28px);top:calc(50% - 26px);width:4px;height:52px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 26px);top:calc(50% - 19px);width:26px;height:38px;border-top:4px solid var(--linered);border-bottom:4px solid var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 24px);top:calc(50% - 26px);width:4px;height:52px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% - 30px);top:-24px;width:4px;height:20px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 26px);top:-24px;width:4px;height:20px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% - 30px);bottom:-24px;width:4px;height:20px;background:var(--linered)"></div>
+            <div style="position:absolute;left:calc(50% + 26px);bottom:-24px;width:4px;height:20px;background:var(--linered)"></div>
+          </div>
+          <div style="position:absolute;left:7.5%;top:50%;transform:translateY(-50%);width:61px;height:122px;background:rgba(115,160,215,.45);border-radius:0 122px 122px 0"></div>
+          <div style="position:absolute;right:7.5%;top:50%;transform:translateY(-50%);width:61px;height:122px;background:rgba(115,160,215,.45);border-radius:122px 0 0 122px"></div>
+          <div style="position:absolute;left:35.5%;top:30%;width:22px;height:22px;transform:translate(-50%,-50%);background:var(--linered);border-radius:50%"></div>
+          <div style="position:absolute;left:35.5%;top:70%;width:22px;height:22px;transform:translate(-50%,-50%);background:var(--linered);border-radius:50%"></div>
+          <div style="position:absolute;left:64.5%;top:30%;width:22px;height:22px;transform:translate(-50%,-50%);background:var(--linered);border-radius:50%"></div>
+          <div style="position:absolute;left:64.5%;top:70%;width:22px;height:22px;transform:translate(-50%,-50%);background:var(--linered);border-radius:50%"></div>
+          <div style="position:absolute;left:50%;top:50%;width:16px;height:16px;transform:translate(-50%,-50%);background:var(--lineblue);border-radius:50%"></div>
+        </div>
+        <div style="position:absolute;left:-850px;top:0;width:0;height:0;transform-style:preserve-3d;transform:rotateZ(90deg)">
+          <div style="position:absolute;left:-35px;top:-48px;width:70px;height:48px;transform-origin:50% 100%;transform:rotateX(-90deg);border:5px solid #cf4258;border-bottom:none;border-radius:7px 7px 0 0;box-shadow:0 0 14px rgba(207,66,88,.25);background:repeating-linear-gradient(0deg,rgba(145,170,195,.55) 0 1.5px,transparent 1.5px 6.5px),repeating-linear-gradient(90deg,rgba(145,170,195,.55) 0 1.5px,transparent 1.5px 6.5px)"></div>
+          <div style="position:absolute;left:-35px;top:0;width:70px;height:60px;transform-origin:50% 0;transform:translate3d(0,0,48px) rotateX(-53deg);clip-path:polygon(0 0,100% 0,86% 100%,14% 100%);background:repeating-linear-gradient(0deg,rgba(145,170,195,.45) 0 1.5px,transparent 1.5px 6.5px),repeating-linear-gradient(90deg,rgba(145,170,195,.45) 0 1.5px,transparent 1.5px 6.5px)"></div>
+          <div style="position:absolute;left:-35px;top:0;width:0;height:0;transform-style:preserve-3d;transform:rotateZ(90deg)"><div style="position:absolute;left:0;top:-48px;width:34px;height:48px;transform-origin:50% 100%;transform:rotateX(-90deg);clip-path:polygon(0 0,0 100%,100% 100%);border-left:4px solid #cf4258;background:repeating-linear-gradient(0deg,rgba(145,170,195,.5) 0 1.5px,transparent 1.5px 6.5px),repeating-linear-gradient(90deg,rgba(145,170,195,.5) 0 1.5px,transparent 1.5px 6.5px)"></div></div>
+          <div style="position:absolute;left:35px;top:0;width:0;height:0;transform-style:preserve-3d;transform:rotateZ(90deg)"><div style="position:absolute;left:0;top:-48px;width:34px;height:48px;transform-origin:50% 100%;transform:rotateX(-90deg);clip-path:polygon(0 0,0 100%,100% 100%);border-left:4px solid #cf4258;background:repeating-linear-gradient(0deg,rgba(145,170,195,.5) 0 1.5px,transparent 1.5px 6.5px),repeating-linear-gradient(90deg,rgba(145,170,195,.5) 0 1.5px,transparent 1.5px 6.5px)"></div></div>
+        </div>
+        <div style="position:absolute;left:850px;top:0;width:0;height:0;transform-style:preserve-3d;transform:rotateZ(-90deg)">
+          <div style="position:absolute;left:-35px;top:-48px;width:70px;height:48px;transform-origin:50% 100%;transform:rotateX(-90deg);border:5px solid #cf4258;border-bottom:none;border-radius:7px 7px 0 0;box-shadow:0 0 14px rgba(207,66,88,.25);background:repeating-linear-gradient(0deg,rgba(145,170,195,.55) 0 1.5px,transparent 1.5px 6.5px),repeating-linear-gradient(90deg,rgba(145,170,195,.55) 0 1.5px,transparent 1.5px 6.5px)"></div>
+          <div style="position:absolute;left:-35px;top:0;width:70px;height:60px;transform-origin:50% 0;transform:translate3d(0,0,48px) rotateX(-53deg);clip-path:polygon(0 0,100% 0,86% 100%,14% 100%);background:repeating-linear-gradient(0deg,rgba(145,170,195,.45) 0 1.5px,transparent 1.5px 6.5px),repeating-linear-gradient(90deg,rgba(145,170,195,.45) 0 1.5px,transparent 1.5px 6.5px)"></div>
+          <div style="position:absolute;left:-35px;top:0;width:0;height:0;transform-style:preserve-3d;transform:rotateZ(90deg)"><div style="position:absolute;left:0;top:-48px;width:34px;height:48px;transform-origin:50% 100%;transform:rotateX(-90deg);clip-path:polygon(0 0,0 100%,100% 100%);border-left:4px solid #cf4258;background:repeating-linear-gradient(0deg,rgba(145,170,195,.5) 0 1.5px,transparent 1.5px 6.5px),repeating-linear-gradient(90deg,rgba(145,170,195,.5) 0 1.5px,transparent 1.5px 6.5px)"></div></div>
+          <div style="position:absolute;left:35px;top:0;width:0;height:0;transform-style:preserve-3d;transform:rotateZ(90deg)"><div style="position:absolute;left:0;top:-48px;width:34px;height:48px;transform-origin:50% 100%;transform:rotateX(-90deg);clip-path:polygon(0 0,0 100%,100% 100%);border-left:4px solid #cf4258;background:repeating-linear-gradient(0deg,rgba(145,170,195,.5) 0 1.5px,transparent 1.5px 6.5px),repeating-linear-gradient(90deg,rgba(145,170,195,.5) 0 1.5px,transparent 1.5px 6.5px)"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 120%, var(--vig), transparent 60%)"></div>
+</div>
+<div style="position:fixed;inset:0;z-index:5;pointer-events:none">{{ particles }}</div>
+
+<div style="position:fixed;top:0;left:0;right:0;z-index:40;padding:14px 40px;transform:translateY(0);transition:transform .55s cubic-bezier(.2,.8,.2,1); {{ navBarS }}">
+  <div style="position:absolute;inset:0;background:var(--navbg);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid var(--navbrd)"></div>
+  <div style="position:relative;max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:16px">
+  <div onClick="{{ go.home }}" style="display:flex;align-items:center;gap:16px;cursor:pointer"><img src="uploads/logo-1784360346721.webp" alt="Логотип федерации" style="width:46px;height:46px">
+  <div style="display:flex;flex-direction:column;gap:2px">
+    <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:16px;color:var(--head);letter-spacing:1px">ФЕДЕРАЦИЯ ХОККЕЯ</div>
+    <div style="font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted)">ТЮМЕНСКАЯ ГОРОДСКАЯ ОБЩЕСТВЕННАЯ ОРГАНИЗАЦИЯ</div>
+  </div></div>
+  <div style="flex:1"></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <div onMouseEnter="{{ menus.fed.enter }}" onMouseLeave="{{ menus.fed.leave }}" style="position:relative">
+      <div style="cursor:default;font-weight:700;font-size:14px;padding:9px 16px;border-radius:999px;color:var(--navtext);transition:background .3s,color .3s; {{ navS.fed }}">О федерации ▾</div>
+      <div style="position:absolute;top:100%;left:0;padding-top:6px;visibility:hidden;z-index:60; {{ menus.fed.vis }}">
+        <div style="min-width:210px;display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:16px;background:var(--navbg);backdrop-filter:blur(14px) saturate(1.6);-webkit-backdrop-filter:blur(14px) saturate(1.6);border:1px solid var(--glassbrd);box-shadow:var(--pshadow2)">
+          <div onClick="{{ goSub.fedOrg }}" style="cursor:pointer;font-weight:700;font-size:13.5px;padding:10px 14px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Организация</div>
+          <div onClick="{{ goSub.fedLead }}" style="cursor:pointer;font-weight:700;font-size:13.5px;padding:10px 14px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Руководство</div>
+          <div onClick="{{ goSub.fedCon }}" style="cursor:pointer;font-weight:700;font-size:13.5px;padding:10px 14px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Контакты</div>
+        </div>
+      </div>
+    </div>
+    <div onMouseEnter="{{ menus.champ.enter }}" onMouseLeave="{{ menus.champ.leave }}" style="position:relative">
+      <div style="cursor:default;font-weight:700;font-size:14px;padding:9px 16px;border-radius:999px;color:var(--navtext);transition:background .3s,color .3s; {{ navS.champ }}">Чемпионаты ▾</div>
+      <div style="position:absolute;top:100%;left:0;padding-top:6px;visibility:hidden;z-index:60; {{ menus.champ.vis }}">
+        <div style="min-width:230px;display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:16px;background:var(--navbg);backdrop-filter:blur(14px) saturate(1.6);-webkit-backdrop-filter:blur(14px) saturate(1.6);border:1px solid var(--glassbrd);box-shadow:var(--pshadow2)">
+          <div onClick="{{ goSub.ch0 }}" style="cursor:pointer;font-weight:700;font-size:13.5px;padding:10px 14px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Дивизионы «Мастер»</div>
+          <div onClick="{{ goSub.ch1 }}" style="cursor:pointer;font-weight:700;font-size:13.5px;padding:10px 14px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Дивизионы «Любитель»</div>
+          <div onClick="{{ goSub.ch2 }}" style="cursor:pointer;font-weight:700;font-size:13.5px;padding:10px 14px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Дивизионы «VIP»</div>
+        </div>
+      </div>
+    </div>
+    <div onMouseEnter="{{ menus.media.enter }}" onMouseLeave="{{ menus.media.leave }}" style="position:relative">
+      <div style="cursor:default;font-weight:700;font-size:14px;padding:9px 16px;border-radius:999px;color:var(--navtext);transition:background .3s,color .3s; {{ navS.media }}">Медиа ▾</div>
+      <div style="position:absolute;top:100%;left:0;padding-top:6px;visibility:hidden;z-index:60; {{ menus.media.vis }}">
+        <div style="min-width:170px;display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:16px;background:var(--navbg);backdrop-filter:blur(14px) saturate(1.6);-webkit-backdrop-filter:blur(14px) saturate(1.6);border:1px solid var(--glassbrd);box-shadow:var(--pshadow2)">
+          <div onClick="{{ goSub.mPhoto }}" style="cursor:pointer;font-weight:700;font-size:13.5px;padding:10px 14px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Фото</div>
+          <div onClick="{{ goSub.mVideo }}" style="cursor:pointer;font-weight:700;font-size:13.5px;padding:10px 14px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Видео</div>
+        </div>
+      </div>
+    </div>
+    <div onClick="{{ go.partners }}" style="cursor:pointer;font-weight:700;font-size:14px;padding:9px 16px;border-radius:999px;color:var(--navtext);transition:background .3s,color .3s; {{ navS.partners }}">Сотрудничество</div>
+  </div>
+  </div>
+</div>
+
+<div data-screen-label="Главная" style="position:fixed;inset:0;z-index:10;overflow-y:auto;overflow-x:hidden;padding:28px 40px 84px;visibility:visible;transform:translateY(0);transition:transform .7s cubic-bezier(.2,.8,.2,1),visibility .7s; {{ zs.home }}">
+  <div style="max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:36px;min-height:calc(100vh - 112px)">
+    <div style="display:flex;align-items:center;gap:44px;padding:0 0 4px;flex-wrap:wrap">
+      <img src="uploads/logo-1784360346721.webp" alt="" style="width:170px;height:170px;flex:none;filter:drop-shadow(0 0 30px var(--headglow))"><h1 style="margin: 0; flex: 1; min-width: 380px; font-family: 'Aire Exterior','Russo One',sans-serif; font-size: clamp(24px,3.0vw,42px); line-height: 1.22; color: var(--head); text-shadow: 0 0 50px var(--headglow)"><i style="width: 535px; height: 114px;"><span style="font-style: normal; font-weight: 600; font-size: 44px; letter-spacing: 3px; text-decoration-line: none; width: 635px; height: 216px">ТЮМЕНСКАЯ ГОРОДСКАЯ ОБЩЕСТВЕННАЯ ОРГАНИЗАЦИЯ&nbsp;«ФЕДЕРАЦИЯ ХОККЕЯ»</span></i></h1>
+      
+    </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
+      <div onMouseEnter="{{ menus.hfed.enter }}" onMouseLeave="{{ menus.hfed.leave }}" style="position:relative">
+        <div style="cursor: default; font-family: 'Aire Exterior','Russo One',sans-serif; font-size: 16px; letter-spacing: 2.5px; padding: 15px 30px; border-radius: 999px; color: var(--acc); border: 1px solid var(--accbrd); background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: var(--pshadow2)">О ФЕДЕРАЦИИ ▾</div>
+        <div style="position:absolute;top:100%;left:50%;margin-left:-110px;padding-top:8px;visibility:hidden;z-index:60; {{ menus.hfed.vis }}">
+          <div style="min-width:220px;display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:16px;background:var(--navbg);backdrop-filter:blur(14px) saturate(1.6);-webkit-backdrop-filter:blur(14px) saturate(1.6);border:1px solid var(--glassbrd);box-shadow:var(--pshadow2)">
+            <div onClick="{{ goSub.fedOrg }}" style="cursor:pointer;font-weight:700;font-size:14px;padding:11px 16px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Организация</div>
+            <div onClick="{{ goSub.fedLead }}" style="cursor:pointer;font-weight:700;font-size:14px;padding:11px 16px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Руководство</div>
+            <div onClick="{{ goSub.fedCon }}" style="cursor:pointer;font-weight:700;font-size:14px;padding:11px 16px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Контакты</div>
+          </div>
+        </div>
+      </div>
+      <div onMouseEnter="{{ menus.hchamp.enter }}" onMouseLeave="{{ menus.hchamp.leave }}" style="position:relative">
+        <div style="cursor: default; font-family: 'Aire Exterior','Russo One',sans-serif; font-size: 16px; letter-spacing: 2.5px; padding: 15px 30px; border-radius: 999px; color: var(--acc); border: 1px solid var(--accbrd); background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: var(--pshadow2)">ЧЕМПИОНАТ ▾</div>
+        <div style="position:absolute;top:100%;left:50%;margin-left:-125px;padding-top:8px;visibility:hidden;z-index:60; {{ menus.hchamp.vis }}">
+          <div style="min-width:250px;display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:16px;background:var(--navbg);backdrop-filter:blur(14px) saturate(1.6);-webkit-backdrop-filter:blur(14px) saturate(1.6);border:1px solid var(--glassbrd);box-shadow:var(--pshadow2)">
+            <div onClick="{{ goSub.ch0 }}" style="cursor:pointer;font-weight:700;font-size:14px;padding:11px 16px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Дивизионы «Мастер»</div>
+            <div onClick="{{ goSub.ch1 }}" style="cursor:pointer;font-weight:700;font-size:14px;padding:11px 16px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Дивизионы «Любитель»</div>
+            <div onClick="{{ goSub.ch2 }}" style="cursor:pointer;font-weight:700;font-size:14px;padding:11px 16px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Дивизионы «VIP»</div>
+          </div>
+        </div>
+      </div>
+      <div onMouseEnter="{{ menus.hmedia.enter }}" onMouseLeave="{{ menus.hmedia.leave }}" style="position:relative">
+        <div style="cursor: default; font-family: 'Aire Exterior','Russo One',sans-serif; font-size: 16px; letter-spacing: 2.5px; padding: 15px 30px; border-radius: 999px; color: var(--acc); border: 1px solid var(--accbrd); background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: var(--pshadow2)">МЕДИА ▾</div>
+        <div style="position:absolute;top:100%;left:50%;margin-left:-90px;padding-top:8px;visibility:hidden;z-index:60; {{ menus.hmedia.vis }}">
+          <div style="min-width:180px;display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:16px;background:var(--navbg);backdrop-filter:blur(14px) saturate(1.6);-webkit-backdrop-filter:blur(14px) saturate(1.6);border:1px solid var(--glassbrd);box-shadow:var(--pshadow2)">
+            <div onClick="{{ goSub.mPhoto }}" style="cursor:pointer;font-weight:700;font-size:14px;padding:11px 16px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Фото</div>
+            <div onClick="{{ goSub.mVideo }}" style="cursor:pointer;font-weight:700;font-size:14px;padding:11px 16px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Видео</div>
+          </div>
+        </div>
+      </div>
+      <div onClick="{{ go.partners }}" style="cursor: pointer; font-family: 'Aire Exterior','Russo One',sans-serif; font-size: 16px; letter-spacing: 2.5px; padding: 15px 30px; border-radius: 999px; color: var(--acc); border: 1px solid var(--accbrd); background: var(--glass); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: var(--pshadow2)">СОТРУДНИЧЕСТВО</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="padding:26px 0 26px 26px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;gap:14px;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-right:26px">
+          <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:19px;color:var(--head);letter-spacing:.5px">Матчи недели</div>
+          <div style="display:flex;gap:8px">
+            <div onClick="{{ matchPrev }}" style="cursor:pointer;width:34px;height:34px;border-radius:50%;background:var(--chip);border:1px solid var(--accbrd);display:flex;align-items:center;justify-content:center;color:var(--acc);font-size:17px;line-height:1;padding-bottom:2px">‹</div>
+            <div onClick="{{ matchNext }}" style="cursor:pointer;width:34px;height:34px;border-radius:50%;background:var(--chip);border:1px solid var(--accbrd);display:flex;align-items:center;justify-content:center;color:var(--acc);font-size:17px;line-height:1;padding-bottom:2px">›</div>
+          </div>
+        </div>
+        <div style="overflow:hidden;padding-right:26px">
+          <div style="display:flex;gap:14px;transition:transform .45s cubic-bezier(.2,.8,.2,1); {{ matchTrack }}">
+            <sc-for list="{{ matches }}" as="m" hint-placeholder-count="4">
+              <div style="flex:none;width:230px;display:flex;flex-direction:column;gap:10px;padding:16px 16px 12px;border-radius:16px;background:var(--inner);border:1px solid var(--innerbrd)">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--acc);padding:4px 9px;border-radius:999px;border:1px solid var(--accbrd)">{{ m.div }}</div>
+                  <div style="font-size:10.5px;font-weight:700;color:var(--muted)">{{ m.date }} · {{ m.time }}</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <image-slot id="{{ m.aSlot }}" shape="circle" placeholder="" style="width:26px;height:26px;flex:none"></image-slot>
+                    <div style="flex:1;font-size:13.5px;font-weight:700;color:{{ m.aColor }};line-height:1.2">{{ m.a }}</div>
+                    <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:16px;color:{{ m.aColor }}">{{ m.aScore }}</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <image-slot id="{{ m.bSlot }}" shape="circle" placeholder="" style="width:26px;height:26px;flex:none"></image-slot>
+                    <div style="flex:1;font-size:13.5px;font-weight:700;color:{{ m.bColor }};line-height:1.2">{{ m.b }}</div>
+                    <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:16px;color:{{ m.bColor }}">{{ m.bScore }}</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--divider)">
+                  <div style="font-size:10.5px;color:var(--muted);letter-spacing:.5px">{{ m.footer }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      <div style="padding:26px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;gap:14px">
+        <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:19px;color:var(--head);letter-spacing:.5px">Новости федерации</div>
+        <sc-for list="{{ news }}" as="n" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:6px;padding:14px 0;border-bottom:1px solid var(--divider)">
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc)">{{ n.date }}</div>
+            <div style="font-weight:700;font-size:15px;color:var(--head);line-height:1.35">{{ n.title }}</div>
+            <div style="font-size:13px;line-height:1.55;color:var(--label);text-wrap:pretty">{{ n.preview }}</div>
+            <sc-if value="{{ n.expandable }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ n.toggle }}" style="cursor:pointer;font-size:12.5px;font-weight:700;color:var(--acc);width:fit-content">{{ n.toggleLabel }}</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="margin:auto calc(50% - 50vw) -84px;padding:32px 40px 20px;background:var(--navbg);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-top:1px solid var(--navbrd)">
+      <div style="max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start">
+        <div style="flex:1.4;min-width:250px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <img src="uploads/logo-1784360346721.webp" alt="" style="width:54px;height:54px">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:16px;color:var(--head);letter-spacing:1px">ФЕДЕРАЦИЯ ХОККЕЯ</div>
+              <div style="font-size:10.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">ТЮМЕНЬ · С 2005 ГОДА</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px"><a href="mailto:tgoo-fh@mail.ru" style="font-size:13.5px;font-weight:600">tgoo-fh@mail.ru</a><a href="https://vk.ru/tglhl" target="_blank" rel="noopener" style="font-size:13.5px;font-weight:700;color:var(--acc)">ВКонтакте</a></div>
+        </div>
+        <div style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">О федерации</div>
+          <div onClick="{{ goSub.fedOrg }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Организация</div>
+          <div onClick="{{ goSub.fedLead }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Руководство</div>
+          <div onClick="{{ goSub.fedCon }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Контакты</div>
+        </div>
+        <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Чемпионаты</div>
+          <div onClick="{{ goSub.ch0 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «Мастер»</div>
+          <div onClick="{{ goSub.ch1 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «Любитель»</div>
+          <div onClick="{{ goSub.ch2 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «VIP»</div>
+        </div>
+        <div style="flex:1;min-width:170px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Медиа</div>
+          <div onClick="{{ goSub.mPhoto }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Фото</div>
+          <div onClick="{{ goSub.mVideo }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Видео</div>
+        </div>
+      </div>
+      <div style="padding-top:16px;border-top:1px solid var(--divider);font-size:12px;color:var(--muted)">© 2026 ТГОО «Федерация Хоккея»</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div data-screen-label="О федерации" style="position:fixed;inset:0;z-index:10;overflow-y:auto;overflow-x:hidden;padding:128px 40px 84px;visibility:hidden;transform:translateY(46px);transition:transform .7s cubic-bezier(.2,.8,.2,1),visibility .7s; {{ zs.fed }}">
+  <div style="max-width:1220px;margin:0 auto;display:flex;flex-direction:column;gap:32px;min-height:calc(100vh - 212px)">
+    <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+      <h2 style="margin:0;font-family:'Aire Exterior','Russo One',sans-serif;font-size:36px;color:var(--head)">О федерации</h2>
+      <div style="font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">{{ fedTabTitle }}</div>
+    </div>
+    <div style="display:none; {{ ftv.org }}">
+      <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:start">
+        <div style="padding:30px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;gap:16px">
+          <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:20px;color:var(--head)">Тюменская городская общественная организация «Федерация Хоккея»</div>
+          <p style="margin:0;font-size:15px;line-height:1.7;color:var(--body2);text-wrap:pretty">Федерация объединяет любительские команды и хоккейные клубы города Тюмени. Мы организуем городские чемпионаты в трёх дивизионах — «Мастер», «Любитель» и «VIP», — проводим кубковые турниры, матчи звёзд и детские фестивали хоккея.</p>
+          <p style="margin:0;font-size:15px;line-height:1.7;color:var(--body2);text-wrap:pretty">Наша цель — сделать хоккей доступным каждому жителю города: от первых шагов на льду до соревнований высокого любительского уровня. Федерация развивает судейский корпус, поддерживает детские секции и помогает командам находить партнёров и площадки для тренировок.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:12px;align-items:baseline"><div style="width:8px;height:8px;border-radius:2px;background:#4fc3f7;flex:none;transform:translateY(-1px)"></div><div style="font-size:14px;line-height:1.5;color:var(--body1)">Организация и проведение городских чемпионатов и кубков</div></div>
+            <div style="display:flex;gap:12px;align-items:baseline"><div style="width:8px;height:8px;border-radius:2px;background:#4fc3f7;flex:none;transform:translateY(-1px)"></div><div style="font-size:14px;line-height:1.5;color:var(--body1)">Развитие детского и массового хоккея в Тюмени</div></div>
+            <div style="display:flex;gap:12px;align-items:baseline"><div style="width:8px;height:8px;border-radius:2px;background:#4fc3f7;flex:none;transform:translateY(-1px)"></div><div style="font-size:14px;line-height:1.5;color:var(--body1)">Подготовка и аттестация судей</div></div>
+            <div style="display:flex;gap:12px;align-items:baseline"><div style="width:8px;height:8px;border-radius:2px;background:#4fc3f7;flex:none;transform:translateY(-1px)"></div><div style="font-size:14px;line-height:1.5;color:var(--body1)">Сотрудничество со спонсорами и городскими аренами</div></div>
+          </div>
+        </div>
+        <div style="padding:26px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;gap:18px">
+          <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:16px;color:var(--head)">Федерация в цифрах</div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div><div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:30px;color:var(--accnum)">2006</div><div style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--label)">год основания</div></div>
+            <div><div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:30px;color:var(--accnum)">3</div><div style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--label)">дивизиона</div></div>
+            <div><div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:30px;color:var(--accnum)">28</div><div style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--label)">команд-участниц</div></div>
+            <div><div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:30px;color:var(--accnum)">20</div><div style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--label)">сезонов чемпионата</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:none; {{ ftv.lead }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px">
+        <sc-for list="{{ leadership }}" as="p" hint-placeholder-count="7">
+          <div style="padding:26px 22px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+            <image-slot id="{{ p.id }}" shape="circle" placeholder="Фото" style="width:128px;height:128px;flex:none"></image-slot>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:16px;line-height:1.3;color:var(--head)">{{ p.name }}</div>
+              <div style="font-size:12.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--acc)">{{ p.role }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:none; {{ ftv.con }}">
+      <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:16px;align-items:stretch">
+        <div style="padding:30px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;gap:20px">
+          <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:20px;color:var(--head)">Контакты федерации</div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-direction:column;gap:3px"><div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Адрес</div><div style="font-size:15px;color:var(--body1)">625000, г. Тюмень, ул. Уточняется, 00</div></div>
+            <div style="display:flex;flex-direction:column;gap:3px"><div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Телефон</div><div style="font-size:15px;color:var(--body1)">+7 (3452) 00-00-00</div></div>
+            <div style="display:flex;flex-direction:column;gap:3px"><div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Email</div><div style="font-size:15px"><a href="mailto:info@fh-tyumen.ru">info@fh-tyumen.ru</a></div></div>
+            <div style="display:flex;flex-direction:column;gap:3px"><div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Соцсети</div><div style="font-size:15px"><a href="#">ВКонтакте</a> · <a href="#">Telegram</a></div></div>
+            <div style="display:flex;flex-direction:column;gap:3px"><div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Реквизиты</div><div style="font-size:13.5px;line-height:1.6;color:var(--label)">ОГРН 000000000000 · ИНН 0000000000<br>ТГОО «Федерация Хоккея»</div></div>
+          </div>
+        </div>
+        <div style="border-radius:22px;overflow:hidden;border:1px solid var(--glassbrd);min-height:380px;background:repeating-linear-gradient(45deg, rgba(120,180,230,.08) 0 14px, rgba(120,180,230,.03) 14px 28px);display:flex;align-items:center;justify-content:center">
+          <div style="font-family:ui-monospace,Menlo,monospace;font-size:13px;color:var(--muted);padding:10px 18px;border:1px dashed var(--brd35);border-radius:10px">карта проезда — вставим позже</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin:auto calc(50% - 50vw) -84px;padding:32px 40px 20px;background:var(--navbg);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-top:1px solid var(--navbrd)">
+      <div style="max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start">
+        <div style="flex:1.4;min-width:250px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <img src="uploads/logo-1784360346721.webp" alt="" style="width:54px;height:54px">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:16px;color:var(--head);letter-spacing:1px">ФЕДЕРАЦИЯ ХОККЕЯ</div>
+              <div style="font-size:10.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">Тюмень · с 2015 года</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px"><a href="mailto:tgoo-fh@mail.ru" style="font-size:13.5px;font-weight:600">tgoo-fh@mail.ru</a><a href="https://vk.ru/tglhl" target="_blank" rel="noopener" style="font-size:13.5px;font-weight:700;color:var(--acc)">ВКонтакте</a></div>
+        </div>
+        <div style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">О федерации</div>
+          <div onClick="{{ goSub.fedOrg }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Организация</div>
+          <div onClick="{{ goSub.fedLead }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Руководство</div>
+          <div onClick="{{ goSub.fedCon }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Контакты</div>
+        </div>
+        <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Чемпионаты</div>
+          <div onClick="{{ goSub.ch0 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «Мастер»</div>
+          <div onClick="{{ goSub.ch1 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «Любитель»</div>
+          <div onClick="{{ goSub.ch2 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «VIP»</div>
+        </div>
+        <div style="flex:1;min-width:170px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Медиа</div>
+          <div onClick="{{ goSub.mPhoto }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Фото</div>
+          <div onClick="{{ goSub.mVideo }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Видео</div>
+        </div>
+      </div>
+      <div style="padding-top:16px;border-top:1px solid var(--divider);font-size:12px;color:var(--muted)">© 2026 ТГОО «Федерация Хоккея»</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div data-screen-label="Чемпионаты" style="position:fixed;inset:0;z-index:10;overflow-y:auto;overflow-x:hidden;padding:128px 40px 84px;visibility:hidden;transform:translateY(46px);transition:transform .7s cubic-bezier(.2,.8,.2,1),visibility .7s; {{ zs.champ }}">
+  <div style="max-width:1220px;margin:0 auto;display:flex;flex-direction:column;gap:32px;min-height:calc(100vh - 212px)">
+    <div style="display:none; {{ cv.list }}">
+      <div style="display:flex;flex-direction:column;gap:28px">
+        <h2 style="margin:0;font-family:'Aire Exterior','Russo One',sans-serif;font-size:34px;line-height:1.3;color:var(--head);max-width:980px;text-wrap:pretty">{{ champLongTitle }}</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:16px">
+          <sc-for list="{{ divCards }}" as="d" hint-placeholder-count="2">
+            <div onClick="{{ d.open }}" style="cursor:pointer;padding:26px 28px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;align-items:center;gap:22px;transition:border-color .25s" style-hover="border:1px solid var(--acc)">
+              <div style="width:84px;height:84px;flex:none;background-size:contain;background-repeat:no-repeat;background-position:center; {{ d.logoBg }}"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+                <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:21px;line-height:1.25;color:var(--head)">{{ d.name }}</div>
+                <div style="font-size:13px;line-height:1.5;color:var(--body2);text-wrap:pretty">{{ d.desc }}</div>
+                <div style="align-self:flex-start;font-size:12px;font-weight:700;color:var(--body1);padding:6px 12px;border-radius:999px;background:var(--chip)">{{ d.count }}</div>
+              </div>
+              <div style="flex:none;font-size:26px;color:var(--acc)">›</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    <div style="display:none; {{ cv.div }}">
+      <div style="display:flex;flex-direction:column;gap:22px">
+        <div onClick="{{ backToList }}" style="cursor:pointer;align-self:flex-start;font-size:13.5px;font-weight:700;color:var(--acc)">‹ {{ champTitle }}</div>
+        <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+          <h2 style="margin:0;font-family:'Aire Exterior','Russo One',sans-serif;font-size:32px;color:var(--head)">Дивизион {{ divName }}</h2>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <div onClick="{{ champGo.table }}" style="cursor:pointer;font-weight:700;font-size:13px;padding:8px 15px;border-radius:999px;color:var(--navtext);border:1px solid var(--glassbrd2);transition:background .3s; {{ cts.table }}">Таблица</div>
+            <div onClick="{{ champGo.cal }}" style="cursor:pointer;font-weight:700;font-size:13px;padding:8px 15px;border-radius:999px;color:var(--navtext);border:1px solid var(--glassbrd2);transition:background .3s; {{ cts.cal }}">Календарь</div>
+            <div onClick="{{ champGo.teams }}" style="cursor:pointer;font-weight:700;font-size:13px;padding:8px 15px;border-radius:999px;color:var(--navtext);border:1px solid var(--glassbrd2);transition:background .3s; {{ cts.teams }}">Команды</div>
+            <div onClick="{{ champGo.sdk }}" style="cursor:pointer;font-weight:700;font-size:13px;padding:8px 15px;border-radius:999px;color:var(--navtext);border:1px solid var(--glassbrd2);transition:background .3s; {{ cts.sdk }}">СДК</div>
+            <div onClick="{{ champGo.pol }}" style="cursor:pointer;font-weight:700;font-size:13px;padding:8px 15px;border-radius:999px;color:var(--navtext);border:1px solid var(--glassbrd2);transition:background .3s; {{ cts.pol }}">Положение</div>
+          </div>
+          <div onMouseEnter="{{ menus.season.enter }}" onMouseLeave="{{ menus.season.leave }}" style="position:relative;margin-left:auto">
+            <div style="cursor:pointer;font-weight:700;font-size:13px;padding:9px 18px;border-radius:999px;color:var(--navtext);border:1px solid var(--glassbrd2);background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)">{{ seasonLabel }} ▾</div>
+            <div style="position:absolute;top:100%;right:0;padding-top:6px;visibility:hidden;z-index:60; {{ menus.season.vis }}">
+              <div style="min-width:180px;display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:16px;background:var(--navbg);backdrop-filter:blur(14px) saturate(1.6);-webkit-backdrop-filter:blur(14px) saturate(1.6);border:1px solid var(--glassbrd);box-shadow:var(--pshadow2)">
+                <div onClick="{{ setSeason.s0 }}" style="cursor:pointer;font-weight:700;font-size:13.5px;padding:10px 14px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Сезон 2025/26</div>
+                <div onClick="{{ setSeason.s1 }}" style="cursor:pointer;font-weight:700;font-size:13.5px;padding:10px 14px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Сезон 2024/25</div>
+                <div onClick="{{ setSeason.s2 }}" style="cursor:pointer;font-weight:700;font-size:13.5px;padding:10px 14px;border-radius:10px;color:var(--navtext)" style-hover="background:var(--chip)">Сезон 2023/24</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display:none; {{ ctv.table }}">
+          <div style="display:grid;grid-template-columns:1.25fr .75fr;gap:16px;align-items:start">
+            <div style="padding:24px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;gap:12px">
+              <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:18px;color:var(--head)">Турнирная таблица</div>
+              <div style="display:grid;grid-template-columns:28px 34px 1fr 36px 36px 36px 36px 60px 40px;gap:6px;padding:0 10px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">
+                <div>№</div><div></div><div>Команда</div><div style="text-align:center">И</div><div style="text-align:center">В</div><div style="text-align:center">Н</div><div style="text-align:center">П</div><div style="text-align:center">Шайбы</div><div style="text-align:center">О</div>
+              </div>
+              <sc-for list="{{ standings }}" as="r" hint-placeholder-count="6">
+                <div style="display:grid;grid-template-columns:28px 34px 1fr 36px 36px 36px 36px 60px 40px;gap:6px;align-items:center;padding:8px 10px;border-radius:12px;background:var(--inner);border:1px solid var(--innerbrd)">
+                  <div style="font-weight:800;font-size:13px;color:var(--acc)">{{ r.pos }}</div>
+                  <image-slot id="{{ r.slotId }}" shape="circle" placeholder="" style="width:30px;height:30px"></image-slot>
+                  <div style="font-weight:700;font-size:14px;color:var(--head)">{{ r.name }}</div>
+                  <div style="text-align:center;font-size:13px;color:var(--body1)">{{ r.gp }}</div>
+                  <div style="text-align:center;font-size:13px;color:var(--body1)">{{ r.w }}</div>
+                  <div style="text-align:center;font-size:13px;color:var(--body1)">{{ r.d }}</div>
+                  <div style="text-align:center;font-size:13px;color:var(--body1)">{{ r.l }}</div>
+                  <div style="text-align:center;font-size:13px;color:var(--body1)">{{ r.sh }}</div>
+                  <div style="text-align:center;font-weight:800;font-size:14px;color:var(--accnum)">{{ r.pts }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="padding:24px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;gap:12px">
+              <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:18px;color:var(--head)">Матчи недели</div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <sc-for list="{{ weekMatches }}" as="m" hint-placeholder-count="3">
+                  <div style="display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:16px;background:var(--inner);border:1px solid var(--innerbrd)">
+                    <div style="display:flex;align-items:center;gap:10px;font-size:11.5px;font-weight:700;color:var(--muted)">
+                      <div style="color:var(--acc);letter-spacing:1.5px;text-transform:uppercase">{{ m.tag }}</div>
+                      <div style="margin-left:auto">{{ m.date }} · {{ m.time }}</div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 80px 1fr;gap:10px;align-items:center">
+                      <div style="display:flex;align-items:center;gap:10px;justify-content:flex-end;text-align:right">
+                        <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:15px;color:var(--head)">{{ m.a }}</div>
+                        <image-slot id="{{ m.aSlot }}" shape="circle" placeholder="" style="width:40px;height:40px;flex:none"></image-slot>
+                      </div>
+                      <div style="text-align:center;font-family:'Aire Exterior','Russo One',sans-serif;font-size:20px;color:var(--accnum)">{{ m.score }}</div>
+                      <div style="display:flex;align-items:center;gap:10px">
+                        <image-slot id="{{ m.bSlot }}" shape="circle" placeholder="" style="width:40px;height:40px;flex:none"></image-slot>
+                        <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:15px;color:var(--head)">{{ m.b }}</div>
+                      </div>
+                    </div>
+                    <div style="text-align:center;font-size:11.5px;color:var(--muted)">{{ m.venue }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display:none; {{ ctv.cal }}">
+          <div style="padding:24px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;gap:12px">
+            <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:18px;color:var(--head)">Календарь игр — весь сезон</div>
+            <div style="display:grid;grid-template-columns:60px 50px 110px 1fr 56px 1fr 170px;gap:8px;padding:0 12px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">
+              <div>Дата</div><div>Время</div><div>Стадия</div><div style="text-align:right">Хозяева</div><div style="text-align:center">Счёт</div><div>Гости</div><div style="text-align:right">Арена</div>
+            </div>
+            <sc-for list="{{ calendar }}" as="m" hint-placeholder-count="8">
+              <div style="display:grid;grid-template-columns:60px 50px 110px 1fr 56px 1fr 170px;gap:8px;align-items:center;padding:8px 12px;border-radius:12px;background:var(--inner);border:1px solid var(--innerbrd)">
+                <div style="font-weight:800;font-size:13px;color:var(--acc)">{{ m.date }}</div>
+                <div style="font-size:13px;font-weight:700;color:var(--body1)">{{ m.time }}</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">{{ m.tag }}</div>
+                <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;text-align:right"><div style="font-weight:700;font-size:13.5px;color:var(--head)">{{ m.a }}</div><image-slot id="{{ m.aSlot }}" shape="circle" placeholder="" style="width:28px;height:28px;flex:none"></image-slot></div>
+                <div style="text-align:center;font-weight:800;font-size:14px;color:var(--accnum)">{{ m.score }}</div>
+                <div style="display:flex;align-items:center;gap:8px"><image-slot id="{{ m.bSlot }}" shape="circle" placeholder="" style="width:28px;height:28px;flex:none"></image-slot><div style="font-weight:700;font-size:13.5px;color:var(--head)">{{ m.b }}</div></div>
+                <div style="text-align:right;font-size:11.5px;color:var(--muted)">{{ m.venue }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:none; {{ ctv.teams }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px">
+            <sc-for list="{{ teamCards }}" as="t" hint-placeholder-count="6">
+              <div onClick="{{ t.open }}" style="cursor:pointer;padding:24px 20px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow2);display:flex;flex-direction:column;align-items:center;gap:14px;transition:border-color .25s" style-hover="border:1px solid var(--acc)">
+                <image-slot id="{{ t.slotId }}" shape="circle" placeholder="Логотип" style="width:110px;height:110px;flex:none"></image-slot>
+                <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:17px;color:var(--head);text-align:center">{{ t.name }}</div>
+                <div style="font-size:12px;font-weight:700;color:var(--acc)">Страница команды ›</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:none; {{ ctv.sdk }}">
+          <div style="padding:56px 24px;border-radius:22px;border:1px dashed var(--brd35);font-size:14px;font-weight:600;color:var(--muted);text-align:center;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7)">Раздел СДК — материалы появятся здесь</div>
+        </div>
+        <div style="display:none; {{ ctv.pol }}">
+          <div style="padding:56px 24px;border-radius:22px;border:1px dashed var(--brd35);font-size:14px;font-weight:600;color:var(--muted);text-align:center;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7)">Положение дивизиона появится здесь</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:none; {{ cv.team }}">
+      <div style="display:flex;flex-direction:column;gap:22px">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;flex-wrap:wrap">
+          <div onClick="{{ backToList }}" style="cursor:pointer;color:var(--acc)">{{ champTitle }}</div>
+          <div style="color:var(--muted)">/</div>
+          <div onClick="{{ backToDiv }}" style="cursor:pointer;color:var(--acc)">{{ divName }}</div>
+          <div style="color:var(--muted)">/ {{ teamName }}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:22px">
+          <image-slot id="{{ teamSlotId }}" shape="circle" placeholder="Логотип" style="width:88px;height:88px;flex:none"></image-slot>
+          <h2 style="margin:0;font-family:'Aire Exterior','Russo One',sans-serif;font-size:34px;color:var(--head)">{{ teamName }}</h2>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:16px;align-items:stretch">
+          <div style="padding:26px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;gap:16px">
+            <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:18px;color:var(--head)">О команде</div>
+            <p style="margin:0;font-size:15px;line-height:1.7;color:var(--body2);text-wrap:pretty">Здесь будет рассказ о команде: история создания, достижения, традиции и всё, чем команда гордится. Текст свободной формы — его можно отредактировать прямо на странице.</p>
+          </div>
+          <div style="padding:26px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;gap:16px">
+            <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:18px;color:var(--head)">Джерси</div>
+            <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+              <div style="display:flex;flex-direction:column;gap:10px"><div style="flex:1;min-height:220px"><image-slot id="{{ jerseyHome }}" shape="rounded" radius="16" placeholder="Фото домашнего джерси"></image-slot></div><div style="font-size:12.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--label);text-align:center">Домашняя</div></div>
+              <div style="display:flex;flex-direction:column;gap:10px"><div style="flex:1;min-height:220px"><image-slot id="{{ jerseyAway }}" shape="rounded" radius="16" placeholder="Фото гостевого джерси"></image-slot></div><div style="font-size:12.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--label);text-align:center">Гостевая</div></div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:24px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;gap:12px">
+          <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:18px;color:var(--head)">Вратари</div>
+          <div style="display:grid;grid-template-columns:44px 40px 1fr 48px 56px 64px 56px;gap:6px;padding:0 10px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">
+            <div>№</div><div></div><div>Игрок</div><div style="text-align:center">И</div><div style="text-align:center">ПШ</div><div style="text-align:center">%ОБ</div><div style="text-align:center">Штр</div>
+          </div>
+          <sc-for list="{{ goalies }}" as="p" hint-placeholder-count="2">
+            <div style="display:grid;grid-template-columns:44px 40px 1fr 48px 56px 64px 56px;gap:6px;align-items:center;padding:10px;border-radius:12px;background:var(--inner);border:1px solid var(--innerbrd)">
+              <div style="font-weight:800;font-size:13px;color:var(--acc)">{{ p.n }}</div>
+              <image-slot id="{{ p.slotId }}" shape="circle" placeholder="" style="width:34px;height:34px"></image-slot>
+              <div style="font-weight:700;font-size:14px;color:var(--head)">{{ p.name }}</div>
+              <div style="text-align:center;font-size:13px;color:var(--body1)">{{ p.gp }}</div>
+              <div style="text-align:center;font-size:13px;color:var(--body1)">{{ p.ga }}</div>
+              <div style="text-align:center;font-size:13px;color:var(--body1)">{{ p.sv }}</div>
+              <div style="text-align:center;font-size:13px;color:var(--body1)">{{ p.pim }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="padding:24px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;gap:12px">
+          <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:18px;color:var(--head)">Защитники</div>
+          <div style="display:grid;grid-template-columns:44px 40px 1fr 48px 48px 48px 52px 56px;gap:6px;padding:0 10px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">
+            <div>№</div><div></div><div>Игрок</div><div style="text-align:center">И</div><div style="text-align:center">Г</div><div style="text-align:center">А</div><div style="text-align:center">О</div><div style="text-align:center">Штр</div>
+          </div>
+          <sc-for list="{{ defenders }}" as="p" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:44px 40px 1fr 48px 48px 48px 52px 56px;gap:6px;align-items:center;padding:10px;border-radius:12px;background:var(--inner);border:1px solid var(--innerbrd)">
+              <div style="font-weight:800;font-size:13px;color:var(--acc)">{{ p.n }}</div>
+              <image-slot id="{{ p.slotId }}" shape="circle" placeholder="" style="width:34px;height:34px"></image-slot>
+              <div style="font-weight:700;font-size:14px;color:var(--head)">{{ p.name }}</div>
+              <div style="text-align:center;font-size:13px;color:var(--body1)">{{ p.gp }}</div>
+              <div style="text-align:center;font-size:13px;color:var(--body1)">{{ p.g }}</div>
+              <div style="text-align:center;font-size:13px;color:var(--body1)">{{ p.a }}</div>
+              <div style="text-align:center;font-weight:800;font-size:14px;color:var(--accnum)">{{ p.pts }}</div>
+              <div style="text-align:center;font-size:13px;color:var(--body1)">{{ p.pim }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="padding:24px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;gap:12px">
+          <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:18px;color:var(--head)">Нападающие</div>
+          <div style="display:grid;grid-template-columns:44px 40px 1fr 48px 48px 48px 52px 56px;gap:6px;padding:0 10px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">
+            <div>№</div><div></div><div>Игрок</div><div style="text-align:center">И</div><div style="text-align:center">Г</div><div style="text-align:center">А</div><div style="text-align:center">О</div><div style="text-align:center">Штр</div>
+          </div>
+          <sc-for list="{{ forwards }}" as="p" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:44px 40px 1fr 48px 48px 48px 52px 56px;gap:6px;align-items:center;padding:10px;border-radius:12px;background:var(--inner);border:1px solid var(--innerbrd)">
+              <div style="font-weight:800;font-size:13px;color:var(--acc)">{{ p.n }}</div>
+              <image-slot id="{{ p.slotId }}" shape="circle" placeholder="" style="width:34px;height:34px"></image-slot>
+              <div style="font-weight:700;font-size:14px;color:var(--head)">{{ p.name }}</div>
+              <div style="text-align:center;font-size:13px;color:var(--body1)">{{ p.gp }}</div>
+              <div style="text-align:center;font-size:13px;color:var(--body1)">{{ p.g }}</div>
+              <div style="text-align:center;font-size:13px;color:var(--body1)">{{ p.a }}</div>
+              <div style="text-align:center;font-weight:800;font-size:14px;color:var(--accnum)">{{ p.pts }}</div>
+              <div style="text-align:center;font-size:13px;color:var(--body1)">{{ p.pim }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="padding:24px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;flex-direction:column;gap:12px">
+          <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:18px;color:var(--head)">Представители команды</div>
+          <sc-for list="{{ reps }}" as="p" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;background:var(--inner);border:1px solid var(--innerbrd)">
+              <div style="flex:none;min-width:210px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc)">{{ p.role }}</div>
+              <div style="font-weight:700;font-size:14.5px;color:var(--head)">{{ p.name }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    <div style="margin:auto calc(50% - 50vw) -84px;padding:32px 40px 20px;background:var(--navbg);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-top:1px solid var(--navbrd)">
+      <div style="max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start">
+        <div style="flex:1.4;min-width:250px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <img src="uploads/logo-1784360346721.webp" alt="" style="width:54px;height:54px">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:16px;color:var(--head);letter-spacing:1px">ФЕДЕРАЦИЯ ХОККЕЯ</div>
+              <div style="font-size:10.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">Тюмень · с 2015 года</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px"><a href="mailto:tgoo-fh@mail.ru" style="font-size:13.5px;font-weight:600">tgoo-fh@mail.ru</a><a href="https://vk.ru/tglhl" target="_blank" rel="noopener" style="font-size:13.5px;font-weight:700;color:var(--acc)">ВКонтакте</a></div>
+        </div>
+        <div style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">О федерации</div>
+          <div onClick="{{ goSub.fedOrg }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Организация</div>
+          <div onClick="{{ goSub.fedLead }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Руководство</div>
+          <div onClick="{{ goSub.fedCon }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Контакты</div>
+        </div>
+        <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Чемпионаты</div>
+          <div onClick="{{ goSub.ch0 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «Мастер»</div>
+          <div onClick="{{ goSub.ch1 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «Любитель»</div>
+          <div onClick="{{ goSub.ch2 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «VIP»</div>
+        </div>
+        <div style="flex:1;min-width:170px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Медиа</div>
+          <div onClick="{{ goSub.mPhoto }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Фото</div>
+          <div onClick="{{ goSub.mVideo }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Видео</div>
+        </div>
+      </div>
+      <div style="padding-top:16px;border-top:1px solid var(--divider);font-size:12px;color:var(--muted)">© 2026 ТГОО «Федерация Хоккея»</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div data-screen-label="Медиа" style="position:fixed;inset:0;z-index:10;overflow-y:auto;overflow-x:hidden;padding:128px 40px 84px;visibility:hidden;transform:translateY(46px);transition:transform .7s cubic-bezier(.2,.8,.2,1),visibility .7s; {{ zs.media }}">
+  <div style="max-width:1220px;margin:0 auto;display:flex;flex-direction:column;gap:32px;min-height:calc(100vh - 212px)">
+    <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+      <h2 style="margin:0;font-family:'Aire Exterior','Russo One',sans-serif;font-size:36px;color:var(--head)">Медиа</h2>
+      <div style="font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">{{ mediaTabTitle }}</div>
+    </div>
+    <div style="display:none; {{ mtv.photo }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px">
+        <sc-for list="{{ albums }}" as="a" hint-placeholder-count="4">
+          <div style="border-radius:22px;overflow:hidden;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow2);display:flex;flex-direction:column">
+            <div style="width:100%;height:180px;position:relative"><image-slot id="{{ a.cover }}" shape="rect" placeholder="Обложка альбома"></image-slot></div>
+            <div style="padding:16px 18px;display:flex;align-items:center;gap:12px">
+              <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                <div style="font-weight:700;font-size:15px;color:var(--head);line-height:1.3">{{ a.t }}</div>
+                <div style="font-size:12px;color:var(--muted)">{{ a.n }} фото</div>
+              </div>
+              <div onClick="{{ a.open }}" style="cursor:pointer;flex:none;font-size:12px;font-weight:700;letter-spacing:.5px;padding:8px 15px;border-radius:999px;background:var(--chipStrong);color:var(--accbtn);border:1px solid var(--accbrd)">Смотреть</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:none; {{ mtv.video }}">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+        <sc-for list="{{ videos }}" as="v" hint-placeholder-count="4">
+          <div style="border-radius:22px;overflow:hidden;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow2)">
+            <div style="aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:repeating-linear-gradient(45deg, rgba(120,180,230,.07) 0 14px, rgba(120,180,230,.02) 14px 28px)">
+              <div style="width:66px;height:66px;border-radius:50%;background:var(--chipStrong);border:1px solid var(--accbrd);display:flex;align-items:center;justify-content:center">
+                <div style="width:0;height:0;border-left:20px solid var(--accbtn);border-top:12px solid transparent;border-bottom:12px solid transparent;margin-left:5px"></div>
+              </div>
+              <div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted)">вставим embed YouTube / VK Видео</div>
+            </div>
+            <div style="padding:14px 18px;font-weight:700;font-size:14.5px;color:var(--head)">{{ v.t }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="margin:auto calc(50% - 50vw) -84px;padding:32px 40px 20px;background:var(--navbg);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-top:1px solid var(--navbrd)">
+      <div style="max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start">
+        <div style="flex:1.4;min-width:250px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <img src="uploads/logo-1784360346721.webp" alt="" style="width:54px;height:54px">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:16px;color:var(--head);letter-spacing:1px">ФЕДЕРАЦИЯ ХОККЕЯ</div>
+              <div style="font-size:10.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">Тюмень · с 2015 года</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px"><a href="mailto:tgoo-fh@mail.ru" style="font-size:13.5px;font-weight:600">tgoo-fh@mail.ru</a><a href="https://vk.ru/tglhl" target="_blank" rel="noopener" style="font-size:13.5px;font-weight:700;color:var(--acc)">ВКонтакте</a></div>
+        </div>
+        <div style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">О федерации</div>
+          <div onClick="{{ goSub.fedOrg }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Организация</div>
+          <div onClick="{{ goSub.fedLead }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Руководство</div>
+          <div onClick="{{ goSub.fedCon }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Контакты</div>
+        </div>
+        <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Чемпионаты</div>
+          <div onClick="{{ goSub.ch0 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «Мастер»</div>
+          <div onClick="{{ goSub.ch1 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «Любитель»</div>
+          <div onClick="{{ goSub.ch2 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «VIP»</div>
+        </div>
+        <div style="flex:1;min-width:170px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Медиа</div>
+          <div onClick="{{ goSub.mPhoto }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Фото</div>
+          <div onClick="{{ goSub.mVideo }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Видео</div>
+        </div>
+      </div>
+      <div style="padding-top:16px;border-top:1px solid var(--divider);font-size:12px;color:var(--muted)">© 2026 ТГОО «Федерация Хоккея»</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div data-screen-label="Сотрудничество" style="position:fixed;inset:0;z-index:10;overflow-y:auto;overflow-x:hidden;padding:128px 40px 84px;visibility:hidden;transform:translateY(46px);transition:transform .7s cubic-bezier(.2,.8,.2,1),visibility .7s; {{ zs.partners }}">
+  <div style="max-width:1220px;margin:0 auto;display:flex;flex-direction:column;gap:32px;min-height:calc(100vh - 212px)">
+    <h2 style="margin:0;font-family:'Aire Exterior','Russo One',sans-serif;font-size:36px;color:var(--head)">Сотрудничество</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px">
+      <div style="padding:26px 20px;border-radius:20px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow2);display:flex;flex-direction:column;align-items:center;gap:14px">
+        <img src="uploads/maskable-icon-512x512.png" alt="HockeyECO" style="width:120px;height:120px;border-radius:16px;object-fit:cover">
+        <div style="font-size:13px;font-weight:700;color:var(--body1);text-align:center">Цифровая экосистема HockeyECO</div>
+      </div>
+    </div>
+    <div style="padding:30px;border-radius:22px;background:var(--glass);backdrop-filter:blur(12px) saturate(1.7);-webkit-backdrop-filter:blur(12px) saturate(1.7);border:1px solid var(--glassbrd);box-shadow:var(--pshadow);display:flex;align-items:center;gap:26px;flex-wrap:wrap">
+      <div style="flex:1;min-width:320px;display:flex;flex-direction:column;gap:8px">
+        <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:22px;color:var(--head)">Стать партнёром федерации</div>
+        <div style="font-size:14px;line-height:1.6;color:var(--body2);text-wrap:pretty">Реклама на бортах и форме команд, интеграции в трансляции и турниры, поддержка детских фестивалей.</div>
+      </div>
+      <div style="flex:none;display:flex;flex-direction:column;gap:6px;text-align:right">
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">По вопросам спонсорства</div>
+        <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:20px;color:var(--head)">tgoo-fh@mail.ru</div>
+        <div style="font-size:13.5px;font-weight:600;color:var(--body1)">Козлов Дмитрий Сергеевич · <a href="https://vk.ru/tglhl" target="_blank" rel="noopener">ВКонтакте</a></div>
+      </div>
+    </div>
+    <div style="margin:auto calc(50% - 50vw) -84px;padding:32px 40px 20px;background:var(--navbg);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-top:1px solid var(--navbrd)">
+      <div style="max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start">
+        <div style="flex:1.4;min-width:250px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <img src="uploads/logo-1784360346721.webp" alt="" style="width:54px;height:54px">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:16px;color:var(--head);letter-spacing:1px">ФЕДЕРАЦИЯ ХОККЕЯ</div>
+              <div style="font-size:10.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">Тюмень · с 2015 года</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px"><a href="mailto:tgoo-fh@mail.ru" style="font-size:13.5px;font-weight:600">tgoo-fh@mail.ru</a><a href="https://vk.ru/tglhl" target="_blank" rel="noopener" style="font-size:13.5px;font-weight:700;color:var(--acc)">ВКонтакте</a></div>
+        </div>
+        <div style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">О федерации</div>
+          <div onClick="{{ goSub.fedOrg }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Организация</div>
+          <div onClick="{{ goSub.fedLead }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Руководство</div>
+          <div onClick="{{ goSub.fedCon }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Контакты</div>
+        </div>
+        <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Чемпионаты</div>
+          <div onClick="{{ goSub.ch0 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «Мастер»</div>
+          <div onClick="{{ goSub.ch1 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «Любитель»</div>
+          <div onClick="{{ goSub.ch2 }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Дивизионы «VIP»</div>
+        </div>
+        <div style="flex:1;min-width:170px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc)">Медиа</div>
+          <div onClick="{{ goSub.mPhoto }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Фото</div>
+          <div onClick="{{ goSub.mVideo }}" style="cursor:pointer;font-size:13.5px;font-weight:600;color:var(--body1)" style-hover="color:var(--acc)">Видео</div>
+        </div>
+      </div>
+      <div style="padding-top:16px;border-top:1px solid var(--divider);font-size:12px;color:var(--muted)">© 2026 ТГОО «Федерация Хоккея»</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="position:fixed;inset:0;z-index:60;background:var(--overlay);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;visibility:hidden; {{ carVis }}">
+  <div style="width:min(1080px,92vw);display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="font-family:'Aire Exterior','Russo One',sans-serif;font-size:20px;color:var(--head)">{{ carTitle }}</div>
+      <div style="font-size:13px;font-weight:700;color:var(--accnum)">{{ carCounter }}</div>
+      <div style="flex:1"></div>
+      <div onClick="{{ carClose }}" style="cursor:pointer;width:40px;height:40px;border-radius:50%;background:rgba(16,38,64,.6);border:1px solid var(--brd35);display:flex;align-items:center;justify-content:center;color:var(--navtext);font-size:20px;line-height:1">×</div>
+    </div>
+    <div style="position:relative">
+      <div style="overflow:hidden;border-radius:20px;border:1px solid var(--glassbrd2)">
+        <div style="display:flex;transition:transform .5s cubic-bezier(.2,.8,.2,1); {{ carTrack }}">
+          <sc-for list="{{ carouselPhotos }}" as="ph" hint-placeholder-count="1">
+            <div style="flex:none;width:100%;height:min(62vh,640px)"><image-slot id="{{ ph.id }}" shape="rect" placeholder="{{ ph.cap }}"></image-slot></div>
+          </sc-for>
+        </div>
+      </div>
+      <div onClick="{{ carPrev }}" style="cursor:pointer;position:absolute;left:-22px;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;background:var(--arrowbg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--brd35);display:flex;align-items:center;justify-content:center;color:var(--accbtn);font-size:24px;line-height:1;padding-bottom:4px">‹</div>
+      <div onClick="{{ carNext }}" style="cursor:pointer;position:absolute;right:-22px;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;background:var(--arrowbg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--brd35);display:flex;align-items:center;justify-content:center;color:var(--accbtn);font-size:24px;line-height:1;padding-bottom:4px">›</div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);text-align:center">Перетащите фото прямо на слайд, чтобы заполнить альбом · ← → для листания · Esc — закрыть</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;snowfall&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Атмосфера&quot;},&quot;showScene&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Атмосфера&quot;},&quot;cameraSpeed&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1.5,&quot;min&quot;:0.4,&quot;max&quot;:3,&quot;step&quot;:0.1,&quot;unit&quot;:&quot;s&quot;,&quot;section&quot;:&quot;Камера&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { zone: 'home', fedTab: 'org', mediaTab: 'photo', album: null, slide: 0, prog: 0, menu: null, champClass: 'master', champDiv: null, teamIdx: null, champTab: 'table', season: '2025/26', calStage: 0, openNews: {}, matchPage: 0 };
+    this.matchesPerPage = 4;
+    this.matchCardStep = 210 + 14;
+    const mk = (p, n) => Array.from({ length: n }, (_, i) => ({ id: p + '-t' + (i + 1), name: 'Команда ' + (i + 1) }));
+    this.champData = {
+      master: { title: 'Дивизионы «Мастер»', longTitle: 'ГОРОДСКОЙ ЧЕМПИОНАТ ПО ХОККЕЮ С ШАЙБОЙ СРЕДИ КОМАНД БЕЗ ОГРАНИЧЕНИЯ МАСТЕРСТВА ПО ХОККЕЙНОЙ ПОДГОТОВКЕ СТАРШЕ ВОСЕМНАДЦАТИ ЛЕТ', logo: 'uploads/М40.png', divisions: [
+        { id: 'm18', name: 'Дивизион им. СУББОТИНА Е.В.', desc: 'К участию приглашаются хоккеисты 18 полных лет на момент начала заявочной кампании, не старше 1985 года рождения, проходившие любую хоккейную подготовку, в том числе имеющие действующие контракты, и согласно Положению.', teams: mk('m18', 6) },
+        { id: 'm40', name: 'Дивизион им. ГОРЕВА С.В.', desc: 'К участию приглашаются хоккеисты 1985 года рождения и старше, проходившие любую хоккейную подготовку, в том числе имеющие действующие контракты, и согласно Положению.', teams: mk('m40', 6) } ] },
+      lubitel: { title: 'Дивизионы «Любитель»', longTitle: 'ГОРОДСКОЙ ЧЕМПИОНАТ ПО ХОККЕЮ С ШАЙБОЙ СРЕДИ ЛЮБИТЕЛЬСКИХ КОМАНД СТАРШЕ ВОСЕМНАДЦАТИ', logo: 'uploads/ТЛХЛ.png', divisions: [
+        { id: 'rag', name: 'Дивизион им. РАГОЗИНА А.И.', desc: 'К участию приглашаются хоккеисты 18 лет и старше, проходившие хоккейную подготовку в ДЮСШ и СШ не дольше, чем до 14 лет, и согласно Положению.', teams: mk('rag', 8) },
+        { id: 'sam', name: 'Дивизион  им. САМОПАЛЬНИКОВА Г.П.', desc: 'К участию приглашаются хоккеисты 18 лет и старше, не проходившие хоккейную подготовку в ДЮСШ и СШ, и согласно Положению.', teams: mk('sam', 8) },
+        { id: 'kon', name: 'Дивизион им. КОНОВАЛОВА Ю.И.', desc: 'К участию приглашаются хоккеисты 18 лет и старше, не проходившие хоккейную подготовку в ДЮСШ и СШ, и согласно Положению.', teams: mk('kon', 8) },
+        { id: 'kuz', name: 'Дивизион  им. КУЗНЕЦОВА О.А.', desc: 'К участию приглашаются хоккеисты 18 лет и старше, не проходившие хоккейную подготовку в ДЮСШ и СШ, и согласно Положению.', teams: mk('kuz', 8) } ] },
+      vip: { title: 'Дивизион «VIP»', longTitle: 'ГОРОДСКОЙ ЧЕМПИОНАТ ПО ХОККЕЮ С ШАЙБОЙ СРЕДИ VIP КОМАНД СТАРШЕ ВОСЕМНАДЦАТИ ЛЕТ', logo: 'uploads/VIP.png', divisions: [
+        { id: 'avb', name: 'Дивизион им. АВЕРБУХ К.Г.', desc: 'К участию приглашаются хоккеисты 1980 года рождения и старше, на индивидуальных условиях и согласно Положению.', teams: mk('avb', 6) } ] }
+    };
+    this.roster = {
+      goalies: [
+        { n: 1, name: 'Смирнов Алексей Викторович', gp: 12, ga: 24, sv: '92.4', pim: 2 },
+        { n: 30, name: 'Кравцов Денис Андреевич', gp: 8, ga: 19, sv: '90.1', pim: 0 }
+      ],
+      defenders: [
+        { n: 2, name: 'Волков Сергей Николаевич', gp: 14, g: 2, a: 6, pts: 8, pim: 16 },
+        { n: 5, name: 'Орлов Павел Дмитриевич', gp: 14, g: 1, a: 7, pts: 8, pim: 10 },
+        { n: 7, name: 'Гусев Никита Олегович', gp: 13, g: 3, a: 2, pts: 5, pim: 8 },
+        { n: 22, name: 'Тарасов Илья Сергеевич', gp: 12, g: 0, a: 4, pts: 4, pim: 22 },
+        { n: 44, name: 'Белов Артём Игоревич', gp: 14, g: 1, a: 2, pts: 3, pim: 6 },
+        { n: 55, name: 'Комаров Владислав Петрович', gp: 10, g: 0, a: 2, pts: 2, pim: 4 }
+      ],
+      forwards: [
+        { n: 9, name: 'Соловьёв Максим Александрович', gp: 14, g: 11, a: 9, pts: 20, pim: 6 },
+        { n: 10, name: 'Киселёв Андрей Владимирович', gp: 14, g: 8, a: 10, pts: 18, pim: 12 },
+        { n: 11, name: 'Ершов Дмитрий Евгеньевич', gp: 13, g: 7, a: 8, pts: 15, pim: 4 },
+        { n: 13, name: 'Панов Егор Михайлович', gp: 14, g: 6, a: 6, pts: 12, pim: 8 },
+        { n: 17, name: 'Абрамов Кирилл Васильевич', gp: 12, g: 5, a: 6, pts: 11, pim: 2 },
+        { n: 19, name: 'Сафонов Роман Юрьевич', gp: 14, g: 4, a: 5, pts: 9, pim: 14 },
+        { n: 21, name: 'Крылов Виктор Степанович', gp: 11, g: 3, a: 4, pts: 7, pim: 6 },
+        { n: 27, name: 'Дементьев Олег Борисович', gp: 13, g: 2, a: 3, pts: 5, pim: 10 },
+        { n: 88, name: 'Юдин Степан Романович', gp: 9, g: 1, a: 2, pts: 3, pim: 0 }
+      ],
+      reps: [
+        { role: 'Главный тренер', name: 'Богданов Валерий Петрович' },
+        { role: 'Представитель команды', name: 'Ильин Константин Сергеевич' },
+        { role: 'Администратор', name: 'Зайцев Роман Олегович' }
+      ]
+    };
+    this.flakes = [];
+    for (let i = 0; i < 22; i++) {
+      this.flakes.push({ l: Math.random() * 100, d: 8 + Math.random() * 9, dl: -(Math.random() * 14), s: 2 + Math.random() * 4, k: i % 2 ? 'fallA' : 'fallB' });
+    }
+    this.albumsData = [
+      { id: 'a1', t: 'Финал сезона 2025/26', n: 6 },
+      { id: 'a2', t: 'Матч звёзд — 2026', n: 6 },
+      { id: 'a3', t: 'Кубок открытия', n: 6 },
+      { id: 'a4', t: 'Детский фестиваль хоккея', n: 6 }
+    ];
+  }
+  componentDidMount() {
+    this._key = (e) => {
+      if (this.state.album == null) return;
+      if (e.key === 'Escape') this.setState({ album: null });
+      if (e.key === 'ArrowRight') this.stepSlide(1);
+      if (e.key === 'ArrowLeft') this.stepSlide(-1);
+    };
+    window.addEventListener('keydown', this._key);
+  }
+  componentWillUnmount() {
+    cancelAnimationFrame(this._raf);
+    window.removeEventListener('keydown', this._key);
+  }
+  stepSlide(dir) {
+    const a = this.albumsData[this.state.album];
+    if (!a) return;
+    this.setState({ slide: (this.state.slide + dir + a.n) % a.n });
+  }
+  renderVals() {
+    const st = this.state;
+    const spd = this.props.cameraSpeed ?? 1.0;
+    const Z = {
+      home: 'translateY(15vh) rotateX(63deg) rotateZ(0deg) scale(1.05)',
+      fed: 'translateY(21vh) rotateX(59deg) rotateZ(36deg) scale(1.34)',
+      champ: 'translateY(19vh) rotateX(61deg) rotateZ(-34deg) scale(1.28)',
+      media: 'translateY(25vh) rotateX(57deg) rotateZ(116deg) scale(1.18)',
+      partners: 'translateY(13vh) rotateX(65deg) rotateZ(-102deg) scale(1.12)'
+    };
+    const rigDyn = 'transform:translate(-50%,-50%) ' + Z[st.zone] + ';transition:transform ' + spd + 's cubic-bezier(.22,.9,.28,1)';
+    const on = 'visibility:visible;transform:translateY(0);transition:transform .5s cubic-bezier(.2,.8,.2,1) .28s,visibility 0s .28s';
+    const off = 'visibility:hidden;transform:translateY(36px);transition:transform .22s ease-in,visibility 0s .22s';
+    const zs = {}, navS = {}, go = {};
+    ['home', 'fed', 'champ', 'media', 'partners'].forEach((z) => {
+      zs[z] = st.zone === z ? on : off;
+      navS[z] = st.zone === z ? 'background:var(--chipStrong);color:var(--accbtn)' : '';
+      go[z] = () => this.setState({ zone: z });
+    });
+    go.champ = () => this.setState({ zone: 'champ', champDiv: null, teamIdx: null });
+    const tabOn = 'background:var(--chipStrong);color:var(--accbtn);border-color:var(--accbrd)';
+    const show = 'display:block;animation:tabIn .5s cubic-bezier(.2,.8,.2,1)';
+    const fts = {}, ftv = {}, fedGo = {};
+    ['org', 'lead', 'con'].forEach((t) => {
+      fts[t] = st.fedTab === t ? tabOn : '';
+      ftv[t] = st.fedTab === t ? show : '';
+      fedGo[t] = () => this.setState({ fedTab: t });
+    });
+    const mts = {}, mtv = {}, mediaGo = {};
+    ['photo', 'video'].forEach((t) => {
+      mts[t] = st.mediaTab === t ? tabOn : '';
+      mtv[t] = st.mediaTab === t ? show : '';
+      mediaGo[t] = () => this.setState({ mediaTab: t });
+    });
+    const matchesRaw = [
+      { date: '14 июл', time: '19:00', a: 'Ледокол', b: 'Кедр', div: 'Любитель', venue: 'Ледовая арена «Прибой»', score: '4:2', periods: '1:1 2:0 1:1' },
+      { date: '15 июл', time: '20:15', a: 'Тюменский Легион', b: 'Тура', div: 'Мастер', venue: 'СК «Партиком»', score: '3:3', periods: '1:1 1:1 1:1', ot: true },
+      { date: '19 июл', time: '20:00', a: 'Кристалл', b: 'Ямал', div: 'Мастер', venue: 'СК «Партиком»', score: '2:1', periods: '0:0 1:1 0:0', ot: true },
+      { date: '16 июл', time: '18:30', a: 'Сибирские Волки', b: 'Западная Сибирь', div: 'VIP', venue: 'Ледовая арена «Прибой»', score: '1:5', periods: '0:2 1:2 0:1' },
+      { date: '17 июл', time: '21:00', a: 'Ямал', b: 'Айсберг', div: 'Любитель', venue: 'СК «Партиком»', score: '3:2', periods: '0:0 1:1 1:1', so: true },
+      { date: '18 июл', time: '19:30', a: 'Нефтяник', b: 'Кристалл', div: 'Мастер', venue: 'Ледовая арена «Прибой»', score: '6:1', periods: '2:0 3:1 1:0' },
+      { date: '20 июл', time: '19:30', a: 'Ледокол', b: 'Кедр', div: 'Любитель', venue: 'Ледовая арена «Прибой»' },
+      { date: '21 июл', time: '20:00', a: 'Тюменский Легион', b: 'Тура', div: 'Мастер', venue: 'СК «Партиком»' },
+      { date: '23 июл', time: '21:15', a: 'Сибирские Волки', b: 'Западная Сибирь', div: 'VIP', venue: 'Ледовая арена «Прибой»' },
+      { date: '24 июл', time: '18:45', a: 'Ямал', b: 'Айсберг', div: 'Любитель', venue: 'СК «Партиком»' },
+      { date: '26 июл', time: '20:30', a: 'Нефтяник', b: 'Кристалл', div: 'Мастер', venue: 'Ледовая арена «Прибой»' }
+    ];
+    const matches = matchesRaw.map((m, i) => {
+      const played = !!m.score;
+      let aGoals = 0, bGoals = 0;
+      if (played) { const parts = m.score.split(':'); aGoals = +parts[0]; bGoals = +parts[1]; }
+      return {
+        ...m,
+        aSlot: 'home-m' + i + '-a', bSlot: 'home-m' + i + '-b',
+        aScore: played ? aGoals : '—', bScore: played ? bGoals : '—',
+        aColor: played && aGoals > bGoals ? 'var(--head)' : 'var(--muted)',
+        bColor: played && bGoals > aGoals ? 'var(--head)' : 'var(--muted)',
+        footer: played ? (m.periods + (m.ot ? ' · ОТ' : m.so ? ' · Б' : '')) : m.venue
+      };
+    });
+    const matchPageCount = Math.max(1, Math.ceil(matches.length / this.matchesPerPage));
+    const matchPage = Math.min(st.matchPage, matchPageCount - 1);
+    const matchTrack = 'transform:translateX(-' + (matchPage * this.matchesPerPage * this.matchCardStep) + 'px)';
+    const matchPrev = () => this.setState({ matchPage: Math.max(0, matchPage - 1) });
+    const matchNext = () => this.setState({ matchPage: Math.min(matchPageCount - 1, matchPage + 1) });
+    const newsRaw = [
+      { date: '15 июля 2026', title: 'Открыта регистрация команд на сезон 2026/27', text: 'Приём заявок во все три дивизиона продлится до 20 августа. Количество мест в дивизионе «Мастер» ограничено — рекомендуем подавать заявку заранее. Комиссия рассмотрит заявки в течение пяти рабочих дней и направит капитанам команд регламент, календарь предсезонных сборов и требования к форме и экипировке.' },
+      { date: '5 июля 2026', title: 'Летний кубок федерации: расписание опубликовано', text: 'Восемь команд сыграют по олимпийской системе. Финал — 2 августа на арене «Прибой».' },
+      { date: '28 июня 2026', title: 'Итоги финала дивизиона «Мастер»', text: '«Тюменский Легион» стал чемпионом города, победив в решающей серии со счётом 3:1.' },
+      { date: '20 июня 2026', title: 'Судейский семинар перед новым сезоном', text: 'Главная судейская коллегия провела аттестацию арбитров: разобрали изменения в регламенте, спорные эпизоды прошлого сезона и систему видеопросмотра моментов. По итогам семинара к обслуживанию матчей дивизиона «Мастер» допущены четыре новых судьи.' },
+      { date: '10 июня 2026', title: 'Детский фестиваль хоккея собрал 200 участников', text: 'На арене «Прибой» прошёл ежегодный фестиваль для юных хоккеистов 8–12 лет.' }
+    ];
+    const NEWS_LIMIT = 150;
+    const news = newsRaw.map((n, i) => {
+      const long = n.text.length > NEWS_LIMIT;
+      const isOpen = !!st.openNews[i];
+      return {
+        ...n,
+        preview: long && !isOpen ? n.text.slice(0, NEWS_LIMIT).trim() + '…' : n.text,
+        expandable: long,
+        toggleLabel: isOpen ? 'Свернуть' : 'Читать полностью',
+        toggle: () => this.setState({ openNews: { ...this.state.openNews, [i]: !this.state.openNews[i] } })
+      };
+    });
+    const leadership = [
+      { id: 'lead1', name: 'Савельев Андрей Викторович', role: 'Президент федерации' },
+      { id: 'lead2', name: 'Козлов Дмитрий Сергеевич', role: 'Вице-президент' },
+      { id: 'lead3', name: 'Никитина Елена Владимировна', role: 'Исполнительный директор' },
+      { id: 'lead4', name: 'Морозов Павел Александрович', role: 'Главный судья' },
+      { id: 'lead5', name: 'Гусев Игорь Николаевич', role: 'Руководитель дивизиона «Мастер»' },
+      { id: 'lead6', name: 'Фомин Олег Петрович', role: 'Руководитель дивизиона «Любитель»' },
+      { id: 'lead7', name: 'Царёв Максим Андреевич', role: 'Руководитель дивизиона «VIP»' }
+    ];
+    const cls = this.champData[st.champClass] || this.champData.master;
+    const curDiv = st.champDiv != null ? cls.divisions[st.champDiv] : null;
+    const team = curDiv && st.teamIdx != null ? curDiv.teams[st.teamIdx] : null;
+    const cv = {
+      list: st.champDiv == null ? show : '',
+      div: curDiv && !team ? show : '',
+      team: team ? show : ''
+    };
+    const divCards = cls.divisions.map((d, i) => ({
+      name: d.name, desc: d.desc, count: d.teams.length + ' команд',
+      logoBg: "background-image:url('" + encodeURI(cls.logo) + "')",
+      open: () => this.setState({ champDiv: i, champTab: 'table', teamIdx: null })
+    }));
+    const cts = {}, ctv = {}, champGo = {};
+    ['table', 'cal', 'teams', 'sdk', 'pol'].forEach((t) => {
+      cts[t] = st.champTab === t ? tabOn : '';
+      ctv[t] = st.champTab === t ? show : '';
+      champGo[t] = () => this.setState({ champTab: t });
+    });
+    let standings = [], calendar = [], teamCards = [], weekMatches = [];
+    if (curDiv) {
+      const n = curDiv.teams.length, gp = (n - 1) * 2;
+      standings = curDiv.teams.map((t, i) => {
+        const d = i % 3 === 1 ? 2 : i % 3, w = Math.max(0, gp - 2 - d - i * 2), l = gp - w - d;
+        return { pos: i + 1, name: t.name, slotId: t.id + '-logo', gp, w, d, l, sh: (44 - i * 4) + '–' + (20 + i * 3), pts: w * 2 + d };
+      });
+      const times = ['19:30', '20:15', '21:00', '18:45'];
+      const arenas = ['Ледовая арена «Прибой»', 'СК «Партиком»'];
+      const scores = ['4:2', '3:1', '2:5', '6:3'];
+      const mkMatch = (i, off, played, tag, date) => {
+        const ta = curDiv.teams[i % n], tb = curDiv.teams[(i + off) % n];
+        return { date, time: times[i % 4], venue: arenas[i % 2], tag,
+          a: ta.name, b: tb.name, aSlot: ta.id + '-logo', bSlot: tb.id + '-logo',
+          score: played ? scores[i % 4] : '—:—' };
+      };
+      const d1 = ['14 сен', '21 сен', '28 сен', '5 окт', '12 окт', '19 окт', '26 окт', '2 ноя'];
+      const d2 = ['16 ноя', '23 ноя', '30 ноя', '7 дек', '14 дек', '21 дек', '11 янв', '18 янв'];
+      const d3 = ['8 фев', '9 фев', '22 фев', '23 фев', '7 мар'];
+      const c1 = d1.map((dt, i) => mkMatch(i, 3, true, 'Круг 1', dt));
+      const c2 = d2.map((dt, i) => mkMatch(i, 5, i < 4, 'Круг 2', dt));
+      const po = [mkMatch(0, 3, false, '1/4 финала', d3[0]), mkMatch(1, 3, false, '1/4 финала', d3[1]), mkMatch(0, 1, false, '1/2 финала', d3[2]), mkMatch(2, 1, false, '1/2 финала', d3[3]), mkMatch(0, 2, false, 'Финал', d3[4])];
+      calendar = [...c1, ...c2, ...po];
+      weekMatches = [mkMatch(4, 5, false, '', '20 июл'), mkMatch(5, 5, false, '', '22 июл'), mkMatch(6, 5, false, '', '25 июл')];
+      teamCards = curDiv.teams.map((t, i) => ({ name: t.name, slotId: t.id + '-logo', open: () => this.setState({ teamIdx: i }) }));
+    }
+    const pf = (p) => ({ ...p, slotId: (team ? team.id : 'x') + '-pl-' + p.n });
+    const champVals = {
+      cv, divCards, cts, ctv, champGo, standings, calendar, weekMatches, teamCards,
+      champTitle: cls.title, champLongTitle: cls.longTitle, divName: curDiv ? curDiv.name : '',
+      teamName: team ? team.name : '', teamSlotId: team ? team.id + '-logo' : 'no-team',
+      jerseyHome: team ? team.id + '-jr-home' : 'no-jr-h', jerseyAway: team ? team.id + '-jr-away' : 'no-jr-a',
+      backToList: () => this.setState({ champDiv: null, teamIdx: null }),
+      backToDiv: () => this.setState({ teamIdx: null }),
+      seasonLabel: 'Сезон ' + st.season,
+      setSeason: {
+        s0: () => this.setState({ season: '2025/26', menu: null }),
+        s1: () => this.setState({ season: '2024/25', menu: null }),
+        s2: () => this.setState({ season: '2023/24', menu: null })
+      },
+      goalies: this.roster.goalies.map(pf), defenders: this.roster.defenders.map(pf), forwards: this.roster.forwards.map(pf), reps: this.roster.reps
+    };
+    const videos = [
+      { t: 'Обзор финала дивизиона «Мастер» 2025/26' },
+      { t: 'Матч звёзд — 2026: лучшие моменты' },
+      { t: 'Детский фестиваль хоккея. Репортаж' },
+      { t: 'Как вступить в чемпионат: инструкция' }
+    ];
+    const albums = this.albumsData.map((a, i) => ({ ...a, cover: a.id + '-cover', open: () => this.setState({ album: i, slide: 0 }) }));
+    const alb = st.album != null ? this.albumsData[st.album] : null;
+    const carouselPhotos = alb ? Array.from({ length: alb.n }, (_, i) => ({ id: alb.id + '-p' + (i + 1), cap: 'Фото ' + (i + 1) + ' — перетащите сюда' })) : [];
+    const particles = (this.props.snowfall ?? true) ? React.createElement('div', { style: { position: 'absolute', inset: 0 } },
+      this.flakes.map((f, i) => React.createElement('span', {
+        key: i,
+        style: { position: 'absolute', top: '-12px', left: f.l + '%', width: f.s + 'px', height: f.s + 'px', borderRadius: '50%', background: 'var(--flake)', animation: f.k + ' ' + f.d + 's linear ' + f.dl + 's infinite' }
+      }))) : null;
+    return {
+      rigDyn, zs, navS, go, fts, ftv, fedGo, mts, mtv, mediaGo,
+      navBarS: st.zone === 'home' ? 'transform:translateY(-105%)' : '',
+      menus: ['fed', 'champ', 'media', 'hfed', 'hchamp', 'hmedia', 'season'].reduce((acc, key) => {
+        acc[key] = {
+          enter: () => this.setState({ menu: key }),
+          leave: () => this.setState(s => s.menu === key ? { menu: null } : null),
+          vis: st.menu === key ? 'visibility:visible;animation:menuIn .22s cubic-bezier(.2,.8,.2,1)' : ''
+        };
+        return acc;
+      }, {}),
+      goSub: {
+        fedOrg: () => this.setState({ zone: 'fed', fedTab: 'org', menu: null }),
+        fedLead: () => this.setState({ zone: 'fed', fedTab: 'lead', menu: null }),
+        fedCon: () => this.setState({ zone: 'fed', fedTab: 'con', menu: null }),
+        ch0: () => this.setState({ zone: 'champ', champClass: 'master', champDiv: null, teamIdx: null, menu: null }),
+        ch1: () => this.setState({ zone: 'champ', champClass: 'lubitel', champDiv: null, teamIdx: null, menu: null }),
+        ch2: () => this.setState({ zone: 'champ', champClass: 'vip', champDiv: null, teamIdx: null, menu: null }),
+        mPhoto: () => this.setState({ zone: 'media', mediaTab: 'photo', menu: null }),
+        mVideo: () => this.setState({ zone: 'media', mediaTab: 'video', menu: null })
+      },
+      fedTabTitle: { org: 'Организация', lead: 'Руководство', con: 'Контакты' }[st.fedTab],
+      mediaTabTitle: { photo: 'Фотоальбомы', video: 'Видео' }[st.mediaTab],
+      matches, matchTrack, matchPrev, matchNext, news, leadership, videos, albums, carouselPhotos, particles, ...champVals,
+      sceneVis: this.props.showScene === false ? 'visibility:hidden' : '',
+      carVis: alb ? 'visibility:visible' : '',
+      carTitle: alb ? alb.t : '',
+      carCounter: alb ? (st.slide + 1) + ' / ' + alb.n : '',
+      carTrack: 'transform:translateX(-' + st.slide * 100 + '%)',
+      carClose: () => this.setState({ album: null }),
+      carPrev: () => this.stepSlide(-1),
+      carNext: () => this.stepSlide(1)
+    };
+  }
+}
+</script>
+</body>
+</html>

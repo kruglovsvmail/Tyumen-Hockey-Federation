@@ -1,0 +1,91 @@
+.site-footer {
+  position: relative;
+  margin-top: auto;
+  padding: 32px 40px 20px;
+  background: var(--navbg);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border-top: 1px solid var(--navbrd);
+}
+
+.site-footer__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.site-footer__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 36px;
+  align-items: flex-start;
+}
+
+.site-footer__brand-col {
+  flex: 1.4;
+  min-width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.site-footer__brand { display: flex; align-items: center; gap: 14px; }
+.site-footer__logo { width: 54px; height: 54px; }
+.site-footer__brand-text { display: flex; flex-direction: column; gap: 2px; }
+.site-footer__brand-sub {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.site-footer__contacts { display: flex; flex-direction: column; gap: 8px; }
+.site-footer__contacts a { font-size: 13.5px; font-weight: 600; }
+.site-footer__vk { font-weight: 700 !important; color: var(--acc) !important; }
+
+.site-footer__col {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.site-footer__col-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--acc);
+}
+.site-footer__link {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--body1) !important;
+}
+.site-footer__link:hover { color: var(--acc) !important; }
+
+.site-footer__bottom {
+  padding-top: 16px;
+  border-top: 1px solid var(--divider);
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.site-footer__admin-btn {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.site-footer__admin-btn:hover {
+  color: var(--acc);
+}

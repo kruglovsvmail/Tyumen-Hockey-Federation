@@ -1,0 +1,139 @@
+/* Общие стили для всех модалок сайта (вход админа, форма сотрудника, подтверждение удаления) */
+
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--overlay, rgba(18, 49, 74, .35));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.admin-modal {
+  width: 100%;
+  max-width: 340px;
+  padding: 26px;
+  border-radius: 22px;
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border: 1px solid var(--glassbrd);
+  box-shadow: var(--pshadow);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Модалки с большим текстом (описание, новости) — шире и с местом под длинный текст */
+.admin-modal--wide {
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.admin-modal__textarea-large {
+  min-height: 320px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.admin-modal__title {
+  font-size: 18px;
+  color: var(--head);
+}
+
+.admin-modal__message {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--body2);
+}
+
+.admin-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-modal__input {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--inner);
+  border: 1px solid var(--innerbrd);
+  color: var(--body1);
+}
+.admin-modal__input:focus {
+  outline: none;
+  border-color: var(--accbrd);
+}
+
+.admin-modal__error {
+  font-size: 13px;
+  color: #dc2626;
+}
+
+.admin-modal__buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.admin-modal__cancel {
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 12px 16px;
+  border-radius: 999px;
+  background: none;
+  border: 1px solid var(--accbrd);
+  color: var(--navtext);
+  cursor: pointer;
+}
+.admin-modal__cancel:hover {
+  background: var(--chip);
+}
+
+.admin-modal__submit {
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 12px 16px;
+  border-radius: 999px;
+  border: none;
+  background: var(--acc);
+  color: #fff;
+  cursor: pointer;
+  transition: background .3s;
+}
+.admin-modal__submit:hover {
+  background: var(--accbtn);
+}
+.admin-modal__submit:disabled {
+  opacity: .6;
+  cursor: default;
+}
+.admin-modal__submit--danger {
+  background: #dc2626;
+}
+.admin-modal__submit--danger:hover {
+  background: #b91c1c;
+}
+
+/* Кнопка-обёртка над скрытым <input type="file">, общая для всех форм с загрузкой файла */
+.admin-modal__file-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px dashed var(--accbrd);
+  background: var(--chip);
+  color: var(--acc);
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  text-align: center;
+}

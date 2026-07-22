@@ -1,0 +1,201 @@
+.org-stats {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+.org-stats__edit {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  z-index: 1;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--accbrd);
+  background: var(--navbg);
+  color: var(--navtext);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+}
+.org-stats__edit:hover {
+  background: var(--chip);
+  color: var(--acc);
+}
+.org-stats__item {
+  padding: 20px;
+  border-radius: 20px;
+  background: var(--glass);
+  backdrop-filter: blur(12px) saturate(1.7);
+  -webkit-backdrop-filter: blur(12px) saturate(1.7);
+  border: 1px solid var(--glassbrd);
+  box-shadow: var(--pshadow2);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.org-stats__value {
+  font-size: 28px;
+  color: var(--accnum);
+}
+.org-stats__label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--label);
+}
+
+.org-description {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.org-description__edit {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--accbrd);
+  background: var(--navbg);
+  color: var(--navtext);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+}
+.org-description__edit:hover {
+  background: var(--chip);
+  color: var(--acc);
+}
+.org-description__title {
+  font-size: 20px;
+  color: var(--head);
+  line-height: 1.3;
+}
+.org-description__paragraph {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--body2);
+}
+
+.documents-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+@media (max-width: 900px) {
+  .documents-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .documents-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 420px) {
+  .documents-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.document-card {
+  position: relative;
+  cursor: pointer;
+  padding: 20px;
+  border-radius: 20px;
+  background: var(--glass);
+  backdrop-filter: blur(12px) saturate(1.7);
+  -webkit-backdrop-filter: blur(12px) saturate(1.7);
+  border: 1px solid var(--glassbrd);
+  box-shadow: var(--pshadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  transition: border-color .25s;
+}
+.document-card:hover,
+.document-card:focus-visible {
+  border-color: var(--accbrd);
+  outline: none;
+}
+
+.document-card__actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+}
+.document-card__action {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--accbrd);
+  background: var(--navbg);
+  color: var(--navtext);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+}
+.document-card__action:hover {
+  background: var(--chip);
+  color: var(--acc);
+}
+.document-card__action--danger:hover {
+  background: #fde2e2;
+  color: #dc2626;
+}
+
+.document-card__icon {
+  width: 60px;
+  height: 60px;
+  filter: drop-shadow(0 4px 10px rgba(85, 125, 170, .18));
+}
+
+.document-card__title {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--head);
+  line-height: 1.3;
+}
+
+.document-add-card {
+  min-height: 140px;
+  border-radius: 20px;
+  border: 1px dashed var(--accbrd);
+  background: var(--chip);
+  color: var(--acc);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .25s;
+}
+.document-add-card:hover {
+  background: var(--chipStrong);
+}
