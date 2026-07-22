@@ -62,18 +62,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-const startServer = async () => {
-  try {
-    const res = await tfhPool.query('SELECT NOW()');
-    console.log('PostgreSQL (TFH) connected:', res.rows[0].now);
+// Порт открываем сразу, не дожидаясь БД — /api/health в неё не ходит, и healthcheck
+// платформы не должен зависеть от того, насколько быстро/медленно отвечает Postgres.
+// Проверка соединения — фоновая, только для лога.
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  } catch (err) {
-    console.error('Failed to start server:', err);
-    process.exit(1);
-  }
-};
-
-startServer();
+tfhPool.query('SELECT NOW()')
+  .then((res) => console.log('PostgreSQL (TFH) connected:', res.rows[0].now))
+  .catch((err) => console.error('PostgreSQL (TFH) connection check failed:', err.message));
