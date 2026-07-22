@@ -124,22 +124,19 @@
 }
 .hero__pills {
   display: flex;
-  gap: 24px;
+  gap: 20px 40px;
   flex-wrap: wrap;
   justify-content: center;
 }
 .hero__pill-link {
   cursor: pointer;
   font-family: 'Aire Exterior', 'Russo One', sans-serif;
-  font-size: 18px;
+  font-size: 32px;
   letter-spacing: 2.5px;
   text-transform: uppercase;
-  padding: 10px 30px;
-  border-radius: 999px;
   color: var(--acc) !important;
-  border: 1px solid var(--accbrd);
-  background: var(--glass);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: var(--pshadow2);
+  transition: opacity .25s;
+}
+.hero__pill-link:hover {
+  opacity: .75;
 }
