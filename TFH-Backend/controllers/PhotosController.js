@@ -1,16 +1,10 @@
-import fs from 'fs/promises';
-import path from 'path';
-import crypto from 'crypto';
-import { fileURLToPath } from 'url';
 import { tfhPool } from '../config/db.js';
 import { processGalleryPhoto } from '../utils/imageProcessor.js';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PHOTOS_DIR = path.resolve(__dirname, '../../TFH-Frontend/public/image/gallery');
+import { uploadBuffer, deleteObject, publicS3Url } from '../utils/s3Storage.js';
 
 const toDto = (row) => ({
   id: row.id,
-  url: `/image/gallery/${row.filename}`,
+  url: publicS3Url(row.filename),
 });
 
 export const getAlbumPhotos = async (req, res) => {
@@ -45,17 +39,14 @@ export const addAlbumPhotos = async (req, res) => {
     return res.status(400).json({ message: 'Выберите хотя бы один файл' });
   }
 
-  await fs.mkdir(PHOTOS_DIR, { recursive: true });
-
   const inserted = [];
   for (const file of files) {
     const buffer = await processGalleryPhoto(file.buffer);
-    const filename = `${crypto.randomUUID()}.webp`;
-    await fs.writeFile(path.join(PHOTOS_DIR, filename), buffer);
+    const key = await uploadBuffer(buffer, 'gallery');
 
     const { rows } = await tfhPool.query(
       'INSERT INTO photos (album_id, filename) VALUES ($1, $2) RETURNING *',
-      [albumId, filename]
+      [albumId, key]
     );
     inserted.push(toDto(rows[0]));
   }
@@ -74,7 +65,7 @@ export const deleteAlbumPhoto = async (req, res) => {
     return res.status(404).json({ message: 'Фото не найдено' });
   }
 
-  await fs.unlink(path.join(PHOTOS_DIR, rows[0].filename)).catch(() => {});
+  await deleteObject(rows[0].filename);
 
   res.status(204).send();
 };

@@ -1,33 +1,13 @@
-import fs from 'fs/promises';
-import path from 'path';
-import crypto from 'crypto';
-import { fileURLToPath } from 'url';
 import { tfhPool } from '../config/db.js';
 import { processAlbumCover } from '../utils/imageProcessor.js';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const COVERS_DIR = path.resolve(__dirname, '../../TFH-Frontend/public/image/albums');
-const PHOTOS_DIR = path.resolve(__dirname, '../../TFH-Frontend/public/image/gallery');
+import { uploadBuffer, deleteObject, publicS3Url } from '../utils/s3Storage.js';
 
 const toDto = (row) => ({
   id: row.id,
   title: row.title,
-  coverUrl: row.cover_filename ? `/image/albums/${row.cover_filename}` : null,
+  coverUrl: publicS3Url(row.cover_filename),
   photoCount: Number(row.photo_count) || 0,
 });
-
-const saveCover = async (file) => {
-  const buffer = await processAlbumCover(file.buffer);
-  const filename = `${crypto.randomUUID()}.webp`;
-  await fs.mkdir(COVERS_DIR, { recursive: true });
-  await fs.writeFile(path.join(COVERS_DIR, filename), buffer);
-  return filename;
-};
-
-const deleteCover = async (filename) => {
-  if (!filename) return;
-  await fs.unlink(path.join(COVERS_DIR, filename)).catch(() => {});
-};
 
 export const getAlbums = async (req, res) => {
   const { rows } = await tfhPool.query(`
@@ -46,11 +26,15 @@ export const createAlbum = async (req, res) => {
     return res.status(400).json({ message: 'Укажите название альбома' });
   }
 
-  const filename = req.file ? await saveCover(req.file) : null;
+  let key = null;
+  if (req.file) {
+    const buffer = await processAlbumCover(req.file.buffer);
+    key = await uploadBuffer(buffer, 'albums');
+  }
 
   const { rows } = await tfhPool.query(
     'INSERT INTO photo_albums (title, cover_filename) VALUES ($1, $2) RETURNING *, 0 AS photo_count',
-    [title, filename]
+    [title, key]
   );
 
   res.status(201).json({ album: toDto(rows[0]) });
@@ -66,16 +50,17 @@ export const updateAlbum = async (req, res) => {
     return res.status(404).json({ message: 'Альбом не найден' });
   }
 
-  let filename = existing.cover_filename;
+  let key = existing.cover_filename;
   if (req.file) {
-    filename = await saveCover(req.file);
-    await deleteCover(existing.cover_filename);
+    const buffer = await processAlbumCover(req.file.buffer);
+    key = await uploadBuffer(buffer, 'albums');
+    await deleteObject(existing.cover_filename);
   }
 
   const { rows } = await tfhPool.query(
     `UPDATE photo_albums SET title = $1, cover_filename = $2 WHERE id = $3
      RETURNING *, (SELECT COUNT(*)::int FROM photos WHERE album_id = $3) AS photo_count`,
-    [title || existing.title, filename, id]
+    [title || existing.title, key, id]
   );
 
   res.json({ album: toDto(rows[0]) });
@@ -94,8 +79,8 @@ export const deleteAlbum = async (req, res) => {
 
   await tfhPool.query('DELETE FROM photo_albums WHERE id = $1', [id]); // photos удалятся каскадом
 
-  await Promise.all(photoRows.map((p) => fs.unlink(path.join(PHOTOS_DIR, p.filename)).catch(() => {})));
-  await deleteCover(album.cover_filename);
+  await Promise.all(photoRows.map((p) => deleteObject(p.filename)));
+  await deleteObject(album.cover_filename);
 
   res.status(204).send();
 };

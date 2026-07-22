@@ -24,16 +24,3 @@ Thumbs.db
 # Исходник дизайна (Claude Design), только локально
 Сайт Федерации Хоккея Тюмени.zip
 
-# Загруженные через админку фото/логотипы — не исходники, в репозиторий не нужны
-TFH-Frontend/public/image/avatars/*
-!TFH-Frontend/public/image/avatars/.gitkeep
-TFH-Frontend/public/image/partners/*
-!TFH-Frontend/public/image/partners/.gitkeep
-TFH-Frontend/public/image/news/*
-!TFH-Frontend/public/image/news/.gitkeep
-TFH-Frontend/public/files/documents/*
-!TFH-Frontend/public/files/documents/.gitkeep
-TFH-Frontend/public/image/albums/*
-!TFH-Frontend/public/image/albums/.gitkeep
-TFH-Frontend/public/image/gallery/*
-!TFH-Frontend/public/image/gallery/.gitkeep
