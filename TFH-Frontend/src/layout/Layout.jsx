@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom';
-import Background from './Background.jsx';
+import Background from './Background3D.jsx';
 import Header from './Header.jsx';
 import Footer from './Footer.jsx';
 import { zoneForPath } from '../data/navigation.js';
