@@ -15,6 +15,7 @@
 .page-heading__title {
   margin: 0;
   font-size: 36px;
+  text-transform: uppercase;
   color: var(--head);
 }
 .page-heading__subtitle {
@@ -124,7 +125,7 @@
 }
 .hero__pills {
   display: flex;
-  gap: 20px 40px;
+  gap: 8px 24px;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -134,9 +135,12 @@
   font-size: 32px;
   letter-spacing: 2.5px;
   text-transform: uppercase;
+  padding: 8px 20px;
+  border-radius: 14px;
   color: var(--acc) !important;
-  transition: opacity .25s;
+  background: transparent;
+  transition: background .3s;
 }
 .hero__pill-link:hover {
-  opacity: .75;
+  background: var(--chip);
 }

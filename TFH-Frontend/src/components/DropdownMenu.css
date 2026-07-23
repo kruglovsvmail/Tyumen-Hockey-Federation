@@ -4,6 +4,7 @@
   cursor: default;
   font-weight: 700;
   font-size: 14px;
+  text-transform: uppercase;
   padding: 9px 16px;
   border-radius: 999px;
   color: var(--navtext);
@@ -17,11 +18,14 @@
   font-size: 32px;
   letter-spacing: 2.5px;
   text-transform: uppercase;
+  padding: 8px 20px;
+  border-radius: 14px;
   color: var(--acc);
-  transition: opacity .25s;
+  background: transparent;
+  transition: background .3s;
 }
-.dropdown:hover .dropdown__trigger--hero {
-  opacity: .75;
+.dropdown__trigger--hero:hover {
+  background: var(--chip);
 }
 
 .dropdown__panel {
@@ -57,6 +61,7 @@
   cursor: pointer;
   font-weight: 700;
   font-size: 13.5px;
+  text-transform: uppercase;
   padding: 10px 14px;
   border-radius: 10px;
   color: var(--navtext) !important;

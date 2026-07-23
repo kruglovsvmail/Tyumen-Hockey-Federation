@@ -19,7 +19,7 @@ export const NAV = [
       {
         label: 'Дивизионы «Мастер»',
         to: '/divizion-master',
-        pageTitle: 'ЧЕМПИОНАТ ПО ХОККЕЮ С ШАЙБОЙ СРЕДИ КОМАНД БЕЗ ОГРАНИЧЕНИЯ МАСТЕРСТВА ПО ХОККЕЙНОЙ ПОДГОТОВКЕ СТАРШЕ ВОСЕМНАДЦАТИ ЛЕТ',
+        pageTitle: 'ГОРОДСКОЙ ЧЕМПИОНАТ ПО ХОККЕЮ С ШАЙБОЙ СРЕДИ КОМАНД БЕЗ ОГРАНИЧЕНИЯ МАСТЕРСТВА ПО ХОККЕЙНОЙ ПОДГОТОВКЕ СТАРШЕ ВОСЕМНАДЦАТИ ЛЕТ',
         // group — какие divisions.classification из общей БД показывать (см. TFH-Backend/controllers/ChampionshipController.js)
         group: 'master',
       },

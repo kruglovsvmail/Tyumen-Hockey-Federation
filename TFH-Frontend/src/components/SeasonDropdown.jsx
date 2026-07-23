@@ -19,7 +19,7 @@ export default function SeasonDropdown({ seasons, value, onChange }) {
   return (
     <div className="season-dropdown" ref={rootRef}>
       <button type="button" className="season-dropdown__trigger" onClick={() => setOpen((v) => !v)}>
-        {current ? current.name : 'Сезон'} ▾
+        Сезон {current ? current.name : ''} ▾
       </button>
       {open && (
         <div className="season-dropdown__panel">

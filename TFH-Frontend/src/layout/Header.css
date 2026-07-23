@@ -58,6 +58,7 @@
 .site-header__link {
   font-weight: 700;
   font-size: 14px;
+  text-transform: uppercase;
   padding: 9px 16px;
   border-radius: 999px;
   color: var(--navtext) !important;
