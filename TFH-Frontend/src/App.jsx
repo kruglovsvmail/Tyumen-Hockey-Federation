@@ -8,6 +8,8 @@ import ContactsPage from './pages/ContactsPage.jsx';
 import LeadershipPage from './pages/LeadershipPage.jsx';
 import PartnershipPage from './pages/PartnershipPage.jsx';
 import OrganizationPage from './pages/OrganizationPage.jsx';
+import ApplicationDocumentsPage from './pages/ApplicationDocumentsPage.jsx';
+import TournamentsPage from './pages/TournamentsPage.jsx';
 import VideoPage from './pages/VideoPage.jsx';
 import PhotoAlbumsPage from './pages/PhotoAlbumsPage.jsx';
 import AlbumDetailPage from './pages/AlbumDetailPage.jsx';
@@ -29,6 +31,8 @@ const CUSTOM_PAGES = {
   '/sotrudnichestvo': PartnershipPage,
   '/video': VideoPage,
   '/foto': PhotoAlbumsPage,
+  '/zayavochnaya-dokumentatsiya': ApplicationDocumentsPage,
+  '/turniry': TournamentsPage,
 };
 
 function App() {

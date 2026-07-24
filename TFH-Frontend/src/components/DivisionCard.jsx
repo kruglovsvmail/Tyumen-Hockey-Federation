@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useClampOverflow } from '../hooks/useClampOverflow.js';
 
-export default function DivisionCard({ division }) {
+export default function DivisionCard({ division, labelWord = 'Дивизион' }) {
   const [expanded, setExpanded] = useState(false);
   const description = division.description || '';
   const { ref: descRef, isTruncated } = useClampOverflow(description, expanded);
@@ -15,7 +15,7 @@ export default function DivisionCard({ division }) {
           <div className="division-card__logo division-card__logo--placeholder" />
         )}
         <div className="division-card__titles">
-          <div className="division-card__name">Дивизион {division.name}</div>
+          <div className="division-card__name">{labelWord} {division.name}</div>
           {description && (
             <>
               <div

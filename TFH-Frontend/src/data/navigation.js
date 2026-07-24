@@ -35,7 +35,18 @@ export const NAV = [
         pageTitle: 'ГОРОДСКОЙ ЧЕМПИОНАТ ПО ХОККЕЮ С ШАЙБОЙ СРЕДИ VIP КОМАНД СТАРШЕ ТРИДЦАТИ ПЯТИ ЛЕТ',
         group: 'vip',
       },
+      {
+        label: 'Заявочная документация',
+        to: '/zayavochnaya-dokumentatsiya',
+        pageTitle: 'ЗАЯВОЧНАЯ ДОКУМЕНТАЦИЯ',
+        zoneKey: 'docs',
+      },
     ],
+  },
+  {
+    key: 'tournaments',
+    label: 'Турниры',
+    to: '/turniry',
   },
   {
     key: 'media',

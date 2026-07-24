@@ -147,6 +147,20 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.news-item__birthday-list {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.news-item__birthday-list li {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--head);
+}
+
 .news-item__toggle {
   align-self: flex-start;
   font-family: inherit;

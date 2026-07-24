@@ -2,8 +2,9 @@ import { tfhPool } from '../config/db.js';
 import { processNewsImage } from '../utils/imageProcessor.js';
 import { uploadBuffer, deleteObject, publicS3Url } from '../utils/s3Storage.js';
 
-// Лента на главной показывает только 5 последних новостей — раздела "архив всех новостей" нет
-const FEED_LIMIT = 5;
+// Лента на главной показывает только 2 последние новости (не считая виртуального блока
+// поздравления с ДР, см. BirthdaysController.js) — раздела "архив всех новостей" нет
+const FEED_LIMIT = 2;
 
 const toDto = (row) => ({
   id: row.id,

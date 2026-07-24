@@ -3,17 +3,19 @@ import { apiGet, apiDelete } from '../api/client.js';
 import { useAdmin } from '../context/AdminContext.jsx';
 import Loader from './Loader.jsx';
 import NewsItem from './NewsItem.jsx';
+import BirthdayNewsItem from './BirthdayNewsItem.jsx';
 import NewsFormModal from './NewsFormModal.jsx';
 import ConfirmDialog from './ConfirmDialog.jsx';
 import './NewsPanel.css';
 
-const FEED_LIMIT = 5;
+const FEED_LIMIT = 2;
 
 export default function NewsPanel() {
   const { isAdmin, token } = useAdmin();
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [birthday, setBirthday] = useState(null); // не блокирует ленту при ошибке — просто не показываем блок
 
   const [editingItem, setEditingItem] = useState(null); // null — закрыто, {} — создание, {...} — редактирование
   const [deletingItem, setDeletingItem] = useState(null);
@@ -24,7 +26,13 @@ export default function NewsPanel() {
       .then((data) => setNews(data.news))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+
+    apiGet('/api/birthdays/today')
+      .then((data) => setBirthday(data))
+      .catch(() => {});
   }, []);
+
+  const hasBirthday = Boolean(birthday?.users?.length);
 
   const handleSaved = (savedItem) => {
     setNews((prev) => {
@@ -59,10 +67,15 @@ export default function NewsPanel() {
 
       {error && <p className="news-panel__message">Не удалось загрузить новости: {error}</p>}
       {!error && loading && <Loader />}
-      {!error && !loading && news.length === 0 && <p className="news-panel__message">Пока новостей нет.</p>}
+      {!error && !loading && !hasBirthday && news.length === 0 && (
+        <p className="news-panel__message">Пока новостей нет.</p>
+      )}
 
-      {!error && !loading && news.length > 0 && (
+      {!error && !loading && (hasBirthday || news.length > 0) && (
         <div className="news-panel__list">
+          {hasBirthday && (
+            <BirthdayNewsItem date={birthday.date} greeting={birthday.greeting} users={birthday.users} />
+          )}
           {news.map((item) => (
             <NewsItem
               key={item.id}

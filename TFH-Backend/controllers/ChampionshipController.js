@@ -60,6 +60,7 @@ export const getDivisions = async (req, res) => {
      WHERE d.season_id = $1
        AND d.classification = ANY($2::text[])
        AND d.is_published = true
+       AND d.is_tournament IS NOT TRUE
      GROUP BY d.id
      ORDER BY d.id`,
     [seasonId, classifications]
@@ -67,6 +68,53 @@ export const getDivisions = async (req, res) => {
 
   res.json({
     divisions: rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      shortName: r.short_name,
+      logoUrl: r.logo_url,
+      description: r.description,
+      classification: r.classification,
+      teamCount: Number(r.team_count),
+      playerCount: Number(r.player_count),
+    })),
+  });
+};
+
+// "Турниры" — отдельный плоский раздел (без разбивки по classification, в отличие от
+// "Чемпионата"): сюда попадают дивизионы с divisions.is_tournament = true — по сути та же
+// сущность в БД, просто с другим отображаемым названием и другим местом на сайте.
+export const getTournaments = async (req, res) => {
+  const { seasonId } = req.query;
+
+  if (!seasonId) {
+    return res.status(400).json({ message: 'Не передан seasonId' });
+  }
+
+  const { rows } = await sharedPool.query(
+    `SELECT
+       d.id,
+       d.name,
+       d.short_name,
+       d.logo_url,
+       d.description,
+       d.classification,
+       COUNT(DISTINCT tt.id) FILTER (WHERE tt.status = 'approved') AS team_count,
+       COUNT(DISTINCT tr.player_id) FILTER (
+         WHERE tt.status = 'approved' AND tr.application_status = 'approved' AND tr.period_end IS NULL
+       ) AS player_count
+     FROM divisions d
+     LEFT JOIN tournament_teams tt ON tt.division_id = d.id
+     LEFT JOIN tournament_rosters tr ON tr.tournament_team_id = tt.id
+     WHERE d.season_id = $1
+       AND d.is_tournament = true
+       AND d.is_published = true
+     GROUP BY d.id
+     ORDER BY d.id`,
+    [seasonId]
+  );
+
+  res.json({
+    tournaments: rows.map((r) => ({
       id: r.id,
       name: r.name,
       shortName: r.short_name,
