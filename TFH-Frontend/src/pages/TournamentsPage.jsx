@@ -57,7 +57,7 @@ export default function TournamentsPage({ title }) {
       {!error && !loading && tournaments.length > 0 && (
         <div className="divisions-grid">
           {tournaments.map((t) => (
-            <DivisionCard key={t.id} division={t} labelWord="Турнир" />
+            <DivisionCard key={t.id} division={t} labelWord="" />
           ))}
         </div>
       )}
