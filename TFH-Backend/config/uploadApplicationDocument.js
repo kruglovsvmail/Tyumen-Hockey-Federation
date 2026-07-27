@@ -1,8 +1,8 @@
 import multer from 'multer';
 
 // Два разных файла в одном блоке: sampleImage — фото/скан заполненного образца
-// (картинка, открывается для просмотра), formFile — пустой бланк для скачивания (PDF).
-// Тип проверяем по имени поля, а не общим списком мимтайпов на весь роут.
+// (картинка, открывается для просмотра), formFile — пустой бланк для скачивания
+// (любой формат: PDF, изображение, Word, Excel и т.п. — ограничений по типу нет).
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
@@ -11,7 +11,7 @@ const fileFilter = (req, file, cb) => {
     return allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error('INVALID_FILE_TYPE'), false);
   }
   if (file.fieldname === 'formFile') {
-    return file.mimetype === 'application/pdf' ? cb(null, true) : cb(new Error('INVALID_FILE_TYPE'), false);
+    return cb(null, true);
   }
   cb(new Error('INVALID_FIELD'), false);
 };

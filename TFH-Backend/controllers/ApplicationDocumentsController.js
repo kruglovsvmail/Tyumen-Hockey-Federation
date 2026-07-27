@@ -1,3 +1,4 @@
+import path from 'path';
 import { tfhPool } from '../config/db.js';
 import { uploadBuffer, deleteObject, publicS3Url } from '../utils/s3Storage.js';
 
@@ -12,6 +13,13 @@ const extFromImageMime = (mimetype) => {
   if (mimetype === 'image/png') return 'png';
   if (mimetype === 'image/webp') return 'webp';
   return 'jpg';
+};
+
+// Бланк может быть любого формата — расширение берём из исходного имени файла,
+// чтобы после скачивания у него было корректное .docx/.xlsx/.jpg и т.п.
+const extFromOriginalName = (originalname) => {
+  const ext = path.extname(originalname || '').replace('.', '').toLowerCase();
+  return ext || 'bin';
 };
 
 export const getApplicationDocuments = async (req, res) => {
@@ -31,7 +39,7 @@ export const createApplicationDocument = async (req, res) => {
     return res.status(400).json({ message: 'Прикрепите фото заполненного образца' });
   }
   if (!formFile) {
-    return res.status(400).json({ message: 'Прикрепите файл бланка (PDF)' });
+    return res.status(400).json({ message: 'Прикрепите файл бланка' });
   }
 
   const sampleKey = await uploadBuffer(sampleImage.buffer, 'application-documents/samples', {
@@ -39,8 +47,8 @@ export const createApplicationDocument = async (req, res) => {
     extension: extFromImageMime(sampleImage.mimetype),
   });
   const formKey = await uploadBuffer(formFile.buffer, 'application-documents/forms', {
-    contentType: 'application/pdf',
-    extension: 'pdf',
+    contentType: formFile.mimetype || 'application/octet-stream',
+    extension: extFromOriginalName(formFile.originalname),
   });
 
   const { rows } = await tfhPool.query(
@@ -75,8 +83,8 @@ export const updateApplicationDocument = async (req, res) => {
   let formKey = existing.form_file_filename;
   if (formFile) {
     formKey = await uploadBuffer(formFile.buffer, 'application-documents/forms', {
-      contentType: 'application/pdf',
-      extension: 'pdf',
+      contentType: formFile.mimetype || 'application/octet-stream',
+      extension: extFromOriginalName(formFile.originalname),
     });
     await deleteObject(existing.form_file_filename);
   }

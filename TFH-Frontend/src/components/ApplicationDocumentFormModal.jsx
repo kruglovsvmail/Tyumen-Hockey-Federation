@@ -26,7 +26,7 @@ export default function ApplicationDocumentFormModal({ doc, onClose, onSaved }) 
       return;
     }
     if (!isEdit && !formFile) {
-      setError('Прикрепите файл бланка (PDF)');
+      setError('Прикрепите файл бланка');
       return;
     }
 
@@ -76,12 +76,11 @@ export default function ApplicationDocumentFormModal({ doc, onClose, onSaved }) 
           <label className="admin-modal__file-label">
             <input
               type="file"
-              accept="application/pdf"
               onChange={(e) => e.target.files[0] && setFormFile(e.target.files[0])}
               hidden
             />
             <span>
-              {formFile ? formFile.name : isEdit ? 'Заменить бланк (PDF)' : 'Прикрепить бланк для скачивания (PDF)'}
+              {formFile ? formFile.name : isEdit ? 'Заменить бланк' : 'Прикрепить бланк для скачивания'}
             </span>
           </label>
 
