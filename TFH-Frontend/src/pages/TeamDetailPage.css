@@ -1,0 +1,147 @@
+.team-detail__breadcrumb {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--label);
+  margin-bottom: 4px;
+}
+.team-detail__breadcrumb a {
+  color: var(--accnum);
+  font-weight: 700;
+}
+.team-detail__breadcrumb a:hover {
+  color: var(--accbtn);
+}
+.team-detail__breadcrumb-current {
+  text-transform: uppercase;
+}
+
+.team-detail__header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.team-detail__logo {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+}
+.team-detail__logo--placeholder {
+  border-radius: 50%;
+  border: 1px dashed var(--innerbrd);
+}
+.team-detail__name {
+  margin: 0;
+  font-size: 30px;
+  color: var(--head);
+  text-transform: uppercase;
+}
+
+.team-detail__top-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 780px) {
+  .team-detail__top-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.team-detail__about-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--body1);
+}
+.team-detail__about-empty {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.team-detail__jerseys-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.team-detail__jersey {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.team-detail__jersey img {
+  width: 100%;
+  height: 145px;
+  object-fit: contain;
+  border-radius: 14px;
+  background: var(--inner);
+  border: 1px solid var(--innerbrd);
+}
+.team-detail__jersey-placeholder {
+  width: 100%;
+  height: 145px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 10px;
+  border-radius: 14px;
+  border: 1px dashed var(--innerbrd);
+  color: var(--muted);
+  font-size: 12px;
+}
+.team-detail__jersey span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--label);
+}
+
+.team-roster__table-wrap {
+  overflow-x: auto;
+}
+.team-roster__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.team-roster__table th {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--label);
+  padding: 0 10px 12px;
+  white-space: nowrap;
+}
+.team-roster__table td {
+  text-align: center;
+  padding: 10px;
+  border-top: 1px solid var(--divider);
+  color: var(--body1);
+  white-space: nowrap;
+}
+.team-roster__col-name {
+  text-align: left;
+  width: 100%;
+  font-weight: 700;
+  color: var(--head);
+}
+.team-roster__points {
+  font-weight: 800;
+  color: var(--accnum);
+}
+.team-roster__badge {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--acc);
+  border: 1px solid var(--accbrd);
+  border-radius: 5px;
+  padding: 1px 5px;
+}

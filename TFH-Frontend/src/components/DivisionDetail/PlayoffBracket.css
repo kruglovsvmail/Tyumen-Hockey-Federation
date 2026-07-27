@@ -1,0 +1,266 @@
+.playoff-bracket__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.playoff-bracket__header .division-tab__title {
+  margin-bottom: 0;
+}
+.playoff-bracket__visibility-toggle {
+  font-family: inherit;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12.5px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--chip);
+  border: 1px solid var(--accbrd);
+  color: var(--acc);
+  white-space: nowrap;
+}
+.playoff-bracket__visibility-toggle:hover {
+  background: var(--chipStrong);
+}
+.playoff-bracket__visibility-toggle:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
+.playoff-bracket__hidden-notice {
+  font-size: 13px;
+  font-weight: 600;
+  color: #b45309;
+  background: #fef3c7;
+  padding: 10px 14px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.playoff-bracket__grid-wrap + .playoff-bracket__grid-wrap {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid var(--divider);
+}
+
+.playoff-bracket__name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--head);
+  margin-bottom: 20px;
+}
+.playoff-bracket__main-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--acc);
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--accbrd);
+}
+
+.playoff-bracket__rounds {
+  display: flex;
+  align-items: stretch;
+  gap: 40px;
+  overflow-x: auto;
+  padding: 4px 4px 12px;
+}
+
+.playoff-round {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 230px;
+  flex: none;
+}
+.playoff-round__title {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--label);
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--divider);
+}
+.playoff-round__subtitle {
+  display: block;
+  margin-top: 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--muted);
+}
+
+.playoff-round__matchups {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 22px;
+}
+
+/* Пара матчей одного раунда, сходящаяся в один слот следующего раунда — рисуем
+   соединительную "скобку" линиями справа: горизонтальный штрих от каждого матча
+   к общей вертикальной линии, которая ведёт в промежуток к следующему раунду. */
+.playoff-pair {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 22px;
+}
+.playoff-round.has-next-round .playoff-pair {
+  padding-right: 20px;
+}
+.playoff-round.has-next-round .playoff-matchup {
+  position: relative;
+}
+.playoff-round.has-next-round .playoff-matchup::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: 20px;
+  height: 0;
+  border-top: 1px dashed var(--accbrd);
+}
+.playoff-round.has-next-round .playoff-pair.has-two::before {
+  content: '';
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  right: 0;
+  width: 1px;
+  border-right: 1px dashed var(--accbrd);
+}
+
+.playoff-matchup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--inner);
+  border: 1px solid var(--innerbrd);
+  transition: border-color .2s, box-shadow .2s;
+}
+.playoff-matchup:hover {
+  border-color: var(--accbrd);
+  box-shadow: var(--pshadow2);
+}
+.playoff-matchup__badge {
+  text-align: center;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--acc);
+  padding: 2px 0 4px;
+}
+
+.playoff-team {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--glass);
+}
+.playoff-team.is-winner {
+  box-shadow: 0 0 0 1px var(--accbrd);
+  background: var(--chip);
+}
+.playoff-team__info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.playoff-team__logo {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  object-fit: contain;
+}
+.playoff-team__logo--placeholder {
+  border-radius: 50%;
+  border: 1px dashed var(--innerbrd);
+}
+.playoff-team__logo--tbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--chip);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+.playoff-team__name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--body1);
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.is-winner .playoff-team__name {
+  color: var(--head);
+}
+.playoff-team__wins {
+  flex: none;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--muted);
+  min-width: 16px;
+  text-align: center;
+}
+.is-winner .playoff-team__wins {
+  color: var(--accnum);
+}
+
+.playoff-matchup__scores {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--label);
+  padding-top: 2px;
+}
+
+/* Матчи "за место" (за 3-е, 5-е, 7-е и т.д.) — не часть основного пути по сетке,
+   поэтому вынесены отдельным рядом ниже колонок раундов, чтобы не путать восприятие
+   того, кто с кем реально играет за 1-е место. */
+.playoff-placements {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px dashed var(--divider);
+}
+.playoff-placements__title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.playoff-placements__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.playoff-placements__list .playoff-matchup {
+  width: 230px;
+  flex: none;
+}

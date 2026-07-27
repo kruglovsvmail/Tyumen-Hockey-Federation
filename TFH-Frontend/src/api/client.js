@@ -1,7 +1,11 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
-export async function apiGet(path) {
-  const res = await fetch(`${API_URL}${path}`);
+// token — опционален: часть публичных GET всё равно по-разному отвечают админу
+// (например, показывают скрытый от посетителей блок), не требуя авторизации как таковой.
+export async function apiGet(path, token) {
+  const res = await fetch(`${API_URL}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
   if (!res.ok) {
     throw new Error(`Запрос ${path} завершился с ошибкой ${res.status}`);
   }

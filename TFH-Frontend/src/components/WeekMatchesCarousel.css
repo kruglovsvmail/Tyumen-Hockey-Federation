@@ -1,0 +1,168 @@
+.week-matches {
+  width: 100%;
+}
+
+.week-matches__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.week-matches__nav {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--accbrd);
+  background: var(--navbg);
+  color: var(--acc);
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 2;
+}
+.week-matches__nav:hover {
+  background: var(--chip);
+}
+.week-matches__nav:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+/* На широких экранах кнопки выносим за пределы колонки контента сайта (position:absolute,
+   отрицательный отступ) — так карточки получают всю ширину сайта, а стрелки как бы "плавают"
+   снаружи. На более узких экранах снаружи класть их некуда — остаются в общем ряду. */
+@media (min-width: 1400px) {
+  .week-matches__row {
+    padding: 0 4px;
+  }
+  .week-matches__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .week-matches__nav--prev {
+    left: -64px;
+  }
+  .week-matches__nav--next {
+    right: -64px;
+  }
+}
+
+.week-matches__viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Лента шире окна ровно во столько раз, сколько "страниц" матчей — окно (viewport) её
+   обрезает, а переключение страниц двигает всю ленту через transform с transition,
+   отсюда плавное, "свайповое" ощущение вместо мгновенной подмены карточек. */
+.week-matches__track {
+  display: flex;
+  transition: transform .45s cubic-bezier(.22, .8, .25, 1);
+}
+.week-matches__slide {
+  flex: none;
+  box-sizing: border-box;
+  padding: 0 7px;
+}
+
+.week-match-card {
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--glass);
+  backdrop-filter: blur(12px) saturate(1.7);
+  -webkit-backdrop-filter: blur(12px) saturate(1.7);
+  border: 1px solid var(--glassbrd);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.week-match-card__date {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.week-match-card__teams {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+}
+.week-match-card__team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.week-match-card__teams .week-match-card__team:first-child {
+  justify-content: flex-end;
+}
+.week-match-card__team span {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--head);
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.week-match-card__team img,
+.week-match-card__logo-placeholder {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  flex: none;
+}
+.week-match-card__logo-placeholder {
+  border-radius: 50%;
+  border: 1px dashed var(--innerbrd);
+}
+.week-match-card__score {
+  font-size: 15px;
+}
+
+.week-match-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 22px;
+}
+.week-match-card__arena {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.week-match-card__arena .arena-link {
+  color: var(--label);
+}
+.week-match-card__streams {
+  flex: none;
+  display: flex;
+  gap: 6px;
+}
+.week-match-card__stream {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--accbrd);
+  background: var(--chip);
+  color: var(--acc);
+}
+.week-match-card__stream:hover {
+  background: var(--chipStrong);
+  color: var(--accbtn);
+}

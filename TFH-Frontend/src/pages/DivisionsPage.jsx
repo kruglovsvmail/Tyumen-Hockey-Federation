@@ -8,7 +8,8 @@ import Loader from '../components/Loader.jsx';
 import './DivisionsPage.css';
 
 // group — какие divisions.classification из общей БД показывать (см. ChampionshipController.js на бэкенде)
-export default function DivisionsPage({ title, group }) {
+// basePath — путь этой страницы (например "/divizion-lubitel"), нужен для ссылки карточки на страницу дивизиона
+export default function DivisionsPage({ title, group, basePath }) {
   const [seasons, setSeasons] = useState([]);
   const [seasonId, setSeasonId] = useState(null);
   const [divisions, setDivisions] = useState([]);
@@ -56,7 +57,7 @@ export default function DivisionsPage({ title, group }) {
       {!error && !loading && divisions.length > 0 && (
         <div className="divisions-grid">
           {divisions.map((d) => (
-            <DivisionCard key={d.id} division={d} />
+            <DivisionCard key={d.id} division={d} to={`${basePath}/${d.id}`} />
           ))}
         </div>
       )}

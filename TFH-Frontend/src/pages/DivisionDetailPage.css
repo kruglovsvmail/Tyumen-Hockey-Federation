@@ -1,0 +1,59 @@
+.division-detail__back {
+  display: inline-block;
+  margin-bottom: 18px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--accnum);
+}
+.division-detail__back:hover {
+  color: var(--accbtn);
+}
+
+.division-detail__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.division-detail__header .page-heading {
+  margin: 0;
+  margin-right: auto;
+}
+
+.division-detail__tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.division-detail__tab {
+  font-family: inherit;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  padding: 10px 19px;
+  border-radius: 999px;
+  color: var(--navtext);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.division-detail__tab:hover {
+  background: var(--chip);
+}
+.division-detail__tab.is-active {
+  background: var(--chipStrong);
+  color: var(--acc);
+  border-color: var(--accbrd);
+}
+
+.division-detail__season {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--navtext);
+  padding: 10px 19px;
+  border-radius: 999px;
+  background: var(--chip);
+  white-space: nowrap;
+}

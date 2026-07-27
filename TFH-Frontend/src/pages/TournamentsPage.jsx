@@ -9,7 +9,7 @@ import './DivisionsPage.css';
 
 // Плоский список турниров (divisions.is_tournament = true) — та же сущность в БД,
 // что и дивизионы "Чемпионата", но без разбивки по classification (см. ChampionshipController.js).
-export default function TournamentsPage({ title }) {
+export default function TournamentsPage({ title, basePath }) {
   const [seasons, setSeasons] = useState([]);
   const [seasonId, setSeasonId] = useState(null);
   const [tournaments, setTournaments] = useState([]);
@@ -57,7 +57,7 @@ export default function TournamentsPage({ title }) {
       {!error && !loading && tournaments.length > 0 && (
         <div className="divisions-grid">
           {tournaments.map((t) => (
-            <DivisionCard key={t.id} division={t} labelWord="" />
+            <DivisionCard key={t.id} division={t} labelWord="" to={`${basePath}/${t.id}`} />
           ))}
         </div>
       )}

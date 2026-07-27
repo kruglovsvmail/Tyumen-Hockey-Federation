@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import DropdownMenu from '../components/DropdownMenu.jsx';
 import NewsPanel from '../components/NewsPanel.jsx';
+import WeekMatchesCarousel from '../components/WeekMatchesCarousel.jsx';
 import { useHoverMenu } from '../hooks/useHoverMenu.js';
 import { NAV } from '../data/navigation.js';
 
@@ -36,6 +37,7 @@ export default function HomePage() {
         )}
       </div>
 
+      <WeekMatchesCarousel />
       <NewsPanel />
     </div>
   );

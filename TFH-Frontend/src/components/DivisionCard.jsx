@@ -1,16 +1,29 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useClampOverflow } from '../hooks/useClampOverflow.js';
+import { getImageUrl } from '../utils/getImageUrl.js';
 
-export default function DivisionCard({ division, labelWord = 'Дивизион' }) {
+export default function DivisionCard({ division, labelWord = 'Дивизион', to }) {
   const [expanded, setExpanded] = useState(false);
   const description = division.description || '';
   const { ref: descRef, isTruncated } = useClampOverflow(description, expanded);
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    if (to) navigate(to);
+  };
 
   return (
-    <div className="division-card">
+    <div
+      className={`division-card${to ? ' division-card--clickable' : ''}`}
+      onClick={to ? handleCardClick : undefined}
+      role={to ? 'link' : undefined}
+      tabIndex={to ? 0 : undefined}
+      onKeyDown={to ? (e) => { if (e.key === 'Enter') handleCardClick(); } : undefined}
+    >
       <div className="division-card__top">
         {division.logoUrl ? (
-          <img src={division.logoUrl} alt="" className="division-card__logo" />
+          <img src={getImageUrl(division.logoUrl)} alt="" className="division-card__logo" />
         ) : (
           <div className="division-card__logo division-card__logo--placeholder" />
         )}
@@ -25,7 +38,11 @@ export default function DivisionCard({ division, labelWord = 'Дивизион' 
                 {description}
               </div>
               {isTruncated && (
-                <button type="button" className="division-card__toggle" onClick={() => setExpanded((v) => !v)}>
+                <button
+                  type="button"
+                  className="division-card__toggle"
+                  onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+                >
                   {expanded ? 'Свернуть' : 'Развернуть'}
                 </button>
               )}

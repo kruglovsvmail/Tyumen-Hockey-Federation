@@ -18,3 +18,14 @@
 .app-shell__main--home {
   padding-top: 28px;
 }
+
+/* Шапка на мобильном ниже (см. Header.css), но с запасом на случай переноса пунктов
+   меню на вторую строку — отступ чуть больше, чем "впритык" по расчётной высоте. */
+@media (max-width: 640px) {
+  .app-shell__main {
+    padding: 150px 16px 40px;
+  }
+  .app-shell__main--home {
+    padding-top: 28px;
+  }
+}
