@@ -67,9 +67,9 @@ export const getDivisions = async (req, res) => {
        d.logo_url,
        d.description,
        d.classification,
-       COUNT(DISTINCT tt.id) FILTER (WHERE tt.status = 'approved') AS team_count,
+       COUNT(DISTINCT tt.id) FILTER (WHERE tt.status IN ('approved', 'revision', 'pending')) AS team_count,
        COUNT(DISTINCT tr.player_id) FILTER (
-         WHERE tt.status = 'approved' AND tr.application_status = 'approved' AND tr.period_end IS NULL
+         WHERE tt.status IN ('approved', 'revision', 'pending') AND tr.application_status = 'approved' AND tr.period_end IS NULL
        ) AS player_count
      FROM divisions d
      LEFT JOIN tournament_teams tt ON tt.division_id = d.id
@@ -115,9 +115,9 @@ export const getTournaments = async (req, res) => {
        d.logo_url,
        d.description,
        d.classification,
-       COUNT(DISTINCT tt.id) FILTER (WHERE tt.status = 'approved') AS team_count,
+       COUNT(DISTINCT tt.id) FILTER (WHERE tt.status IN ('approved', 'revision', 'pending')) AS team_count,
        COUNT(DISTINCT tr.player_id) FILTER (
-         WHERE tt.status = 'approved' AND tr.application_status = 'approved' AND tr.period_end IS NULL
+         WHERE tt.status IN ('approved', 'revision', 'pending') AND tr.application_status = 'approved' AND tr.period_end IS NULL
        ) AS player_count
      FROM divisions d
      LEFT JOIN tournament_teams tt ON tt.division_id = d.id
@@ -209,7 +209,7 @@ export const getDivisionStandings = async (req, res) => {
      FROM tournament_teams tt
      JOIN teams t ON t.id = tt.team_id
      LEFT JOIN division_standings ds ON ds.division_id = tt.division_id AND ds.team_id = tt.team_id
-     WHERE tt.division_id = $1 AND tt.status = 'approved'
+     WHERE tt.division_id = $1 AND tt.status IN ('approved', 'revision', 'pending')
      ORDER BY COALESCE(ds.rank, 999999), ds.points DESC NULLS LAST, t.name`,
     [id]
   );
@@ -495,7 +495,7 @@ export const getDivisionTeams = async (req, res) => {
     `SELECT tt.id AS tournament_team_id, t.id AS team_id, t.name, t.short_name, t.logo_url
      FROM tournament_teams tt
      JOIN teams t ON t.id = tt.team_id
-     WHERE tt.division_id = $1 AND tt.status = 'approved'
+     WHERE tt.division_id = $1 AND tt.status IN ('approved', 'revision', 'pending')
      ORDER BY t.name`,
     [id]
   );
@@ -528,7 +528,7 @@ export const getTeamDetail = async (req, res) => {
      FROM tournament_teams tt
      JOIN teams t ON t.id = tt.team_id
      JOIN divisions d ON d.id = tt.division_id
-     WHERE tt.id = $1 AND tt.status = 'approved' AND d.is_published = true`,
+     WHERE tt.id = $1 AND tt.status IN ('approved', 'revision', 'pending') AND d.is_published = true`,
     [tournamentTeamId]
   );
 
