@@ -46,6 +46,20 @@ const ZONE_CAMERA = Object.fromEntries(
 // Ручной подбор ракурса мышкой (OrbitControls + лог в консоль) — включается по необходимости.
 const DEBUG_CAMERA = false;
 
+// Цвет фона канваса. Им же красим туман — только при точном совпадении дальний край
+// модели растворяется в фоне, а не обрывается видимой границей. Поэтому значение одно
+// на два места: разъедутся — граница вернётся.
+const SCENE_BG = '#e8eff2';
+
+// Туман, чтобы жёсткий silhouette-край льда не упирался в фон. Ориентиры по геометрии:
+// арена в мировых координатах — 40 x 20 единиц (X x Z), камера в зависимости от раздела
+// стоит в 6.5–15 единицах от центра, так что ближняя кромка льда оказывается в 8–14
+// единицах от камеры, а дальние края — в 30–41. Отсюда диапазон: до FOG_NEAR всё чётко,
+// к FOG_FAR — полностью залито цветом фона. Меньше FOG_FAR — граница мягче, но лёд
+// заметнее выцветает к дальнему борту.
+const FOG_NEAR = 10;
+const FOG_FAR = 45;
+
 function Arena() {
   const { scene } = useGLTF('/models/arena.glb');
   return <primitive object={scene} />;
@@ -99,19 +113,7 @@ function DebugLogger({ zone }) {
   );
 }
 
-function makeSnowflakes(count) {
-  return Array.from({ length: count }, (_, i) => ({
-    id: i,
-    left: Math.round(Math.random() * 100),
-    size: 3 + Math.round(Math.random() * 4),
-    duration: 10 + Math.round(Math.random() * 10),
-    delay: -Math.round(Math.random() * 20),
-    anim: i % 2 === 0 ? 'fallA' : 'fallB',
-  }));
-}
-
 export default function Background3D({ zone = 'home' }) {
-  const flakes = useMemo(() => makeSnowflakes(22), []);
   const [dpr, setDpr] = useState(1.5);
   useEffect(() => {
     setDpr(Math.min(window.devicePixelRatio || 1, 2));
@@ -128,43 +130,24 @@ export default function Background3D({ zone = 'home' }) {
   }
 
   return (
-    <>
-      <div className="ice-scene" style={DEBUG_CAMERA ? { zIndex: 9999 } : undefined}>
-        <Canvas
-          dpr={dpr}
-          camera={initialCameraRef.current}
-          gl={{ antialias: true, alpha: false }}
-        >
-          <color attach="background" args={['#d9e7f3']} />
-          <ambientLight intensity={1.0} />
-          <directionalLight position={[6, 10, 6]} intensity={2.4} />
-          <directionalLight position={[-6, 4, -4]} intensity={1} />
-          <Suspense fallback={null}>
-            <Arena />
-            {/* Environment даёт PBR-материалам (металл рамы ворот и т.п.) реалистичные
-                отражения/заполняющий свет — без неё они выглядят плоскими и тёмными
-                даже при ярких directional-источниках. */}
-            <Environment preset="city" />
-          </Suspense>
-          {DEBUG_CAMERA ? <DebugLogger zone={zone} /> : <CameraRig zone={zone} />}
-        </Canvas>
-        <div className="ice-scene__vignette" />
-      </div>
-      <div className="ice-scene__snow" aria-hidden="true">
-        {flakes.map((f) => (
-          <span
-            key={f.id}
-            className="ice-scene__flake"
-            style={{
-              left: `${f.left}%`,
-              width: f.size,
-              height: f.size,
-              animation: `${f.anim} ${f.duration}s linear ${f.delay}s infinite`,
-            }}
-          />
-        ))}
-      </div>
-    </>
+    <div className="ice-scene" style={DEBUG_CAMERA ? { zIndex: 9999 } : undefined}>
+      <Canvas dpr={dpr} camera={initialCameraRef.current} gl={{ antialias: true, alpha: false }}>
+        <color attach="background" args={[SCENE_BG]} />
+        <fog attach="fog" args={[SCENE_BG, FOG_NEAR, FOG_FAR]} />
+        <ambientLight intensity={1.0} />
+        <directionalLight position={[6, 10, 6]} intensity={2.4} />
+        <directionalLight position={[-6, 4, -4]} intensity={1} />
+        <Suspense fallback={null}>
+          <Arena />
+          {/* Environment даёт PBR-материалам (металл рамы ворот и т.п.) реалистичные
+              отражения/заполняющий свет — без неё они выглядят плоскими и тёмными
+              даже при ярких directional-источниках. */}
+          <Environment preset="city" />
+        </Suspense>
+        {DEBUG_CAMERA ? <DebugLogger zone={zone} /> : <CameraRig zone={zone} />}
+      </Canvas>
+      <div className="ice-scene__vignette" />
+    </div>
   );
 }
 

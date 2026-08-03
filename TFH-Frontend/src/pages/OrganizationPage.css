@@ -29,11 +29,10 @@
 }
 .org-stats__item {
   padding: 20px;
-  border-radius: 20px;
+  border-radius: 12px;
   background: var(--glass);
   backdrop-filter: blur(12px) saturate(1.7);
   -webkit-backdrop-filter: blur(12px) saturate(1.7);
-  border: 1px solid var(--glassbrd);
   box-shadow: var(--pshadow2);
   text-align: center;
   display: flex;
@@ -117,11 +116,10 @@
   position: relative;
   cursor: pointer;
   padding: 20px;
-  border-radius: 20px;
+  border-radius: 12px;
   background: var(--glass);
   backdrop-filter: blur(12px) saturate(1.7);
   -webkit-backdrop-filter: blur(12px) saturate(1.7);
-  border: 1px solid var(--glassbrd);
   box-shadow: var(--pshadow);
   display: flex;
   flex-direction: column;
@@ -182,7 +180,7 @@
 
 .document-add-card {
   min-height: 140px;
-  border-radius: 20px;
+  border-radius: 12px;
   border: 1px dashed var(--accbrd);
   background: var(--chip);
   color: var(--acc);

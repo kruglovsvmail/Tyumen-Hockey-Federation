@@ -1,6 +1,6 @@
 /* Фон — настоящая 3D-сцена (Three.js/React Three Fiber, см. Background3D.jsx),
    модель арены сделана в 3ds Max и экспортирована в glTF. Этот файл теперь отвечает
-   только за обвязку: контейнер на весь экран, виньетка поверх, падающий снег. */
+   только за обвязку: контейнер на весь экран и виньетка поверх. */
 
 .ice-scene {
   position: fixed;
@@ -23,17 +23,4 @@
   inset: 0;
   background: radial-gradient(ellipse at 50% 120%, var(--vig), transparent 60%);
   pointer-events: none;
-}
-
-.ice-scene__snow {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-.ice-scene__flake {
-  position: absolute;
-  top: -10px;
-  border-radius: 50%;
-  background: var(--flake);
 }

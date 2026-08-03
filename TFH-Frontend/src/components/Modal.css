@@ -15,11 +15,10 @@
   width: 100%;
   max-width: 340px;
   padding: 26px;
-  border-radius: 22px;
+  border-radius: 14px;
   background: var(--glass);
   backdrop-filter: blur(20px) saturate(1.6);
   -webkit-backdrop-filter: blur(20px) saturate(1.6);
-  border: 1px solid var(--glassbrd);
   box-shadow: var(--pshadow);
   display: flex;
   flex-direction: column;
@@ -60,7 +59,7 @@
   font-family: inherit;
   font-size: 14px;
   padding: 12px 16px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--inner);
   border: 1px solid var(--innerbrd);
   color: var(--body1);
@@ -128,7 +127,7 @@
   align-items: center;
   justify-content: center;
   padding: 12px 16px;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px dashed var(--accbrd);
   background: var(--chip);
   color: var(--acc);

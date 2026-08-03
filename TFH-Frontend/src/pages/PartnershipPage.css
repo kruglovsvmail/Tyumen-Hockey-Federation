@@ -40,11 +40,10 @@
 .partner-card {
   position: relative;
   padding: 20px;
-  border-radius: 22px;
+  border-radius: 14px;
   background: var(--glass);
   backdrop-filter: blur(12px) saturate(1.7);
   -webkit-backdrop-filter: blur(12px) saturate(1.7);
-  border: 1px solid var(--glassbrd);
   box-shadow: var(--pshadow);
   display: flex;
   flex-direction: column;
@@ -97,7 +96,7 @@
 .partner-card__logo {
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 16px;
+  border-radius: 10px;
   object-fit: contain;
   padding: 12px;
 }
@@ -120,7 +119,7 @@
 
 .partner-add-card {
   min-height: 240px;
-  border-radius: 22px;
+  border-radius: 14px;
   border: 1px dashed var(--accbrd);
   background: var(--chip);
   color: var(--acc);

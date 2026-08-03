@@ -34,7 +34,6 @@
   --accnum: #0d78b0;
   --accbtn: #0c6d9f;
   --headglow: rgba(120, 185, 235, .35);
-  --flake: rgba(140, 180, 215, .65);
 
   --pshadow: 0 26px 70px rgba(85, 125, 170, .22), inset 0 1.5px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(160, 195, 225, .45), inset 2px 24px 44px -22px rgba(255, 255, 255, .95);
   --pshadow2: 0 20px 50px rgba(85, 125, 170, .20);
@@ -104,8 +103,6 @@ html.is-scrolling::-webkit-scrollbar-thumb {
   font-family: 'Aire Exterior', 'Russo One', sans-serif;
 }
 
-@keyframes fallA { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(5vw, 106vh, 0); } }
-@keyframes fallB { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-6vw, 106vh, 0); } }
 @keyframes drift { from { transform: rotateZ(-1.1deg); } to { transform: rotateZ(1.1deg); } }
 @keyframes menuIn { from { transform: translateY(-8px); } to { transform: translateY(0); } }
 @keyframes tabIn { from { transform: translateY(26px); } to { transform: translateY(0); } }

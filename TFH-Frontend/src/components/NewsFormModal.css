@@ -9,7 +9,7 @@
 .news-form-modal__preview {
   width: 100%;
   max-height: 180px;
-  border-radius: 14px;
+  border-radius: 10px;
   object-fit: contain;
   background: var(--inner);
   border: 1px solid var(--innerbrd);

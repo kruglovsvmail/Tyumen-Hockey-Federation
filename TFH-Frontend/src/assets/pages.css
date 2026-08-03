@@ -40,11 +40,10 @@
 
 .glass-card {
   padding: 30px;
-  border-radius: 22px;
+  border-radius: 14px;
   background: var(--glass);
   backdrop-filter: blur(12px) saturate(1.7);
   -webkit-backdrop-filter: blur(12px) saturate(1.7);
-  border: 1px solid var(--glassbrd);
   box-shadow: var(--pshadow);
 }
 
@@ -136,7 +135,7 @@
   letter-spacing: 2.5px;
   text-transform: uppercase;
   padding: 8px 20px;
-  border-radius: 14px;
+  border-radius: 10px;
   color: var(--acc) !important;
   background: transparent;
   transition: background .3s;

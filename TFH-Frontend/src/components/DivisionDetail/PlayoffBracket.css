@@ -34,7 +34,7 @@
   color: #b45309;
   background: #fef3c7;
   padding: 10px 14px;
-  border-radius: 12px;
+  border-radius: 8px;
   margin-bottom: 20px;
 }
 
@@ -147,7 +147,7 @@
   flex-direction: column;
   gap: 5px;
   padding: 8px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--inner);
   border: 1px solid var(--innerbrd);
   transition: border-color .2s, box-shadow .2s;

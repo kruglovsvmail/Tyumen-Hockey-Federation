@@ -14,7 +14,7 @@
 .staff-form-modal__preview {
   width: 140px;
   aspect-ratio: 4 / 5;
-  border-radius: 16px;
+  border-radius: 10px;
   object-fit: cover;
   background: var(--inner);
   border: 1px solid var(--innerbrd);

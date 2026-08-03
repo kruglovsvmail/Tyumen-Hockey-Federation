@@ -9,11 +9,10 @@
 .video-card {
   position: relative;
   padding: 16px;
-  border-radius: 22px;
+  border-radius: 14px;
   background: var(--glass);
   backdrop-filter: blur(12px) saturate(1.7);
   -webkit-backdrop-filter: blur(12px) saturate(1.7);
-  border: 1px solid var(--glassbrd);
   box-shadow: var(--pshadow);
   display: flex;
   flex-direction: column;
@@ -53,7 +52,7 @@
   position: relative;
   width: 100%;
   padding-top: 56.25%;
-  border-radius: 14px;
+  border-radius: 10px;
   overflow: hidden;
   background: var(--inner);
 }
@@ -79,7 +78,7 @@
 
 .video-add-card {
   min-height: 240px;
-  border-radius: 22px;
+  border-radius: 14px;
   border: 1px dashed var(--accbrd);
   background: var(--chip);
   color: var(--acc);
