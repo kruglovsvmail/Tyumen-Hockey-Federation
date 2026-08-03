@@ -34,6 +34,26 @@ const parseDateOnly = (dateStr) => {
   return new Date(y, m - 1, d);
 };
 
+// '1990-05-20' -> '20.05.1990'. Дата рождения приходит без времени, поэтому просто
+// переставляем компоненты строки — через Date она могла бы съехать на день из-за часового пояса.
+export function formatBirthDate(dateStr) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+// 21 -> '21 год', 24 -> '24 года', 25 -> '25 лет'. Обычное русское склонение:
+// особый случай — вторые десятки (11–14), там всегда "лет".
+export function formatAge(years) {
+  if (years === null || years === undefined) return '';
+  const mod10 = years % 10;
+  const mod100 = years % 100;
+  let word = 'лет';
+  if (mod10 === 1 && mod100 !== 11) word = 'год';
+  else if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) word = 'года';
+  return `${years} ${word}`;
+}
+
 const isNextCalendarDay = (a, b) => {
   const next = new Date(a);
   next.setDate(next.getDate() + 1);

@@ -357,12 +357,17 @@ export const getDivisionWeekGames = async (req, res) => {
 // под один конкретный дивизион на его собственной странице).
 export const getHomeWeekGames = async (req, res) => {
   const { rows } = await sharedPool.query(
+    // Общая БД обслуживает несколько лиг, а сайт — только свою (LEAGUE_ID): без этого
+    // условия в карусель на главной попадали чужие матчи. Лига у матча определяется
+    // через сезон дивизиона (divisions.season_id -> seasons.league_id).
     `${GAMES_SELECT}
      JOIN divisions d ON d.id = g.division_id
-     WHERE d.is_published = true AND g.status NOT IN ('draft', 'cancelled')
+     JOIN seasons s ON s.id = d.season_id
+     WHERE s.league_id = $1 AND d.is_published = true AND g.status NOT IN ('draft', 'cancelled')
        AND g.game_date >= date_trunc('week', CURRENT_DATE)
        AND g.game_date <  date_trunc('week', CURRENT_DATE) + interval '7 days'
-     ORDER BY g.game_date ASC`
+     ORDER BY g.game_date ASC`,
+    [LEAGUE_ID]
   );
 
   res.json({ games: rows.map(mapGameRow) });
@@ -514,6 +519,57 @@ export const getDivisionTeams = async (req, res) => {
 const formatPlayerName = (r) =>
   [r.last_name, r.first_name, r.middle_name].filter(Boolean).join(' ');
 
+// Фото человека в контексте конкретной команды: сначала снимок в её экипировке
+// (team_members.photo_url), и только если его нет — общий аватар профиля. Тот же
+// приоритет, что в LMS (tournamentTeamController.js), чтобы на сайте и в системе
+// у игрока было одно и то же лицо.
+const TEAM_MEMBER_PHOTO_LATERAL = `
+  LEFT JOIN LATERAL (
+    SELECT photo_url
+    FROM team_members
+    WHERE user_id = u.id AND team_id = $2 AND photo_url IS NOT NULL
+    ORDER BY id DESC LIMIT 1
+  ) tm_photo ON true
+`;
+
+// Действующие дисквалификации человека в нашей лиге. Наказание привязано к user_id +
+// league_id (переживает смену сезона), поэтому считаем по человеку, а не по заявке.
+// Командные штрафы (target_type = 'team') сюда не попадают — у них user_id пустой,
+// и на игрока как дисквалификация они не распространяются, это денежный штраф команде.
+// Причину наказания наружу не отдаём: публичной странице достаточно факта и срока.
+const ACTIVE_DISQUALIFICATION_LATERAL = `
+  LEFT JOIN LATERAL (
+    SELECT
+      count(*) AS total,
+      COALESCE(SUM(GREATEST(COALESCE(d.games_assigned, 0) - COALESCE(d.games_served, 0), 0))
+               FILTER (WHERE d.penalty_type = 'games'), 0) AS games_left,
+      to_char(MAX(d.end_date) FILTER (WHERE d.penalty_type = 'time'), 'YYYY-MM-DD') AS until_date,
+      bool_or(d.penalty_type = 'manual') AS has_manual
+    FROM disqualifications d
+    WHERE d.user_id = u.id AND d.league_id = $3 AND d.status = 'active'
+  ) dq ON true
+`;
+
+// Документы допуска игрока. Набор обязательных задаётся в настройках дивизиона
+// (divisions.req_med_cert / req_insurance / req_consent) — на сайте показываем иконки
+// только по ним. Наружу отдаём ТОЛЬКО факт наличия и срок действия: сами сканы
+// (медсправка, страховка, согласие) — персональные данные, ссылки на них публичными не делаем.
+const ROSTER_DOCUMENTS = [
+  { key: 'medical', requiredFlag: 'req_med_cert', hasField: 'has_medical', expiresField: 'medical_expires_at' },
+  { key: 'insurance', requiredFlag: 'req_insurance', hasField: 'has_insurance', expiresField: 'insurance_expires_at' },
+  { key: 'consent', requiredFlag: 'req_consent', hasField: 'has_consent', expiresField: 'consent_expires_at' },
+];
+
+// Порядок вывода представителей: руководитель -> администратор -> тренер
+// (tournament_team_roles.tournament_role, других вариантов чек-констрейнт не допускает).
+const STAFF_ROLE_ORDER = `
+  CASE ttr.tournament_role
+    WHEN 'team_manager' THEN 1
+    WHEN 'team_admin' THEN 2
+    ELSE 3
+  END
+`;
+
 // Страница команды: карточка + состав, разбитый на вратарей/защитников/нападающих
 // с уже готовой статистикой из player_statistics (её считает playerStatsCalculator.js в LMS
 // при завершении матча или допуске команды — здесь просто читаем).
@@ -523,8 +579,11 @@ export const getTeamDetail = async (req, res) => {
   const { rows } = await sharedPool.query(
     `SELECT
        tt.id AS tournament_team_id, tt.custom_description, tt.custom_jersey_light_url, tt.custom_jersey_dark_url,
+       tt.custom_team_photo_url,
        t.id AS team_id, t.name, t.short_name, t.logo_url, t.description, t.jersey_light_url, t.jersey_dark_url,
-       d.id AS division_id, d.name AS division_name
+       t.team_photo_url,
+       d.id AS division_id, d.name AS division_name,
+       d.req_med_cert, d.req_insurance, d.req_consent, d.hide_stats_unpaid
      FROM tournament_teams tt
      JOIN teams t ON t.id = tt.team_id
      JOIN divisions d ON d.id = tt.division_id
@@ -538,39 +597,107 @@ export const getTeamDetail = async (req, res) => {
   const rosterRes = await sharedPool.query(
     `SELECT
        tr.id AS roster_id, tr.jersey_number, tr.position, tr.is_captain, tr.is_assistant,
+       tr.is_fee_paid,
        u.first_name, u.last_name, u.middle_name,
+       -- Дату рождения форматируем прямо в SQL: node-postgres превратил бы колонку date
+       -- в JS Date по локальной полуночи, и при сериализации в JSON дата могла бы съехать на день.
+       to_char(u.birth_date, 'YYYY-MM-DD') AS birth_date,
+       date_part('year', age(u.birth_date))::int AS age,
+       COALESCE(tm_photo.photo_url, u.avatar_url) AS photo_url,
+       lq.short_name AS qualification_short_name, lq.name AS qualification_name,
+       lq.description AS qualification_description,
+       dq.total AS dq_total, dq.games_left AS dq_games_left,
+       dq.until_date AS dq_until, dq.has_manual AS dq_has_manual,
+       (tr.medical_url IS NOT NULL) AS has_medical,
+       to_char(tr.medical_expires_at, 'YYYY-MM-DD') AS medical_expires_at,
+       (tr.insurance_url IS NOT NULL) AS has_insurance,
+       to_char(tr.insurance_expires_at, 'YYYY-MM-DD') AS insurance_expires_at,
+       (tr.consent_url IS NOT NULL) AS has_consent,
+       to_char(tr.consent_expires_at, 'YYYY-MM-DD') AS consent_expires_at,
        ps.games_played, ps.goals, ps.assists, ps.points, ps.penalty_minutes,
-       ps.goals_against, ps.save_percent
+       ps.goals_against
      FROM tournament_rosters tr
      JOIN users u ON u.id = tr.player_id
+     ${TEAM_MEMBER_PHOTO_LATERAL}
+     LEFT JOIN league_qualifications lq ON lq.id = tr.qualification_id
+     ${ACTIVE_DISQUALIFICATION_LATERAL}
      LEFT JOIN player_statistics ps ON ps.tournament_roster_id = tr.id
      WHERE tr.tournament_team_id = $1 AND tr.application_status = 'approved' AND tr.period_end IS NULL
      ORDER BY tr.jersey_number NULLS LAST`,
-    [tournamentTeamId]
+    [tournamentTeamId, row.team_id, LEAGUE_ID]
   );
 
-  const mapSkater = (r) => ({
+  // Представители заявки. Группируем по человеку, а не по строке таблицы: один и тот же
+  // человек может быть заявлен сразу в нескольких ролях (см. COMMENT ON tournament_team_roles),
+  // и на публичной странице это одна карточка с перечислением ролей, а не несколько.
+  const staffRes = await sharedPool.query(
+    `SELECT
+       ttr.user_id,
+       array_agg(ttr.tournament_role ORDER BY ${STAFF_ROLE_ORDER}) AS roles,
+       u.first_name, u.last_name, u.middle_name,
+       COALESCE(tm_photo.photo_url, u.avatar_url) AS photo_url
+     FROM tournament_team_roles ttr
+     JOIN users u ON u.id = ttr.user_id
+     ${TEAM_MEMBER_PHOTO_LATERAL}
+     WHERE ttr.tournament_team_id = $1 AND ttr.left_at IS NULL
+     GROUP BY ttr.user_id, u.first_name, u.last_name, u.middle_name, tm_photo.photo_url, u.avatar_url
+     ORDER BY MIN(${STAFF_ROLE_ORDER}), u.last_name, u.first_name`,
+    [tournamentTeamId, row.team_id]
+  );
+
+  const requiredDocuments = ROSTER_DOCUMENTS.filter((doc) => row[doc.requiredFlag]);
+
+  // Скрытие статистики у не оплативших индивидуальный взнос — правило то же, что в Team Room
+  // (divisions.hide_stats_unpaid + tournament_rosters.is_fee_paid), но, в отличие от TR, сайт
+  // публичный: цифры не просто размываем на фронте, а вообще не отдаём наружу.
+  // Количество сыгранных игр не скрывается — оно видно и в TR.
+  const isStatsHidden = (r) => Boolean(row.hide_stats_unpaid) && !r.is_fee_paid;
+  const stat = (r, value) => (isStatsHidden(r) ? null : Number(value || 0));
+
+  const mapPlayerBase = (r) => ({
     rosterId: r.roster_id,
     jerseyNumber: r.jersey_number,
     fullName: formatPlayerName(r),
+    photoUrl: r.photo_url,
+    birthDate: r.birth_date,
+    age: r.age === null ? null : Number(r.age),
     isCaptain: r.is_captain,
     isAssistant: r.is_assistant,
+    statsHidden: isStatsHidden(r),
+    // Короткий код в справочнике заполнен не везде и местами с лишними пробелами
+    // (' ЛБЛ У '), поэтому чистим и при пустом коде показываем полное название.
+    qualification: r.qualification_name
+      ? {
+          short: r.qualification_short_name?.trim() || r.qualification_name,
+          name: r.qualification_name,
+          description: r.qualification_description?.trim() || null,
+        }
+      : null,
+    disqualification: Number(r.dq_total) > 0
+      ? {
+          gamesLeft: Number(r.dq_games_left),
+          until: r.dq_until,
+          manual: r.dq_has_manual,
+        }
+      : null,
+    documents: requiredDocuments.map((doc) => ({
+      key: doc.key,
+      present: r[doc.hasField],
+      expiresAt: r[doc.expiresField],
+    })),
     gamesPlayed: Number(r.games_played || 0),
-    goals: Number(r.goals || 0),
-    assists: Number(r.assists || 0),
-    points: Number(r.points || 0),
-    penaltyMinutes: Number(r.penalty_minutes || 0),
+    penaltyMinutes: stat(r, r.penalty_minutes),
   });
+  const mapSkater = (r) => ({
+    ...mapPlayerBase(r),
+    goals: stat(r, r.goals),
+    assists: stat(r, r.assists),
+    points: stat(r, r.points),
+  });
+  // Процент отражённых бросков (ps.save_percent) намеренно не отдаём: лига его не считает.
   const mapGoalie = (r) => ({
-    rosterId: r.roster_id,
-    jerseyNumber: r.jersey_number,
-    fullName: formatPlayerName(r),
-    isCaptain: r.is_captain,
-    isAssistant: r.is_assistant,
-    gamesPlayed: Number(r.games_played || 0),
-    goalsAgainst: Number(r.goals_against || 0),
-    savePercent: Number(r.save_percent || 0),
-    penaltyMinutes: Number(r.penalty_minutes || 0),
+    ...mapPlayerBase(r),
+    goalsAgainst: stat(r, r.goals_against),
   });
 
   res.json({
@@ -581,6 +708,7 @@ export const getTeamDetail = async (req, res) => {
       shortName: row.short_name,
       logoUrl: row.logo_url,
       description: row.custom_description || row.description,
+      teamPhotoUrl: row.custom_team_photo_url || row.team_photo_url,
       jerseyLightUrl: row.custom_jersey_light_url || row.jersey_light_url,
       jerseyDarkUrl: row.custom_jersey_dark_url || row.jersey_dark_url,
       division: { id: row.division_id, name: row.division_name },
@@ -588,6 +716,12 @@ export const getTeamDetail = async (req, res) => {
     goalies: rosterRes.rows.filter((r) => r.position === 'goalie').map(mapGoalie),
     defensemen: rosterRes.rows.filter((r) => r.position === 'defense').map(mapSkater),
     forwards: rosterRes.rows.filter((r) => r.position === 'forward').map(mapSkater),
+    staff: staffRes.rows.map((r) => ({
+      userId: r.user_id,
+      fullName: formatPlayerName(r),
+      photoUrl: r.photo_url,
+      roles: r.roles,
+    })),
   });
 };
 

@@ -36,11 +36,25 @@
   text-transform: uppercase;
 }
 
+/* Заголовки карточек страницы команды: тот же division-tab__title, но по центру
+   и капсом. Модификатор локальный — на вкладках дивизиона заголовки остаются слева. */
+.team-detail__block-title {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+/* Три карточки в ряд: описание — командное фото — джерси. Высоту не задаём:
+   grid по умолчанию тянет их до высоты самой высокой, а фото внутри подстраивается. */
 .team-detail__top-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: 1.2fr 1.1fr 1fr;
   gap: 20px;
-  align-items: start;
+}
+@media (max-width: 1080px) {
+  .team-detail__top-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 @media (max-width: 780px) {
   .team-detail__top-grid {
@@ -58,6 +72,51 @@
   margin: 0;
   font-size: 14px;
   color: var(--muted);
+}
+
+/* Пропорции командного фото заранее неизвестны (снимают и вертикально, и панорамой),
+   поэтому оно занимает всю оставшуюся высоту карточки и кадрируется по центру —
+   целиком его можно посмотреть кликом, в полноэкранном просмотре. */
+.team-detail__photo-card {
+  display: flex;
+  flex-direction: column;
+}
+.team-detail__photo-btn {
+  position: relative;
+  flex: 1;
+  min-height: 155px;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--innerbrd);
+  background: var(--inner);
+  cursor: zoom-in;
+  transition: box-shadow .25s, transform .25s;
+}
+.team-detail__photo-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--pshadow2);
+}
+.team-detail__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.team-detail__photo-placeholder {
+  flex: 1;
+  min-height: 145px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 10px;
+  border-radius: 14px;
+  border: 1px dashed var(--innerbrd);
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .team-detail__jerseys-grid {
@@ -100,6 +159,36 @@
   color: var(--label);
 }
 
+/* Вратари/защитники/нападающие — три таблицы внутри одной карточки «Состав» */
+.team-roster__group + .team-roster__group {
+  margin-top: 26px;
+}
+.team-roster__group-title {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--label);
+}
+
+/* Скрытая статистика неоплатившего взнос — размытая заглушка на месте цифры
+   (самих цифр в ответе API нет). Блюрим содержимое ячейки, а не саму ячейку,
+   чтобы не размывались её границы. */
+.team-roster__stat-hidden {
+  display: inline-block;
+  letter-spacing: 1px;
+  color: var(--label);
+  filter: blur(3px);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.team-roster__note {
+  margin: 18px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
 .team-roster__table-wrap {
   overflow-x: auto;
 }
@@ -125,11 +214,17 @@
   color: var(--body1);
   white-space: nowrap;
 }
-.team-roster__col-name {
+/* Селектор с .team-roster__table — иначе `text-align: left` проигрывает по весу
+   общему правилу `.team-roster__table th/td` выше и ФИО остаётся по центру. */
+.team-roster__table .team-roster__col-name {
   text-align: left;
   width: 100%;
   font-weight: 700;
   color: var(--head);
+}
+.team-roster__table .team-roster__col-number {
+  width: 48px;
+  font-weight: 800;
 }
 .team-roster__points {
   font-weight: 800;
@@ -144,4 +239,207 @@
   border: 1px solid var(--accbrd);
   border-radius: 5px;
   padding: 1px 5px;
+}
+
+/* Граница между данными игрока и его статистикой — вертикальная линия по первой
+   колонке статистики (во всех строках сразу). Сама статистика идёт следом за ней,
+   поэтому ширину задаём разом всем колонкам после разделителя: иначе они сжимаются
+   под ширину чисел, а колонка с ФИО забирает всё остальное. */
+.team-roster__table .team-roster__col-sep {
+  border-left: 1px solid var(--divider);
+  padding-left: 20px;
+}
+.team-roster__table .team-roster__col-sep,
+.team-roster__table .team-roster__col-sep ~ th,
+.team-roster__table .team-roster__col-sep ~ td {
+  min-width: 62px;
+}
+
+/* Фиксированные ширины колонок с данными. Нужны, чтобы таблицы вратарей и полевых
+   (это два отдельных <table>) совпадали по вертикали: иначе ширина считается по
+   содержимому и, например, отсутствие дисквалификаций у вратарей сдвигало бы всю
+   правую часть. Свободное место забирает колонка с ФИО (width: 100%).
+   Селектор с .team-roster__table — иначе правила проигрывают по весу
+   общим `.team-roster__table th/td` выше. */
+.team-roster__table .team-roster__col-photo {
+  width: 60px;
+  padding-left: 0;
+  padding-right: 0;
+}
+.team-roster__table .team-roster__col-dq {
+  width: 86px;
+}
+.team-roster__table .team-roster__col-qual {
+  width: 88px;
+}
+.team-roster__table .team-roster__col-birth {
+  width: 106px;
+}
+.team-roster__table .team-roster__col-age {
+  width: 84px;
+}
+.team-roster__photo {
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--inner);
+  border: 1px solid var(--innerbrd);
+}
+.team-roster__photo--placeholder {
+  border-style: dashed;
+}
+
+/* --- Документы допуска: зелёная иконка — документ есть и действует, красная — нет
+   или просрочен. Сами сканы наружу не отдаются, только статус и срок. --- */
+.team-roster__docs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.team-roster__muted {
+  color: var(--muted);
+}
+
+/* Общая форма бейджей в составе (квалификация, дисквалификация) */
+.team-roster__qual-btn,
+.team-roster__dq-btn {
+  padding: 3px 9px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 1px solid currentColor;
+  cursor: pointer;
+  transition: transform .2s;
+}
+.team-roster__qual-btn:hover,
+.team-roster__dq-btn:hover {
+  transform: scale(1.06);
+}
+.team-roster__qual-btn {
+  color: var(--acc);
+  background: var(--chip);
+}
+
+/* Действующая дисквалификация — красный бейдж с подсказкой по клику (сроки/матчи).
+   Причину наказания на публичной странице не показываем. */
+.team-roster__dq-btn {
+  color: #dc2626;
+  background: rgba(220, 38, 38, .12);
+}
+.team-roster__doc-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  border: 1px solid currentColor;
+  cursor: pointer;
+  transition: transform .2s;
+}
+.team-roster__doc-btn:hover {
+  transform: scale(1.08);
+}
+.team-roster__doc-btn svg {
+  width: 15px;
+  height: 15px;
+}
+.team-roster__doc-btn--ok {
+  color: #16a34a;
+  background: rgba(22, 163, 74, .12);
+}
+/* Нет документа или он просрочен — нейтральный серый, без «тревожного» красного:
+   на публичной странице это статус заявки, а не сигнал о нарушении. */
+.team-roster__doc-btn--missing {
+  color: var(--muted);
+  background: rgba(113, 145, 168, .12);
+}
+
+/* Подсказка живёт в body (портал), поэтому позиционируется фиксированно по координатам
+   кнопки. pre-line — описания квалификаций в справочнике разбиты на строки вручную. */
+.team-roster__tip {
+  position: fixed;
+  z-index: 150;
+  transform: translate(-50%, -100%) translateY(-10px);
+  width: max-content;
+  max-width: 300px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: var(--head);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: pre-line;
+  box-shadow: 0 14px 30px rgba(18, 49, 74, .3);
+  pointer-events: none;
+}
+.team-roster__tip--below {
+  transform: translate(-50%, 0) translateY(10px);
+}
+.team-roster__tip b {
+  display: block;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+/* --- Представители команды --- */
+.team-staff__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 900px) {
+  .team-staff__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .team-staff__grid {
+    grid-template-columns: 1fr;
+  }
+}
+.team-staff__card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--inner);
+  border: 1px solid var(--innerbrd);
+}
+.team-staff__photo {
+  flex: none;
+  width: 58px;
+  height: 58px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--glass);
+  border: 1px solid var(--innerbrd);
+}
+.team-staff__photo--placeholder {
+  border-style: dashed;
+}
+.team-staff__name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--head);
+  line-height: 1.35;
+}
+.team-staff__roles {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--label);
 }

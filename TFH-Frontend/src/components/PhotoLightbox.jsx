@@ -23,16 +23,17 @@ export default function PhotoLightbox({ photos, index, title, onClose, onIndexCh
 
   if (!current) return null;
 
+  // Счётчик нужен только там, где есть что листать: одиночное фото (например, командное
+  // на странице команды) подписывается просто названием, без "1 / 1".
+  const caption = [title, total > 1 ? `${index + 1} / ${total}` : null].filter(Boolean).join(' — ');
+
   return createPortal(
     <div className="lightbox-overlay" onClick={onClose}>
       <button type="button" className="lightbox-close" onClick={onClose} aria-label="Закрыть">
         ✕
       </button>
 
-      <div className="lightbox-counter">
-        {title ? `${title} — ` : ''}
-        {index + 1} / {total}
-      </div>
+      {caption && <div className="lightbox-counter">{caption}</div>}
 
       {total > 1 && (
         <button

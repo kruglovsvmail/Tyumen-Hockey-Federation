@@ -1,24 +1,257 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, Link } from 'react-router-dom';
 import { apiGet } from '../api/client.js';
 import PlaceholderSection from '../components/PlaceholderSection.jsx';
+import PhotoLightbox from '../components/PhotoLightbox.jsx';
 import Loader from '../components/Loader.jsx';
 import { getImageUrl } from '../utils/getImageUrl.js';
+import { formatAge, formatBirthDate } from '../utils/formatDate.js';
 import '../components/DivisionDetail/DivisionDetailTabs.css';
 import './TeamDetailPage.css';
+
+// Роли представителей команды в турнирной заявке (tournament_team_roles.tournament_role).
+// Названия — те же, что в LMS, чтобы человек видел одну и ту же должность везде.
+const STAFF_ROLE_LABELS = {
+  team_manager: 'Руководитель команды (подписант)',
+  team_admin: 'Администратор команды',
+  coach: 'Тренер команды',
+};
+
+// Документы допуска. Какие из них показывать, решает бэкенд по настройкам дивизиона
+// (divisions.req_med_cert / req_insurance / req_consent) — здесь только подписи.
+const DOCUMENT_LABELS = {
+  medical: 'Медицинская справка',
+  insurance: 'Страховка',
+  consent: 'Согласие на обработку данных',
+};
+
+function PersonPhoto({ url, className }) {
+  return url ? (
+    <img src={getImageUrl(url)} alt="" className={className} />
+  ) : (
+    <div className={`${className} ${className}--placeholder`} />
+  );
+}
+
+// Сегодняшняя дата в том же формате, в каком приходят сроки документов ('YYYY-MM-DD').
+// Собираем из локальных компонентов, а не через toISOString() — тот отдаёт UTC и в наших
+// часовых поясах до утра показывал бы вчерашний день.
+const todayIso = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+const isDocumentValid = (doc) => {
+  if (!doc.present) return false;
+  // Просроченный документ допуска не даёт — показываем его так же, как отсутствующий,
+  // а точную дату человек увидит в подсказке.
+  if (!doc.expiresAt) return true;
+  return doc.expiresAt >= todayIso();
+};
+
+const documentHint = (doc) => {
+  if (!doc.present) return 'Нет документа';
+  if (!doc.expiresAt) return 'Есть, срок не указан';
+  return isDocumentValid(doc)
+    ? `Действует до ${formatBirthDate(doc.expiresAt)}`
+    : `Срок истёк ${formatBirthDate(doc.expiresAt)}`;
+};
+
+const disqualificationHint = (dq) => {
+  const parts = [];
+  if (dq.gamesLeft > 0) parts.push(`Осталось матчей: ${dq.gamesLeft}`);
+  if (dq.until) parts.push(`Действует до ${formatBirthDate(dq.until)}`);
+  if (dq.manual) parts.push('До решения СДК');
+  return parts.length > 0 ? parts.join(' · ') : 'Действует';
+};
+
+// Бейдж с подсказкой по клику (а не по наведению — на телефоне hover недоступен).
+// Подсказка уходит порталом в body: таблица состава прокручивается по горизонтали
+// (overflow на обёртке), и внутри неё всплывающий блок был бы обрезан.
+const TIP_HALF_WIDTH = 160;
+
+function TipBadge({ className, tipTitle, tipText, children }) {
+  const [pos, setPos] = useState(null);
+  const btnRef = useRef(null);
+
+  useEffect(() => {
+    if (!pos) return undefined;
+    const close = () => setPos(null);
+    // Клик по своей же кнопке пропускаем — её обработчик сам закроет подсказку
+    // (иначе повторный клик успевал бы закрыть и тут же открыть её заново).
+    const closeIfOutside = (e) => {
+      if (btnRef.current?.contains(e.target)) return;
+      setPos(null);
+    };
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setPos(null);
+    };
+    document.addEventListener('pointerdown', closeIfOutside);
+    window.addEventListener('keydown', onKeyDown);
+    // true — ловим прокрутку и внутренних контейнеров (обёртка таблицы), а не только окна
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      document.removeEventListener('pointerdown', closeIfOutside);
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [pos]);
+
+  const toggle = () => {
+    if (pos) return setPos(null);
+    const rect = btnRef.current.getBoundingClientRect();
+    // Описание квалификации бывает в несколько абзацев, поэтому подсказку, которой не
+    // хватает места сверху, разворачиваем вниз, а по горизонтали прижимаем к краю экрана.
+    const minLeft = TIP_HALF_WIDTH + 12;
+    const maxLeft = window.innerWidth - TIP_HALF_WIDTH - 12;
+    const center = rect.left + rect.width / 2;
+    setPos({
+      top: rect.top < 300 ? rect.bottom : rect.top,
+      left: maxLeft > minLeft ? Math.min(Math.max(center, minLeft), maxLeft) : center,
+      below: rect.top < 300,
+    });
+  };
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        className={className}
+        onClick={toggle}
+        aria-label={`${tipTitle}: ${tipText}`}
+      >
+        {children}
+      </button>
+      {pos &&
+        createPortal(
+          <span
+            className={`team-roster__tip${pos.below ? ' team-roster__tip--below' : ''}`}
+            role="tooltip"
+            style={{ top: pos.top, left: pos.left }}
+          >
+            <b>{tipTitle}</b>
+            {tipText}
+          </span>,
+          document.body
+        )}
+    </>
+  );
+}
+
+function DocumentBadges({ documents }) {
+  if (documents.length === 0) return <span className="team-roster__muted">—</span>;
+
+  return (
+    <span className="team-roster__docs">
+      {documents.map((doc) => (
+        <TipBadge
+          key={doc.key}
+          className={`team-roster__doc-btn team-roster__doc-btn--${isDocumentValid(doc) ? 'ok' : 'missing'}`}
+          tipTitle={DOCUMENT_LABELS[doc.key] || doc.key}
+          tipText={documentHint(doc)}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M6 2.5h7l5 5v14a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 5 21.5v-17A1.5 1.5 0 0 1 6 2.5z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinejoin="round"
+            />
+            <path d="M13 2.5v5h5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+            <path d="M8.5 12.5h7M8.5 16.5h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        </TipBadge>
+      ))}
+    </span>
+  );
+}
+
+// Левая, общая для вратарей и полевых часть таблицы состава: номер, фото, ФИО,
+// дисквалификация, квалификация, документы допуска, дата рождения и возраст.
+// Подписи есть только у номера, фото и ФИО — остальные колонки читаются сами по себе.
+// Дальше у каждой позиции своя статистика, отделённая вертикальной линией
+// (team-roster__col-sep на первой её колонке).
+const PLAYER_HEAD_CELLS = (
+  <>
+    <th className="team-roster__col-number">№</th>
+    <th className="team-roster__col-photo">Фото</th>
+    <th className="team-roster__col-name">Игрок</th>
+    <th className="team-roster__col-dq" />
+    <th className="team-roster__col-qual" />
+    <th />
+    <th className="team-roster__col-birth" />
+    <th className="team-roster__col-age" />
+  </>
+);
+
+function PlayerCells({ player }) {
+  return (
+    <>
+      <td className="team-roster__col-number">{player.jerseyNumber ?? '—'}</td>
+      <td className="team-roster__col-photo">
+        <PersonPhoto url={player.photoUrl} className="team-roster__photo" />
+      </td>
+      <td className="team-roster__col-name">
+        {player.fullName}
+        {player.isCaptain && <span className="team-roster__badge">К</span>}
+        {player.isAssistant && <span className="team-roster__badge">А</span>}
+      </td>
+      <td className="team-roster__col-dq">
+        {player.disqualification && (
+          <TipBadge
+            className="team-roster__dq-btn"
+            tipTitle="Дисквалификация"
+            tipText={disqualificationHint(player.disqualification)}
+          >
+            Дискв.
+          </TipBadge>
+        )}
+      </td>
+      <td className="team-roster__col-qual">
+        {player.qualification ? (
+          <TipBadge
+            className="team-roster__qual-btn"
+            tipTitle={player.qualification.name}
+            tipText={player.qualification.description || 'Описание квалификации не заполнено'}
+          >
+            {player.qualification.short}
+          </TipBadge>
+        ) : (
+          <span className="team-roster__muted">—</span>
+        )}
+      </td>
+      <td>
+        <DocumentBadges documents={player.documents} />
+      </td>
+      <td className="team-roster__col-birth">{formatBirthDate(player.birthDate) || '—'}</td>
+      <td className="team-roster__col-age">{formatAge(player.age) || '—'}</td>
+    </>
+  );
+}
+
+// Статистика игрока, не оплатившего индивидуальный взнос (если в дивизионе включено
+// divisions.hide_stats_unpaid). Бэкенд такие цифры не отдаёт вовсе (приходит null),
+// поэтому на их месте — размытая заглушка. Количество игр не скрывается и через
+// этот помощник не проходит.
+const statValue = (value, hidden) =>
+  hidden ? <span className="team-roster__stat-hidden">•••</span> : value;
 
 function SkaterTable({ title, players }) {
   if (players.length === 0) return null;
   return (
-    <div className="glass-card team-roster">
-      <h3 className="division-tab__title">{title}</h3>
+    <div className="team-roster__group">
+      <h4 className="team-roster__group-title">{title}</h4>
       <div className="team-roster__table-wrap">
         <table className="team-roster__table">
           <thead>
             <tr>
-              <th>№</th>
-              <th className="team-roster__col-name">Игрок</th>
-              <th>И</th>
+              {PLAYER_HEAD_CELLS}
+              <th className="team-roster__col-sep">И</th>
               <th>Г</th>
               <th>А</th>
               <th>О</th>
@@ -28,17 +261,12 @@ function SkaterTable({ title, players }) {
           <tbody>
             {players.map((p) => (
               <tr key={p.rosterId}>
-                <td>{p.jerseyNumber ?? '—'}</td>
-                <td className="team-roster__col-name">
-                  {p.fullName}
-                  {p.isCaptain && <span className="team-roster__badge">К</span>}
-                  {p.isAssistant && <span className="team-roster__badge">А</span>}
-                </td>
-                <td>{p.gamesPlayed}</td>
-                <td>{p.goals}</td>
-                <td>{p.assists}</td>
-                <td className="team-roster__points">{p.points}</td>
-                <td>{p.penaltyMinutes}</td>
+                <PlayerCells player={p} />
+                <td className="team-roster__col-sep">{p.gamesPlayed}</td>
+                <td>{statValue(p.goals, p.statsHidden)}</td>
+                <td>{statValue(p.assists, p.statsHidden)}</td>
+                <td className="team-roster__points">{statValue(p.points, p.statsHidden)}</td>
+                <td>{statValue(p.penaltyMinutes, p.statsHidden)}</td>
               </tr>
             ))}
           </tbody>
@@ -51,37 +279,81 @@ function SkaterTable({ title, players }) {
 function GoalieTable({ players }) {
   if (players.length === 0) return null;
   return (
-    <div className="glass-card team-roster">
-      <h3 className="division-tab__title">Вратари</h3>
+    <div className="team-roster__group">
+      <h4 className="team-roster__group-title">Вратари</h4>
       <div className="team-roster__table-wrap">
         <table className="team-roster__table">
           <thead>
+            {/* Две пустые колонки в хвосте — чтобы блок статистики вратарей начинался
+                по той же вертикали, что и у полевых (у тех на две колонки больше) */}
             <tr>
-              <th>№</th>
-              <th className="team-roster__col-name">Игрок</th>
-              <th>И</th>
+              {PLAYER_HEAD_CELLS}
+              <th className="team-roster__col-sep">И</th>
               <th>ПШ</th>
-              <th>%ОБ</th>
               <th>ШТР</th>
+              <th />
+              <th />
             </tr>
           </thead>
           <tbody>
             {players.map((p) => (
               <tr key={p.rosterId}>
-                <td>{p.jerseyNumber ?? '—'}</td>
-                <td className="team-roster__col-name">
-                  {p.fullName}
-                  {p.isCaptain && <span className="team-roster__badge">К</span>}
-                  {p.isAssistant && <span className="team-roster__badge">А</span>}
-                </td>
-                <td>{p.gamesPlayed}</td>
-                <td>{p.goalsAgainst}</td>
-                <td>{p.savePercent}</td>
-                <td>{p.penaltyMinutes}</td>
+                <PlayerCells player={p} />
+                <td className="team-roster__col-sep">{p.gamesPlayed}</td>
+                <td>{statValue(p.goalsAgainst, p.statsHidden)}</td>
+                <td>{statValue(p.penaltyMinutes, p.statsHidden)}</td>
+                <td />
+                <td />
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+// Вратари, защитники и нападающие — один блок «Состав» с тремя таблицами внутри:
+// у вратарей своя статистика, поэтому свести всё в одну таблицу нельзя.
+function RosterSection({ data }) {
+  const allPlayers = [...data.goalies, ...data.defensemen, ...data.forwards];
+  if (allPlayers.length === 0) return <PlaceholderSection>Состав команды пока не заявлен.</PlaceholderSection>;
+
+  return (
+    <div className="glass-card team-roster">
+      <h3 className="division-tab__title team-detail__block-title">Состав и статистика игроков</h3>
+      <GoalieTable players={data.goalies} />
+      <SkaterTable title="Защитники" players={data.defensemen} />
+      <SkaterTable title="Нападающие" players={data.forwards} />
+
+      {allPlayers.some((p) => p.statsHidden) && (
+        <p className="team-roster__note">
+          Статистика игроков, не оплативших индивидуальный взнос, скрыта.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function StaffSection({ staff }) {
+  if (staff.length === 0) return null;
+  return (
+    <div className="glass-card">
+      <h3 className="division-tab__title team-detail__block-title">Представители команды</h3>
+      <div className="team-staff__grid">
+        {staff.map((person) => (
+          <div key={person.userId} className="team-staff__card">
+            <PersonPhoto url={person.photoUrl} className="team-staff__photo" />
+            <div>
+              <div className="team-staff__name">{person.fullName}</div>
+              <div className="team-staff__roles">
+                {person.roles.map((role) => (
+                  <div key={role}>{STAFF_ROLE_LABELS[role] || role}</div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -94,10 +366,12 @@ export default function TeamDetailPage({ backTo, backLabel }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [photoOpen, setPhotoOpen] = useState(false);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
+    setPhotoOpen(false);
     apiGet(`/api/championship/teams/${teamId}`)
       .then(setData)
       .catch((err) => setError(err.message))
@@ -130,7 +404,7 @@ export default function TeamDetailPage({ backTo, backLabel }) {
 
           <div className="team-detail__top-grid">
             <div className="glass-card team-detail__about">
-              <h3 className="division-tab__title">О команде</h3>
+              <h3 className="division-tab__title team-detail__block-title">О команде</h3>
               {data.team.description ? (
                 <p className="team-detail__about-text">{data.team.description}</p>
               ) : (
@@ -138,8 +412,28 @@ export default function TeamDetailPage({ backTo, backLabel }) {
               )}
             </div>
 
+            <div className="glass-card team-detail__photo-card">
+              <h3 className="division-tab__title team-detail__block-title">Командное фото</h3>
+              {data.team.teamPhotoUrl ? (
+                <button
+                  type="button"
+                  className="team-detail__photo-btn"
+                  onClick={() => setPhotoOpen(true)}
+                  aria-label="Открыть командное фото"
+                >
+                  <img
+                    src={getImageUrl(data.team.teamPhotoUrl)}
+                    alt={`Командное фото: ${data.team.name}`}
+                    className="team-detail__photo"
+                  />
+                </button>
+              ) : (
+                <div className="team-detail__photo-placeholder">Общего фото команды нет</div>
+              )}
+            </div>
+
             <div className="glass-card team-detail__jerseys">
-              <h3 className="division-tab__title">Джерси</h3>
+              <h3 className="division-tab__title team-detail__block-title">Джерси команды</h3>
               <div className="team-detail__jerseys-grid">
                 <div className="team-detail__jersey">
                   {data.team.jerseyDarkUrl ? (
@@ -161,12 +455,18 @@ export default function TeamDetailPage({ backTo, backLabel }) {
             </div>
           </div>
 
-          <GoalieTable players={data.goalies} />
-          <SkaterTable title="Защитники" players={data.defensemen} />
-          <SkaterTable title="Нападающие" players={data.forwards} />
+          <RosterSection data={data} />
 
-          {data.goalies.length === 0 && data.defensemen.length === 0 && data.forwards.length === 0 && (
-            <PlaceholderSection>Состав команды пока не заявлен.</PlaceholderSection>
+          <StaffSection staff={data.staff} />
+
+          {photoOpen && (
+            <PhotoLightbox
+              photos={[{ url: getImageUrl(data.team.teamPhotoUrl) }]}
+              index={0}
+              title={data.team.name}
+              onClose={() => setPhotoOpen(false)}
+              onIndexChange={() => {}}
+            />
           )}
         </>
       )}
