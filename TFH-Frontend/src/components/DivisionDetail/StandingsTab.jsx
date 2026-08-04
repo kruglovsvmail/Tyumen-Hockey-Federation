@@ -63,7 +63,7 @@ export default function StandingsTab({ divisionId, teamLinkBase }) {
     <div className="division-tab-page">
       <div className="division-tab-layout">
         <div className="glass-card standings-tab">
-          <h3 className="division-tab__title">Турнирная таблица</h3>
+          <h3 className="division-tab__title">Таблица регулярного чемпионата</h3>
 
           {standings.length === 0 ? (
             <PlaceholderSection>В дивизионе пока нет допущенных команд.</PlaceholderSection>
@@ -105,7 +105,7 @@ export default function StandingsTab({ divisionId, teamLinkBase }) {
 
         <div className="glass-card week-games">
           <div className="week-games__header">
-            <h3 className="division-tab__title">Матчи недели</h3>
+            <h3 className="division-tab__title">Предстоящие матчи</h3>
             {(canScrollUp || canScrollDown) && (
               <div className="week-games__nav">
                 <button

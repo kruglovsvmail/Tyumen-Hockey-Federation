@@ -36,7 +36,6 @@ export default function TeamsTab({ divisionId, teamLinkBase }) {
             )}
           </div>
           <div className="teams-tab__name">{t.name}</div>
-          <span className="teams-tab__link">Страница команды ›</span>
         </Link>
       ))}
     </div>

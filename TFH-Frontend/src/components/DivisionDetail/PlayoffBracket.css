@@ -51,17 +51,9 @@
   font-weight: 800;
   font-size: 15px;
   color: var(--head);
-  margin-bottom: 20px;
-}
-.playoff-bracket__main-badge {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .5px;
   text-transform: uppercase;
-  color: var(--acc);
-  padding: 3px 8px;
-  border-radius: 999px;
-  border: 1px solid var(--accbrd);
+  letter-spacing: .5px;
+  margin-bottom: 20px;
 }
 
 .playoff-bracket__rounds {

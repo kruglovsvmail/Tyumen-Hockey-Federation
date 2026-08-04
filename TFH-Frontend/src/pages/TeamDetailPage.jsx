@@ -18,6 +18,12 @@ const STAFF_ROLE_LABELS = {
   coach: 'Тренер команды',
 };
 
+const POSITION_LABELS = {
+  goalie: 'Вратарь',
+  defense: 'Защитник',
+  forward: 'Нападающий',
+};
+
 // Документы допуска. Какие из них показывать, решает бэкенд по настройкам дивизиона
 // (divisions.req_med_cert / req_insurance / req_consent) — здесь только подписи.
 const DOCUMENT_LABELS = {
@@ -172,7 +178,7 @@ function DocumentBadges({ documents }) {
 }
 
 // Левая, общая для вратарей и полевых часть таблицы состава: номер, фото, ФИО,
-// дисквалификация, квалификация, документы допуска, дата рождения и возраст.
+// дисквалификация, квалификация, документы допуска и возраст.
 // Подписи есть только у номера, фото и ФИО — остальные колонки читаются сами по себе.
 // Дальше у каждой позиции своя статистика, отделённая вертикальной линией
 // (team-roster__col-sep на первой её колонке).
@@ -184,7 +190,6 @@ const PLAYER_HEAD_CELLS = (
     <th className="team-roster__col-dq" />
     <th className="team-roster__col-qual" />
     <th />
-    <th className="team-roster__col-birth" />
     <th className="team-roster__col-age" />
   </>
 );
@@ -228,7 +233,6 @@ function PlayerCells({ player }) {
       <td>
         <DocumentBadges documents={player.documents} />
       </td>
-      <td className="team-roster__col-birth">{formatBirthDate(player.birthDate) || '—'}</td>
       <td className="team-roster__col-age">{formatAge(player.age) || '—'}</td>
     </>
   );
@@ -253,7 +257,7 @@ function SkaterTable({ title, players }) {
               {PLAYER_HEAD_CELLS}
               <th className="team-roster__col-sep">И</th>
               <th>Г</th>
-              <th>А</th>
+              <th>П</th>
               <th>О</th>
               <th>ШТР</th>
             </tr>
@@ -284,15 +288,15 @@ function GoalieTable({ players }) {
       <div className="team-roster__table-wrap">
         <table className="team-roster__table">
           <thead>
-            {/* Две пустые колонки в хвосте — чтобы блок статистики вратарей начинался
-                по той же вертикали, что и у полевых (у тех на две колонки больше) */}
+            {/* Колонок статистики столько же, сколько у полевых (5), поэтому обе таблицы
+                совпадают по вертикали без добивки пустыми ячейками */}
             <tr>
               {PLAYER_HEAD_CELLS}
               <th className="team-roster__col-sep">И</th>
+              <th>И&quot;0&quot;</th>
+              <th>П</th>
               <th>ПШ</th>
               <th>ШТР</th>
-              <th />
-              <th />
             </tr>
           </thead>
           <tbody>
@@ -300,10 +304,43 @@ function GoalieTable({ players }) {
               <tr key={p.rosterId}>
                 <PlayerCells player={p} />
                 <td className="team-roster__col-sep">{p.gamesPlayed}</td>
+                <td>{statValue(p.shutouts, p.statsHidden)}</td>
+                <td>{statValue(p.assists, p.statsHidden)}</td>
                 <td>{statValue(p.goalsAgainst, p.statsHidden)}</td>
                 <td>{statValue(p.penaltyMinutes, p.statsHidden)}</td>
-                <td />
-                <td />
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// Игроки, у которых в LMS снят допуск к матчам. Статистики у них нет по определению,
+// поэтому вместо колонок статистики — амплуа. Порядок (вратари → защитники →
+// нападающие, внутри позиции по алфавиту) приходит уже готовым с бэкенда.
+function NotAdmittedSection({ players }) {
+  if (players.length === 0) return null;
+
+  return (
+    <div className="glass-card team-roster">
+      <h3 className="division-tab__title team-detail__block-title">Не допущенные игроки</h3>
+      <div className="team-roster__table-wrap">
+        <table className="team-roster__table">
+          <thead>
+            <tr>
+              {PLAYER_HEAD_CELLS}
+              <th className="team-roster__col-sep team-roster__col-role">Амплуа</th>
+            </tr>
+          </thead>
+          <tbody>
+            {players.map((p) => (
+              <tr key={p.rosterId}>
+                <PlayerCells player={p} />
+                <td className="team-roster__col-sep team-roster__col-role">
+                  {POSITION_LABELS[p.position] || '—'}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -317,7 +354,18 @@ function GoalieTable({ players }) {
 // у вратарей своя статистика, поэтому свести всё в одну таблицу нельзя.
 function RosterSection({ data }) {
   const allPlayers = [...data.goalies, ...data.defensemen, ...data.forwards];
-  if (allPlayers.length === 0) return <PlaceholderSection>Состав команды пока не заявлен.</PlaceholderSection>;
+  // Пустой состав бывает по двум разным причинам, и путать их нельзя: либо в заявке
+  // действительно никого, либо люди есть, но допуска нет ни у кого — тогда они все
+  // видны в блоке «Не допущенные игроки» ниже, и «не заявлен» противоречило бы ему.
+  if (allPlayers.length === 0) {
+    return (
+      <PlaceholderSection>
+        {data.notAdmitted?.length > 0
+          ? 'Ни один игрок команды пока не допущен к матчам.'
+          : 'Состав команды пока не заявлен.'}
+      </PlaceholderSection>
+    );
+  }
 
   return (
     <div className="glass-card team-roster">
@@ -433,7 +481,7 @@ export default function TeamDetailPage({ backTo, backLabel }) {
             </div>
 
             <div className="glass-card team-detail__jerseys">
-              <h3 className="division-tab__title team-detail__block-title">Джерси команды</h3>
+              <h3 className="division-tab__title team-detail__block-title">Командные майки</h3>
               <div className="team-detail__jerseys-grid">
                 <div className="team-detail__jersey">
                   {data.team.jerseyDarkUrl ? (
@@ -452,10 +500,13 @@ export default function TeamDetailPage({ backTo, backLabel }) {
                   <span>Гостевая</span>
                 </div>
               </div>
+              <div className="team-detail__jerseys-credit">создано ИИ</div>
             </div>
           </div>
 
           <RosterSection data={data} />
+
+          <NotAdmittedSection players={data.notAdmitted || []} />
 
           <StaffSection staff={data.staff} />
 

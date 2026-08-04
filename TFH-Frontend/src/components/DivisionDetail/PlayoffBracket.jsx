@@ -124,10 +124,7 @@ function BracketBlock({ bracket, games, showName }) {
   return (
     <div className="playoff-bracket__grid-wrap">
       {showName && (
-        <div className="playoff-bracket__name">
-          {bracket.name}
-          {bracket.isMain && <span className="playoff-bracket__main-badge">Главный кубок</span>}
-        </div>
+        <div className="playoff-bracket__name">{bracket.name}</div>
       )}
 
       <div className="playoff-bracket__rounds">
@@ -218,7 +215,7 @@ export default function PlayoffBracket({ divisionId }) {
   return (
     <div className="glass-card playoff-bracket">
       <div className="playoff-bracket__header">
-        <h3 className="division-tab__title">Стадия плей-офф</h3>
+        <h3 className="division-tab__title">Таблица плей-офф</h3>
         {isAdmin && (
           <button
             type="button"

@@ -614,15 +614,16 @@ export const getTeamDetail = async (req, res) => {
        to_char(tr.insurance_expires_at, 'YYYY-MM-DD') AS insurance_expires_at,
        (tr.consent_url IS NOT NULL) AS has_consent,
        to_char(tr.consent_expires_at, 'YYYY-MM-DD') AS consent_expires_at,
+       tr.application_status,
        ps.games_played, ps.goals, ps.assists, ps.points, ps.penalty_minutes,
-       ps.goals_against
+       ps.goals_against, ps.shutouts
      FROM tournament_rosters tr
      JOIN users u ON u.id = tr.player_id
      ${TEAM_MEMBER_PHOTO_LATERAL}
      LEFT JOIN league_qualifications lq ON lq.id = tr.qualification_id
      ${ACTIVE_DISQUALIFICATION_LATERAL}
      LEFT JOIN player_statistics ps ON ps.tournament_roster_id = tr.id
-     WHERE tr.tournament_team_id = $1 AND tr.application_status = 'approved' AND tr.period_end IS NULL
+     WHERE tr.tournament_team_id = $1 AND tr.period_end IS NULL
      ORDER BY tr.jersey_number NULLS LAST`,
     [tournamentTeamId, row.team_id, LEAGUE_ID]
   );
@@ -657,6 +658,7 @@ export const getTeamDetail = async (req, res) => {
   const mapPlayerBase = (r) => ({
     rosterId: r.roster_id,
     jerseyNumber: r.jersey_number,
+    position: r.position,
     fullName: formatPlayerName(r),
     photoUrl: r.photo_url,
     birthDate: r.birth_date,
@@ -695,10 +697,26 @@ export const getTeamDetail = async (req, res) => {
     points: stat(r, r.points),
   });
   // Процент отражённых бросков (ps.save_percent) намеренно не отдаём: лига его не считает.
+  // Передачи у вратаря те же, что у полевых — своя графа "П" в таблице состава есть и у них.
   const mapGoalie = (r) => ({
     ...mapPlayerBase(r),
+    shutouts: stat(r, r.shutouts),
+    assists: stat(r, r.assists),
     goalsAgainst: stat(r, r.goals_against),
   });
+
+  // Допуск к матчам ставят в LMS тумблером (tournament_rosters.application_status):
+  // снятый допуск — это 'declined'. Такие игроки в основной состав не идут, но и молча
+  // пропадать со страницы команды не должны — уходят отдельным списком ниже.
+  // Порядок там свой: вратари → защитники → нападающие, внутри позиции по алфавиту.
+  const POSITION_ORDER = { goalie: 0, defense: 1, forward: 2 };
+  const admittedRows = rosterRes.rows.filter((r) => r.application_status === 'approved');
+  const notAdmittedRows = rosterRes.rows
+    .filter((r) => r.application_status !== 'approved')
+    .sort((a, b) =>
+      (POSITION_ORDER[a.position] ?? 3) - (POSITION_ORDER[b.position] ?? 3)
+      || formatPlayerName(a).localeCompare(formatPlayerName(b), 'ru')
+    );
 
   res.json({
     team: {
@@ -713,9 +731,10 @@ export const getTeamDetail = async (req, res) => {
       jerseyDarkUrl: row.custom_jersey_dark_url || row.jersey_dark_url,
       division: { id: row.division_id, name: row.division_name },
     },
-    goalies: rosterRes.rows.filter((r) => r.position === 'goalie').map(mapGoalie),
-    defensemen: rosterRes.rows.filter((r) => r.position === 'defense').map(mapSkater),
-    forwards: rosterRes.rows.filter((r) => r.position === 'forward').map(mapSkater),
+    goalies: admittedRows.filter((r) => r.position === 'goalie').map(mapGoalie),
+    defensemen: admittedRows.filter((r) => r.position === 'defense').map(mapSkater),
+    forwards: admittedRows.filter((r) => r.position === 'forward').map(mapSkater),
+    notAdmitted: notAdmittedRows.map(mapPlayerBase),
     staff: staffRes.rows.map((r) => ({
       userId: r.user_id,
       fullName: formatPlayerName(r),

@@ -5,6 +5,16 @@
   color: var(--head);
 }
 
+/* Заголовки блоков вкладки "Таблица" — заглавными. Точечно, а не на самом
+   .division-tab__title: тот же класс носят заголовки на странице команды, где
+   регистр задаётся своим модификатором (.team-detail__block-title). */
+.standings-tab .division-tab__title,
+.week-games .division-tab__title,
+.playoff-bracket .division-tab__title {
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
 /* --- Таблица (standings) + Матчи недели + Плей-офф (отдельным блоком ниже) --- */
 .division-tab-page {
   display: flex;
@@ -474,7 +484,7 @@
 /* --- Команды --- */
 .teams-tab-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 16px;
 }
 .teams-tab__card {
@@ -496,8 +506,8 @@
   box-shadow: var(--pshadow), 0 0 0 2px var(--accbrd);
 }
 .teams-tab__logo-wrap {
-  width: 88px;
-  height: 88px;
+  width: 140px;
+  height: 140px;
 }
 .teams-tab__logo {
   width: 100%;
@@ -513,9 +523,4 @@
   font-size: 14px;
   color: var(--head);
   text-transform: uppercase;
-}
-.teams-tab__link {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--accnum);
 }
