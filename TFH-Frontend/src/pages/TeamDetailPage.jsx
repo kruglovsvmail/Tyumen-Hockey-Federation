@@ -325,7 +325,7 @@ function NotAdmittedSection({ players }) {
 
   return (
     <div className="glass-card team-roster">
-      <h3 className="division-tab__title team-detail__block-title">Не допущенные игроки</h3>
+      <h3 className="division-tab__title team-detail__block-title">Недопущенные игроки</h3>
       <div className="team-roster__table-wrap">
         <table className="team-roster__table">
           <thead>
@@ -356,7 +356,7 @@ function RosterSection({ data }) {
   const allPlayers = [...data.goalies, ...data.defensemen, ...data.forwards];
   // Пустой состав бывает по двум разным причинам, и путать их нельзя: либо в заявке
   // действительно никого, либо люди есть, но допуска нет ни у кого — тогда они все
-  // видны в блоке «Не допущенные игроки» ниже, и «не заявлен» противоречило бы ему.
+  // видны в блоке «Недопущенные игроки» ниже, и «не заявлен» противоречило бы ему.
   if (allPlayers.length === 0) {
     return (
       <PlaceholderSection>
