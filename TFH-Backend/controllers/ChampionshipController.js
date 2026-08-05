@@ -705,18 +705,25 @@ export const getTeamDetail = async (req, res) => {
     goalsAgainst: stat(r, r.goals_against),
   });
 
-  // Допуск к матчам ставят в LMS тумблером (tournament_rosters.application_status):
-  // снятый допуск — это 'declined'. Такие игроки в основной состав не идут, но и молча
-  // пропадать со страницы команды не должны — уходят отдельным списком ниже.
-  // Порядок там свой: вратари → защитники → нападающие, внутри позиции по алфавиту.
+  // Состав делится на три непересекающихся списка, и каждый игрок попадает ровно в один.
+  //  1. играющие — идут в основной блок со статистикой;
+  //  2. без допуска — его ставят в LMS тумблером (tournament_rosters.application_status),
+  //     снятый допуск это 'declined';
+  //  3. с активной дисквалификацией в этой лиге (dq_total из ACTIVE_DISQUALIFICATION_LATERAL).
+  // Недопуск проверяем раньше дисквалификации: это более основательная причина не играть,
+  // и в двух списках сразу один и тот же человек оказаться не должен.
+  // Порядок в служебных списках свой: вратари → защитники → нападающие, внутри по алфавиту.
   const POSITION_ORDER = { goalie: 0, defense: 1, forward: 2 };
-  const admittedRows = rosterRes.rows.filter((r) => r.application_status === 'approved');
-  const notAdmittedRows = rosterRes.rows
-    .filter((r) => r.application_status !== 'approved')
-    .sort((a, b) =>
-      (POSITION_ORDER[a.position] ?? 3) - (POSITION_ORDER[b.position] ?? 3)
-      || formatPlayerName(a).localeCompare(formatPlayerName(b), 'ru')
-    );
+  const byPositionThenName = (a, b) =>
+    (POSITION_ORDER[a.position] ?? 3) - (POSITION_ORDER[b.position] ?? 3)
+    || formatPlayerName(a).localeCompare(formatPlayerName(b), 'ru');
+
+  const isAdmitted = (r) => r.application_status === 'approved';
+  const isDisqualified = (r) => Number(r.dq_total) > 0;
+
+  const notAdmittedRows = rosterRes.rows.filter((r) => !isAdmitted(r)).sort(byPositionThenName);
+  const disqualifiedRows = rosterRes.rows.filter((r) => isAdmitted(r) && isDisqualified(r)).sort(byPositionThenName);
+  const admittedRows = rosterRes.rows.filter((r) => isAdmitted(r) && !isDisqualified(r));
 
   res.json({
     team: {
@@ -735,6 +742,7 @@ export const getTeamDetail = async (req, res) => {
     defensemen: admittedRows.filter((r) => r.position === 'defense').map(mapSkater),
     forwards: admittedRows.filter((r) => r.position === 'forward').map(mapSkater),
     notAdmitted: notAdmittedRows.map(mapPlayerBase),
+    disqualified: disqualifiedRows.map(mapPlayerBase),
     staff: staffRes.rows.map((r) => ({
       userId: r.user_id,
       fullName: formatPlayerName(r),

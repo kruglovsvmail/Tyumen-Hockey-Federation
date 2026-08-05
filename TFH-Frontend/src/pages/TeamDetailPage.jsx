@@ -317,15 +317,16 @@ function GoalieTable({ players }) {
   );
 }
 
-// Игроки, у которых в LMS снят допуск к матчам. Статистики у них нет по определению,
-// поэтому вместо колонок статистики — амплуа. Порядок (вратари → защитники →
-// нападающие, внутри позиции по алфавиту) приходит уже готовым с бэкенда.
-function NotAdmittedSection({ players }) {
+// Игроки, которые сейчас на лёд не выходят: без допуска (снят тумблер в LMS) либо с
+// активной дисквалификацией. Оба списка устроены одинаково — вместо колонок статистики
+// амплуа. Порядок (вратари → защитники → нападающие, внутри позиции по алфавиту)
+// приходит готовым с бэкенда, здесь только отрисовка. Пустой список блок не рисует вовсе.
+function SidelinedSection({ title, players }) {
   if (players.length === 0) return null;
 
   return (
     <div className="glass-card team-roster">
-      <h3 className="division-tab__title team-detail__block-title">Недопущенные игроки</h3>
+      <h3 className="division-tab__title team-detail__block-title">{title}</h3>
       <div className="team-roster__table-wrap">
         <table className="team-roster__table">
           <thead>
@@ -355,13 +356,14 @@ function NotAdmittedSection({ players }) {
 function RosterSection({ data }) {
   const allPlayers = [...data.goalies, ...data.defensemen, ...data.forwards];
   // Пустой состав бывает по двум разным причинам, и путать их нельзя: либо в заявке
-  // действительно никого, либо люди есть, но допуска нет ни у кого — тогда они все
-  // видны в блоке «Недопущенные игроки» ниже, и «не заявлен» противоречило бы ему.
+  // действительно никого, либо люди есть, но все они разошлись по блокам ниже
+  // (без допуска / дисквалифицированы) — и «не заявлен» противоречило бы этим спискам.
   if (allPlayers.length === 0) {
+    const hasSidelined = (data.notAdmitted?.length || 0) + (data.disqualified?.length || 0) > 0;
     return (
       <PlaceholderSection>
-        {data.notAdmitted?.length > 0
-          ? 'Ни один игрок команды пока не допущен к матчам.'
+        {hasSidelined
+          ? 'Сейчас ни один игрок команды не может выйти на матч.'
           : 'Состав команды пока не заявлен.'}
       </PlaceholderSection>
     );
@@ -506,7 +508,9 @@ export default function TeamDetailPage({ backTo, backLabel }) {
 
           <RosterSection data={data} />
 
-          <NotAdmittedSection players={data.notAdmitted || []} />
+          <SidelinedSection title="Недопущенные игроки" players={data.notAdmitted || []} />
+
+          <SidelinedSection title="Дисквалифицированные" players={data.disqualified || []} />
 
           <StaffSection staff={data.staff} />
 
