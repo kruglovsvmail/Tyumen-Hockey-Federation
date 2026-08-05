@@ -16,12 +16,12 @@ const BASE_RADIUS = 24;
 //   heightOffset?: сдвиг камеры (и точки, куда она смотрит) по Y — вверх/вниз, не меняя угол,
 //   offsetX?: сдвиг камеры (и точки, куда она смотрит) по X — влево/вправо, не меняя угол }
 const ZONE_ORBIT = {
-  home: { azimuthDeg: 0, scale: 1.7, elevationDeg: 24, heightOffset: 2.5, offsetX: 0 },
-  'fed-organizatsiya': { azimuthDeg: 36, scale: 2.7, elevationDeg: 64, heightOffset: 2.5 },
-  'fed-rukovodstvo': { azimuthDeg: -20, scale: 2.7, elevationDeg: 44, heightOffset: 2.5 },
-  'fed-kontakty': { azimuthDeg: -66, scale: 2.7, elevationDeg: 24, heightOffset: 2.5 },
+  home: { azimuthDeg: 33, scale: 2.5, elevationDeg: 70, heightOffset: 2.5, offsetX: -1.3 },
+  'fed-organizatsiya': { azimuthDeg: 10, scale: 2, elevationDeg: 64, heightOffset: 2.5 },
+  'fed-rukovodstvo': { azimuthDeg: -30, scale: 2.7, elevationDeg: 74, heightOffset: 2.5 },
+  'fed-kontakty': { azimuthDeg: -26, scale: 4, elevationDeg: 64, heightOffset: 1.5, offsetX: -3.3 },
   'champ-master': { azimuthDeg: -40, scale: 3.7, elevationDeg: 30, heightOffset: 1, offsetX: 7 },
-  'champ-lubitel': { azimuthDeg: 0, scale: 1.6, elevationDeg: 20, heightOffset: 2, offsetX: -7 },
+  'champ-lubitel': { azimuthDeg: 40, scale: 3.6, elevationDeg: 40, heightOffset: 2, offsetX: -7 },
   'champ-vip': { azimuthDeg: -44, scale: 1.7, elevationDeg: 24, heightOffset: 2.5 },
   'media-foto': { azimuthDeg: -60, scale: 2.6, elevationDeg: 20, heightOffset: 2, offsetX: -7 },
   'media-video': { azimuthDeg: -60, scale: 2.6, elevationDeg: 40, heightOffset: 2, offsetX: 0 },
