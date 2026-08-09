@@ -259,6 +259,10 @@ function SkaterTable({ title, players }) {
               <th>Г</th>
               <th>П</th>
               <th>О</th>
+              {/* ПБ — победная шайба: та, после которой отрыв уже не был отыгран,
+                  а не последняя шайба матча. В матчах, решённых серией буллитов,
+                  не присуждается никому. */}
+              <th title="Победные шайбы">ПБ</th>
               <th>ШТР</th>
             </tr>
           </thead>
@@ -270,6 +274,7 @@ function SkaterTable({ title, players }) {
                 <td>{statValue(p.goals, p.statsHidden)}</td>
                 <td>{statValue(p.assists, p.statsHidden)}</td>
                 <td className="team-roster__points">{statValue(p.points, p.statsHidden)}</td>
+                <td>{statValue(p.gameWinningGoals, p.statsHidden)}</td>
                 <td>{statValue(p.penaltyMinutes, p.statsHidden)}</td>
               </tr>
             ))}
@@ -288,14 +293,17 @@ function GoalieTable({ players }) {
       <div className="team-roster__table-wrap">
         <table className="team-roster__table">
           <thead>
-            {/* Колонок статистики столько же, сколько у полевых (5), поэтому обе таблицы
-                совпадают по вертикали без добивки пустыми ячейками */}
+            {/* Колонок статистики должно быть столько же, сколько у полевых, иначе
+                таблицы разъезжаются по вертикали. У полевых их шесть (появилась ПБ),
+                у вратарей содержательных пять — шестая пустая. Если для вратарей
+                найдётся нужный показатель, он встанет на её место. */}
             <tr>
               {PLAYER_HEAD_CELLS}
               <th className="team-roster__col-sep">И</th>
               <th>И&quot;0&quot;</th>
               <th>П</th>
               <th>ПШ</th>
+              <th aria-hidden="true"></th>
               <th>ШТР</th>
             </tr>
           </thead>
@@ -307,6 +315,7 @@ function GoalieTable({ players }) {
                 <td>{statValue(p.shutouts, p.statsHidden)}</td>
                 <td>{statValue(p.assists, p.statsHidden)}</td>
                 <td>{statValue(p.goalsAgainst, p.statsHidden)}</td>
+                <td aria-hidden="true"></td>
                 <td>{statValue(p.penaltyMinutes, p.statsHidden)}</td>
               </tr>
             ))}

@@ -570,9 +570,30 @@ const STAFF_ROLE_ORDER = `
   END
 `;
 
+// Сводная статистика игрока по его заявке на турнир — агрегат боксскора
+// player_game_statistics (одна строка на игрока в матче). Считает его
+// playerGameStatsCalculator.js в LMS и Team Room при завершении матча и при
+// любой правке протокола; здесь только читаем.
+// Суммы приводим к int: SUM отдаёт bigint, а он приезжает в JS строкой.
+const PLAYER_STATS_LATERAL = `
+  LEFT JOIN LATERAL (
+    SELECT COUNT(*)::int                                   AS games_played,
+           COALESCE(SUM(pgs.goals), 0)::int                AS goals,
+           COALESCE(SUM(pgs.assists), 0)::int              AS assists,
+           COALESCE(SUM(pgs.points), 0)::int               AS points,
+           COALESCE(SUM(pgs.penalty_minutes), 0)::int      AS penalty_minutes,
+           -- Победные шайбы: та шайба матча, после которой отрыв уже не был отыгран
+           -- (не последняя). В матчах, решённых серией буллитов, не присуждается никому.
+           COALESCE(SUM(pgs.goals_gw), 0)::int             AS goals_gw,
+           COALESCE(SUM(pgs.goalie_goals_against), 0)::int AS goals_against,
+           COUNT(*) FILTER (WHERE pgs.goalie_shutout)::int AS shutouts
+    FROM player_game_statistics pgs
+    WHERE pgs.tournament_roster_id = tr.id
+  ) ps ON true
+`;
+
 // Страница команды: карточка + состав, разбитый на вратарей/защитников/нападающих
-// с уже готовой статистикой из player_statistics (её считает playerStatsCalculator.js в LMS
-// при завершении матча или допуске команды — здесь просто читаем).
+// со статистикой из боксскора player_game_statistics (см. PLAYER_STATS_LATERAL).
 export const getTeamDetail = async (req, res) => {
   const { tournamentTeamId } = req.params;
 
@@ -622,7 +643,7 @@ export const getTeamDetail = async (req, res) => {
      ${TEAM_MEMBER_PHOTO_LATERAL}
      LEFT JOIN league_qualifications lq ON lq.id = tr.qualification_id
      ${ACTIVE_DISQUALIFICATION_LATERAL}
-     LEFT JOIN player_statistics ps ON ps.tournament_roster_id = tr.id
+     ${PLAYER_STATS_LATERAL}
      WHERE tr.tournament_team_id = $1 AND tr.period_end IS NULL
      ORDER BY tr.jersey_number NULLS LAST`,
     [tournamentTeamId, row.team_id, LEAGUE_ID]
@@ -695,6 +716,7 @@ export const getTeamDetail = async (req, res) => {
     goals: stat(r, r.goals),
     assists: stat(r, r.assists),
     points: stat(r, r.points),
+    gameWinningGoals: stat(r, r.goals_gw),
   });
   // Процент отражённых бросков (ps.save_percent) намеренно не отдаём: лига его не считает.
   // Передачи у вратаря те же, что у полевых — своя графа "П" в таблице состава есть и у них.
