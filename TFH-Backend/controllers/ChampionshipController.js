@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { sharedPool, tfhPool } from '../config/db.js';
+import { METRIC_DEFS } from '../utils/nominationMetrics.js';
+import { calculateNomination } from '../utils/nominationCalculator.js';
 
 // Мягкая проверка токена — в отличие от middleware/auth.js не роняет запрос при
 // отсутствии/невалидности токена, просто считает запрос анонимным. Нужна там, где
@@ -290,6 +292,65 @@ const toIsoDateOnly = (v) => {
 // Прикидочные даты (game_date_estimates) живут в отдельной БД (tfhPool), а не в общей
 // LMS/TR (sharedPool) — join одним SQL-запросом невозможен, подтягиваем и мёржим вручную.
 // Имеет смысл только для игр без реальной даты (g.date === null).
+// Наградные номинации дивизиона вместе с рассчитанными участниками.
+// Правило задаётся в конструкторе LMS, здесь только считается и отдаётся:
+// результат нигде не хранится, поправили протокол — поменялся и лидер.
+export const getDivisionNominations = async (req, res) => {
+  const { id } = req.params;
+
+  const divRows = await sharedPool.query(
+    `SELECT id FROM divisions WHERE id = $1 AND is_published = true`,
+    [id]
+  );
+  if (divRows.rows.length === 0) return res.status(404).json({ message: 'Не найдено' });
+
+  const { rows: nominations } = await sharedPool.query(
+    `SELECT id, division_id, name, scope, player_type, position_filter, stage_type,
+            metric, sort_order, tiebreakers, min_games
+     FROM division_nominations
+     WHERE division_id = $1
+     ORDER BY display_order, id`,
+    [id]
+  );
+
+  const result = await Promise.all(
+    nominations.map(async (n) => {
+      const def = METRIC_DEFS[n.metric];
+      let players = [];
+      try {
+        players = await calculateNomination(n);
+      } catch (err) {
+        // Одна сломанная номинация не должна ронять весь раздел на сайте
+        console.error(`Ошибка расчёта номинации #${n.id}:`, err.message);
+      }
+      return {
+        id: n.id,
+        name: n.name,
+        scope: n.scope,
+        playerType: n.player_type,
+        positionFilter: n.position_filter,
+        stageType: n.stage_type,
+        metricLabel: def?.label || n.metric,
+        metricFormat: def?.format || 'int',
+        minGames: n.min_games,
+        players: players.map((p) => ({
+          playerId: p.player_id,
+          firstName: p.first_name,
+          lastName: p.last_name,
+          avatarUrl: p.avatar_url,
+          teamId: p.team_id,
+          teamName: p.team_name,
+          teamLogoUrl: p.team_logo_url,
+          gamesPlayed: p.games_played,
+          value: p.value,
+        })),
+      };
+    })
+  );
+
+  res.json({ nominations: result });
+};
+
 const attachDateEstimates = async (games) => {
   const undatedIds = games.filter((g) => !g.date).map((g) => g.id);
   if (undatedIds.length === 0) return games;

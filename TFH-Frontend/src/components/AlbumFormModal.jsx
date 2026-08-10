@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { apiUpload } from '../api/client.js';
+import { compressImage } from '../utils/compressImage.js';
 import { useAdmin } from '../context/AdminContext.jsx';
 import './Modal.css';
 import './AlbumFormModal.css';
@@ -33,7 +34,9 @@ export default function AlbumFormModal({ album, onClose, onSaved }) {
     try {
       const formData = new FormData();
       formData.append('title', title.trim());
-      if (coverFile) formData.append('cover', coverFile);
+      // Обложку ужимаем в браузере: снимок с телефона легко перевешивает лимит,
+      // а сервер всё равно сведёт её к 800px webp
+      if (coverFile) formData.append('cover', await compressImage(coverFile));
 
       const path = isEdit ? `/api/albums/${album.id}` : '/api/albums';
       const data = await apiUpload(path, formData, token, isEdit ? 'PUT' : 'POST');

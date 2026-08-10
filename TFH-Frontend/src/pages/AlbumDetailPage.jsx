@@ -35,8 +35,10 @@ export default function AlbumDetailPage() {
       .finally(() => setLoading(false));
   }, [albumId]);
 
-  const handleUploaded = (newPhotos) => {
-    setPhotos((prev) => [...prev, ...newPhotos]);
+  // Сервер отдаёт альбом целиком уже в нужном порядке: галерея сортируется по
+  // именам файлов, поэтому новые снимки встают между старыми, а не в конец.
+  const handleUploaded = (albumPhotos) => {
+    setPhotos(albumPhotos);
     setShowUpload(false);
   };
 

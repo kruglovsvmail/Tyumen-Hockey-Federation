@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { apiUpload } from '../api/client.js';
+import { compressImages } from '../utils/compressImage.js';
 import { useAdmin } from '../context/AdminContext.jsx';
 import './Modal.css';
 
@@ -8,6 +9,7 @@ export default function PhotoUploadModal({ albumId, onClose, onUploaded }) {
   const { token } = useAdmin();
   const [files, setFiles] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [progress, setProgress] = useState(null);
   const [error, setError] = useState(null);
 
   const handleFilesChange = (e) => {
@@ -24,8 +26,13 @@ export default function PhotoUploadModal({ albumId, onClose, onUploaded }) {
     setError(null);
     setSubmitting(true);
     try {
+      // Ужимаем до отправки: пачка снимков с телефона иначе упирается в лимит
+      // и висит на загрузке минутами
+      const prepared = await compressImages(files, (done, total) => setProgress({ done, total }));
+      setProgress(null);
+
       const formData = new FormData();
-      files.forEach((file) => formData.append('photos', file));
+      prepared.forEach((file) => formData.append('photos', file));
 
       const data = await apiUpload(`/api/albums/${albumId}/photos`, formData, token, 'POST');
       onUploaded(data.photos);
@@ -33,6 +40,7 @@ export default function PhotoUploadModal({ albumId, onClose, onUploaded }) {
       setError(err.message);
     } finally {
       setSubmitting(false);
+      setProgress(null);
     }
   };
 
@@ -59,7 +67,9 @@ export default function PhotoUploadModal({ albumId, onClose, onUploaded }) {
               Отмена
             </button>
             <button type="submit" className="admin-modal__submit" disabled={submitting}>
-              {submitting ? 'Загружаем…' : 'Загрузить'}
+              {progress ? `Подготовка ${progress.done}/${progress.total}…`
+                : submitting ? 'Загружаем…'
+                : 'Загрузить'}
             </button>
           </div>
         </form>

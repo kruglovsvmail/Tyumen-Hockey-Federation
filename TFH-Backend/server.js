@@ -58,12 +58,36 @@ app.use('/api/videos', videosRoutes);
 app.use('/api/albums', albumsRoutes);
 
 // --- ГЛОБАЛЬНЫЙ ОБРАБОТЧИК ОШИБОК ---
+
+// Ошибки загрузки — не сбой сервера, а нормальный отказ по вине запроса.
+// Без этой раскладки multer отдавал 500 и своё англоязычное «File too large»,
+// которое уходило прямо в интерфейс.
+const UPLOAD_ERRORS = {
+  LIMIT_FILE_SIZE: { status: 413, message: 'Файл слишком большой. Максимальный размер — 15 МБ.' },
+  LIMIT_FILE_COUNT: { status: 413, message: 'Слишком много файлов за одну загрузку.' },
+  LIMIT_UNEXPECTED_FILE: { status: 400, message: 'Неожиданное поле с файлом в запросе.' },
+};
+
 app.use((err, req, res, next) => {
-  console.error('🚨 Критическая системная ошибка:', err);
-  res.status(err.status || 500).json({
-    success: false,
-    error: err.message || 'Внутренняя ошибка сервера'
-  });
+  const upload = err.name === 'MulterError' ? UPLOAD_ERRORS[err.code] : null;
+  const invalidType = err.message === 'INVALID_FILE_TYPE'
+    ? { status: 415, message: 'Неподдерживаемый формат. Загрузите JPEG, PNG или WebP.' }
+    : null;
+  const known = upload || invalidType;
+
+  if (known) {
+    // Ожидаемый отказ, а не авария — в лог одной строкой, без стека
+    console.warn(`Отклонена загрузка (${req.originalUrl}): ${err.code || err.message}`);
+  } else {
+    console.error('🚨 Критическая системная ошибка:', err);
+  }
+
+  const status = known?.status || err.status || 500;
+  const message = known?.message || err.message || 'Внутренняя ошибка сервера';
+
+  // Поле message — то, что читает фронт (api/client.js) и что возвращают все
+  // контроллеры. error оставлен для обратной совместимости.
+  res.status(status).json({ success: false, message, error: message });
 });
 
 // Порт открываем сразу, не дожидаясь БД — /api/health в неё не ходит, и healthcheck

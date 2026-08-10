@@ -10,6 +10,7 @@ import {
   getDivisionWeekGames,
   getHomeWeekGames,
   getDivisionPlayoff,
+  getDivisionNominations,
   getDivisionTeams,
   getTeamDetail,
   setGameDateEstimate,
@@ -29,6 +30,7 @@ router.get('/divisions/:id/standings', getDivisionStandings);
 router.get('/divisions/:id/games', getDivisionGames);
 router.get('/divisions/:id/week-games', getDivisionWeekGames);
 router.get('/divisions/:id/playoff', getDivisionPlayoff);
+router.get('/divisions/:id/nominations', getDivisionNominations);
 router.get('/divisions/:id/teams', getDivisionTeams);
 router.get('/teams/:tournamentTeamId', getTeamDetail);
 

@@ -8,6 +8,7 @@ import { getImageUrl } from '../../utils/getImageUrl.js';
 import GameScore from './GameScore.jsx';
 import ArenaLink from './ArenaLink.jsx';
 import PlayoffBracket from './PlayoffBracket.jsx';
+import NominationsBlock from './NominationsBlock.jsx';
 import { useScrollCarousel } from '../../hooks/useScrollCarousel.js';
 import './DivisionDetailTabs.css';
 
@@ -154,6 +155,8 @@ export default function StandingsTab({ divisionId, teamLinkBase }) {
           )}
         </div>
       </div>
+
+      <NominationsBlock divisionId={divisionId} />
 
       <PlayoffBracket divisionId={divisionId} />
     </div>
