@@ -1,0 +1,145 @@
+/* Просмотрщик положения дивизиона: слева список страниц, справа сам документ. */
+
+.regulations {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* --- Список страниц --- */
+
+.regulations__pages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* Собственная прокрутка: у длинного положения список не должен тянуть
+     страницу вниз вместе с документом */
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  position: sticky;
+  top: 90px;
+  padding: 4px;
+}
+
+.regulations__thumb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  font: inherit;
+}
+
+.regulations__thumb-canvas-wrap {
+  border: 2px solid transparent;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: var(--pshadow);
+  transition: border-color .15s ease;
+}
+
+.regulations__thumb:hover .regulations__thumb-canvas-wrap {
+  border-color: var(--accbrd);
+}
+
+.regulations__thumb.is-active .regulations__thumb-canvas-wrap {
+  border-color: var(--acc);
+}
+
+.regulations__thumb-num {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.regulations__thumb.is-active .regulations__thumb-num {
+  color: var(--acc);
+}
+
+/* --- Документ --- */
+
+.regulations__main {
+  min-width: 0;
+}
+
+.regulations__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.regulations__counter {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.regulations__download {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--acc);
+  text-decoration: none;
+}
+
+.regulations__download:hover {
+  text-decoration: underline;
+}
+
+.regulations__viewport {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Переход по клику в списке страниц не должен загонять верх листа под шапку сайта */
+.regulations__page-anchor {
+  scroll-margin-top: 90px;
+}
+
+.regulations__page {
+  background: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: var(--pshadow);
+}
+
+/* Канвас растягиваем по контейнеру: внутренний размер задан в 2x под плотные
+   экраны, на странице лист должен занимать ровно ширину области просмотра */
+.regulations__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- Мобильные --- */
+
+/* Колонка со страницами слева не помещается на узком экране: разворачиваем её
+   в ленту над документом, порядок задаём через order */
+@media (max-width: 860px) {
+  .regulations {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .regulations__pages {
+    order: -1;
+    flex-direction: row;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    position: static;
+    padding-bottom: 8px;
+  }
+
+  .regulations__thumb {
+    flex: 0 0 auto;
+  }
+}

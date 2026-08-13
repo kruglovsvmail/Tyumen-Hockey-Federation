@@ -1,0 +1,317 @@
+/* Расстояние между разделами задаёт gap самого .page-container — своего отступа
+   секции не нужно, иначе он складывается с ним и разделы расползаются */
+.sdk-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sdk-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Кнопка админа и выбор сезона прижаты к правому краю строки заголовка */
+.sdk-section__tools {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sdk-section__add {
+  flex: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--accbrd);
+  background: var(--navbg);
+  color: var(--acc);
+  cursor: pointer;
+}
+.sdk-section__add:hover {
+  background: var(--chip);
+}
+.sdk-section__add:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+/* --- Лента блоков таблицы штрафов --- */
+
+.penalty-carousel {
+  width: 100%;
+}
+
+.penalty-carousel__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.penalty-carousel__nav {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--accbrd);
+  background: var(--navbg);
+  color: var(--acc);
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 2;
+}
+.penalty-carousel__nav:hover {
+  background: var(--chip);
+}
+.penalty-carousel__nav:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+/* На широких экранах стрелки выносим за колонку контента, как в карусели матчей */
+@media (min-width: 1400px) {
+  .penalty-carousel__row {
+    padding: 0 4px;
+  }
+  .penalty-carousel__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .penalty-carousel__nav--prev {
+    left: -64px;
+  }
+  .penalty-carousel__nav--next {
+    right: -64px;
+  }
+}
+
+.penalty-carousel__viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Лента шире окна во столько раз, сколько страниц блоков; окно её обрезает,
+   а листание двигает всю ленту через transform — отсюда плавность вместо
+   мгновенной подмены карточек */
+.penalty-carousel__track {
+  display: flex;
+  transition: transform .45s cubic-bezier(.22, .8, .25, 1);
+}
+
+.penalty-carousel__slide {
+  flex: none;
+  box-sizing: border-box;
+  padding: 0 7px;
+}
+
+.penalty-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--glass);
+  backdrop-filter: blur(12px) saturate(1.7);
+  -webkit-backdrop-filter: blur(12px) saturate(1.7);
+}
+
+.penalty-card__open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  /* Альбомный A4: страницы таблицы штрафов сняты в этой пропорции, и блоки
+     держат её жёстко — иначе лента прыгает по высоте от картинки к картинке */
+  aspect-ratio: 297 / 210;
+}
+
+.penalty-card__open img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.penalty-card__delete {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, .55);
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+.penalty-card__delete:hover {
+  background: rgba(200, 30, 30, .85);
+}
+
+/* --- Протоколы СДК: слева список заседаний, справа выбранный протокол --- */
+
+.sdk-protocols {
+  display: grid;
+  grid-template-columns: 30% 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.sdk-protocols__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* Своя прокрутка: за сезон заседаний набирается пара десятков, и список не должен
+     растягивать страницу под собой, пока справа открыт короткий протокол */
+  max-height: 70vh;
+  overflow-y: auto;
+  position: sticky;
+  top: 90px;
+}
+
+.sdk-protocols__item {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+  line-height: 1.4;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: var(--glass);
+  backdrop-filter: blur(12px) saturate(1.7);
+  -webkit-backdrop-filter: blur(12px) saturate(1.7);
+  color: var(--label);
+  cursor: pointer;
+}
+.sdk-protocols__item:hover {
+  color: var(--head);
+  border-color: var(--accbrd);
+}
+.sdk-protocols__item.is-active {
+  color: var(--acc);
+  border-color: var(--acc);
+}
+
+.sdk-protocols__view {
+  min-width: 0;
+  /* Запас по высоте, чтобы при переходе с длинного протокола на короткий страница
+     не укорачивалась рывком вместе с прокруткой. Фона у обёртки нет — пустое
+     место под коротким протоколом остаётся невидимым */
+  min-height: 70vh;
+}
+
+/* --- Сам протокол --- */
+
+.sdk-protocol {
+  padding: 26px 28px;
+  border-radius: 12px;
+  background: var(--glass);
+  backdrop-filter: blur(12px) saturate(1.7);
+  -webkit-backdrop-filter: blur(12px) saturate(1.7);
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  color: var(--body1);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* Гаснет и проявляется только содержимое протокола, сама плашка остаётся на месте
+   и лишь меняет высоту под новый текст: если гасить её целиком, при каждом
+   переключении мигает и стеклянный фон */
+.sdk-protocol > * {
+  transition: opacity .2s ease;
+}
+.sdk-protocols__view.is-loading .sdk-protocol > * {
+  opacity: .25;
+}
+
+.sdk-protocol__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--head);
+}
+
+.sdk-protocol__meta,
+.sdk-protocol__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sdk-protocol__block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sdk-protocol__subtitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--head);
+}
+
+/* Нумерация вопросов и постановлений жирная, как в бумажном протоколе,
+   а сам текст пункта — обычный */
+.sdk-protocol__items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: sdk-item;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sdk-protocol__items > li {
+  counter-increment: sdk-item;
+}
+.sdk-protocol__items > li::before {
+  content: counter(sdk-item) '. ';
+  font-weight: 800;
+  color: var(--head);
+}
+
+.sdk-protocol__verdict {
+  white-space: pre-line;
+}
+
+@media (max-width: 860px) {
+  .sdk-protocols {
+    grid-template-columns: 1fr;
+  }
+  .sdk-protocols__list {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .sdk-section__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .sdk-section__tools {
+    flex-wrap: wrap;
+  }
+  .sdk-protocol {
+    padding: 20px 18px;
+  }
+}

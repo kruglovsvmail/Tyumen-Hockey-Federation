@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiGet } from '../api/client.js';
 import PageHeading from '../components/PageHeading.jsx';
@@ -9,11 +9,16 @@ import CalendarTab from '../components/DivisionDetail/CalendarTab.jsx';
 import TeamsTab from '../components/DivisionDetail/TeamsTab.jsx';
 import './DivisionDetailPage.css';
 
+// Отдельным чанком: вместе с вкладкой уезжает pdf.js (~350 КБ), и в бандле
+// остальных страниц сайта ему делать нечего
+const RegulationsTab = lazy(() => import('../components/DivisionDetail/RegulationsTab.jsx'));
+
 const TABS = [
   { key: 'standings', label: 'Таблица' },
   { key: 'calendar', label: 'Календарь' },
   { key: 'teams', label: 'Команды' },
-  { key: 'sdk', label: 'СДК' },
+  // СДК отсюда убран: и таблица штрафов, и протоколы одни на весь сезон,
+  // а не на дивизион — они живут на отдельной странице /sdk
   { key: 'regulations', label: 'Положение' },
 ];
 
@@ -68,8 +73,11 @@ export default function DivisionDetailPage({ backTo, backLabel }) {
           {tab === 'standings' && <StandingsTab divisionId={id} teamLinkBase={`${backTo}/${id}/komanda`} />}
           {tab === 'calendar' && <CalendarTab divisionId={id} />}
           {tab === 'teams' && <TeamsTab divisionId={id} teamLinkBase={`${backTo}/${id}/komanda`} />}
-          {tab === 'sdk' && <PlaceholderSection />}
-          {tab === 'regulations' && <PlaceholderSection />}
+          {tab === 'regulations' && (
+            <Suspense fallback={<Loader />}>
+              <RegulationsTab regulationsUrl={division.regulationsUrl} />
+            </Suspense>
+          )}
         </>
       )}
     </div>

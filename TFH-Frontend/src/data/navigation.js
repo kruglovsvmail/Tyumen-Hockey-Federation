@@ -36,6 +36,12 @@ export const NAV = [
         group: 'vip',
       },
       {
+        label: 'СДК / Таблица штрафов',
+        to: '/sdk',
+        pageTitle: 'СДК / ТАБЛИЦА ШТРАФОВ',
+        zoneKey: 'sdk',
+      },
+      {
         label: 'Заявочная документация',
         to: '/zayavochnaya-dokumentatsiya',
         pageTitle: 'ЗАЯВОЧНАЯ ДОКУМЕНТАЦИЯ',

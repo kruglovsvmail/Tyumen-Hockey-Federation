@@ -158,7 +158,7 @@ export const getDivisionDetail = async (req, res) => {
 
   const { rows } = await sharedPool.query(
     `SELECT d.id, d.name, d.short_name, d.logo_url, d.description, d.classification,
-            d.is_tournament, s.name AS season_name
+            d.is_tournament, d.regulations_url, s.name AS season_name
      FROM divisions d
      JOIN seasons s ON s.id = d.season_id
      WHERE d.id = $1 AND d.is_published = true`,
@@ -177,6 +177,9 @@ export const getDivisionDetail = async (req, res) => {
       description: d.description,
       classification: d.classification,
       isTournament: d.is_tournament,
+      // Положение дивизиона — PDF в S3, грузится администратором лиги в LMS.
+      // Отдаём ссылкой: вкладка «Положение» рисует его своим просмотрщиком.
+      regulationsUrl: d.regulations_url,
       seasonName: d.season_name,
     },
   });

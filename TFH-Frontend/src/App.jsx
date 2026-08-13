@@ -11,6 +11,7 @@ import LeadershipPage from './pages/LeadershipPage.jsx';
 import PartnershipPage from './pages/PartnershipPage.jsx';
 import OrganizationPage from './pages/OrganizationPage.jsx';
 import ApplicationDocumentsPage from './pages/ApplicationDocumentsPage.jsx';
+import SdkPage from './pages/SdkPage.jsx';
 import TournamentsPage from './pages/TournamentsPage.jsx';
 import VideoPage from './pages/VideoPage.jsx';
 import PhotoAlbumsPage from './pages/PhotoAlbumsPage.jsx';
@@ -34,6 +35,7 @@ const CUSTOM_PAGES = {
   '/video': VideoPage,
   '/foto': PhotoAlbumsPage,
   '/zayavochnaya-dokumentatsiya': ApplicationDocumentsPage,
+  '/sdk': SdkPage,
   '/turniry': TournamentsPage,
 };
 

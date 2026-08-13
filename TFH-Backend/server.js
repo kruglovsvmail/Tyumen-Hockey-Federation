@@ -17,6 +17,7 @@ import birthdaysRoutes from './routes/birthdaysRoutes.js';
 import organizationRoutes from './routes/organizationRoutes.js';
 import videosRoutes from './routes/videosRoutes.js';
 import albumsRoutes from './routes/albumsRoutes.js';
+import sdkRoutes from './routes/sdkRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3003;
@@ -56,6 +57,7 @@ app.use('/api/birthdays', birthdaysRoutes);
 app.use('/api/organization', organizationRoutes);
 app.use('/api/videos', videosRoutes);
 app.use('/api/albums', albumsRoutes);
+app.use('/api/sdk', sdkRoutes);
 
 // --- ГЛОБАЛЬНЫЙ ОБРАБОТЧИК ОШИБОК ---
 
