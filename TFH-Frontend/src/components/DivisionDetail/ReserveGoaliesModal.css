@@ -1,0 +1,120 @@
+/* Модалка со списком резервных вратарей дивизиона. Шире общих модалок сайта:
+   внутри таблица со статистикой, в узкое окно она не помещается. */
+.reserve-goalies {
+  max-width: 900px;
+  max-height: 88vh;
+  overflow: hidden;
+  gap: 14px;
+}
+
+.reserve-goalies__hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--body2);
+}
+
+.reserve-goalies__scroll {
+  overflow: auto;
+  margin: 0 -6px;
+  padding: 0 6px;
+}
+
+.reserve-goalies__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.reserve-goalies__table th {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--navtext);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--accbrd);
+  position: sticky;
+  top: 0;
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+}
+
+.reserve-goalies__table td {
+  padding: 10px;
+  text-align: center;
+  color: var(--body);
+  border-bottom: 1px solid var(--accbrd);
+}
+.reserve-goalies__table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ФИО и телефон прижаты влево — остальные колонки числовые и стоят по центру */
+.reserve-goalies__name-cell,
+.reserve-goalies__phone-cell {
+  text-align: left !important;
+  white-space: normal;
+}
+
+.reserve-goalies__name {
+  font-weight: 700;
+  color: var(--head);
+}
+
+.reserve-goalies__teams {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--navtext);
+}
+
+.reserve-goalies__phone {
+  color: var(--accnum);
+  font-weight: 700;
+}
+.reserve-goalies__phone:hover {
+  text-decoration: underline;
+}
+
+/* Строка вратаря, которому сейчас закрыт выход резервным */
+.reserve-goalies__row.is-blocked .reserve-goalies__name,
+.reserve-goalies__row.is-blocked td {
+  opacity: .65;
+}
+
+.reserve-goalies__badge {
+  display: inline-block;
+  margin-left: 16px;
+  margin-top: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 1.4;
+  white-space: normal;
+  
+}
+.reserve-goalies__badge--blocked {
+  background: rgb(160, 34, 34);
+  color: #ffffff;
+}
+
+.reserve-goalies__empty {
+  padding: 26px 0;
+  text-align: center;
+  color: var(--body2);
+  font-size: 14px;
+}
+
+@media (max-width: 720px) {
+  .reserve-goalies__table {
+    font-size: 13px;
+  }
+  .reserve-goalies__table th,
+  .reserve-goalies__table td {
+    padding: 8px 7px;
+  }
+}

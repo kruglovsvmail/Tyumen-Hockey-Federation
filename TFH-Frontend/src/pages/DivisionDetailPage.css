@@ -1,6 +1,17 @@
+/* Верхний ряд страницы: хлебная крошка и кнопка резервных вратарей.
+   Отступ снизу перенесён сюда с самой крошки — иначе он разъезжался бы
+   относительно кнопки, стоящей в том же ряду. */
+.division-detail__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
 .division-detail__back {
   display: inline-block;
-  margin-bottom: 18px;
   font-weight: 700;
   font-size: 14px;
   color: var(--accnum);
@@ -48,12 +59,34 @@
   border-color: var(--accbrd);
 }
 
-.division-detail__season {
+/* Сезон в заголовке: тот же кегль, но приглушён — название соревнования
+   остаётся главным, сезон только уточняет его */
+.division-detail__season-sep {
+  margin: 0 18px;
+  color: var(--navtext);
+  opacity: .5;
+  font-weight: 400;
+}
+.division-detail__season-name {
+  color: var(--navtext);
+}
+
+/* Текстовая ссылка, а не таблетка как у вкладок: это не раздел страницы,
+   а вспомогательное действие. Подчёркивание — только по наведению. */
+.division-detail__reserve-link {
+  font-family: inherit;
+  cursor: pointer;
   font-weight: 700;
   font-size: 14px;
   color: var(--navtext);
-  padding: 10px 19px;
-  border-radius: 999px;
-  background: var(--chip);
+  background: none;
+  border: none;
+  padding: 0;
   white-space: nowrap;
+  text-decoration: none;
+  transition: color .2s;
+}
+.division-detail__reserve-link:hover {
+  color: var(--acc);
+  text-decoration: underline;
 }

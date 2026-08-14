@@ -7,6 +7,7 @@ import Loader from '../components/Loader.jsx';
 import StandingsTab from '../components/DivisionDetail/StandingsTab.jsx';
 import CalendarTab from '../components/DivisionDetail/CalendarTab.jsx';
 import TeamsTab from '../components/DivisionDetail/TeamsTab.jsx';
+import ReserveGoaliesModal from '../components/DivisionDetail/ReserveGoaliesModal.jsx';
 import './DivisionDetailPage.css';
 
 // Отдельным чанком: вместе с вкладкой уезжает pdf.js (~350 КБ), и в бандле
@@ -30,6 +31,7 @@ export default function DivisionDetailPage({ backTo, backLabel }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [tab, setTab] = useState('standings');
+  const [isReserveOpen, setIsReserveOpen] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -42,17 +44,44 @@ export default function DivisionDetailPage({ backTo, backLabel }) {
 
   return (
     <div className="page-container">
-      <Link to={backTo} className="division-detail__back">
-        ‹ {backLabel}
-      </Link>
+      {/* Верхний ряд: хлебная крошка слева, резервные вратари справа. Кнопка стоит
+          над меню дивизиона, а не среди вкладок — это не раздел страницы, а
+          вспомогательное действие. Условие на division: до загрузки его ещё нет. */}
+      <div className="division-detail__topbar">
+        <Link to={backTo} className="division-detail__back">
+          ‹ {backLabel}
+        </Link>
+
+        {division?.hasReserveGoalies && (
+          <button
+            type="button"
+            className="division-detail__reserve-link"
+            onClick={() => setIsReserveOpen(true)}
+          >
+            Резервные вратари
+          </button>
+        )}
+      </div>
 
       {error && <PlaceholderSection>Не удалось загрузить страницу: {error}</PlaceholderSection>}
       {!error && loading && <Loader />}
 
       {!error && !loading && division && (
         <>
+          {/* Сезон ушёл из отдельного бейджа в заголовок: он часть названия
+              соревнования, а не самостоятельный элемент управления */}
           <div className="division-detail__header">
-            <PageHeading title={division.name} />
+            <PageHeading
+              title={division.seasonName ? (
+                <>
+                  {division.name}
+                  {/* Отступы вокруг разделителя задаёт CSS: подряд идущие пробелы
+                      в разметке схлопнулись бы в один */}
+                  <span className="division-detail__season-sep">|</span>
+                  <span className="division-detail__season-name">{division.seasonName}</span>
+                </>
+              ) : division.name}
+            />
             <div className="division-detail__tabs">
               {TABS.map((t) => (
                 <button
@@ -65,9 +94,6 @@ export default function DivisionDetailPage({ backTo, backLabel }) {
                 </button>
               ))}
             </div>
-            {division.seasonName && (
-              <span className="division-detail__season">Сезон {division.seasonName}</span>
-            )}
           </div>
 
           {/* key — чтобы при переключении вкладки обёртка пересоздалась и анимация
@@ -82,6 +108,10 @@ export default function DivisionDetailPage({ backTo, backLabel }) {
               </Suspense>
             )}
           </div>
+
+          {isReserveOpen && (
+            <ReserveGoaliesModal divisionId={id} onClose={() => setIsReserveOpen(false)} />
+          )}
         </>
       )}
     </div>

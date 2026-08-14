@@ -158,9 +158,16 @@ export const getDivisionDetail = async (req, res) => {
 
   const { rows } = await sharedPool.query(
     `SELECT d.id, d.name, d.short_name, d.logo_url, d.description, d.classification,
-            d.is_tournament, s.name AS season_name
+            d.is_tournament, s.name AS season_name,
+            -- Есть ли у дивизиона резервные вратари: по этому флагу страница решает,
+            -- показывать ли кнопку. Мало включить механику в лиге — список ещё должен
+            -- быть непустым, иначе кнопка открывала бы пустое окно.
+            (l.reserve_goalies_enabled
+             AND EXISTS (SELECT 1 FROM division_reserve_goalies drg WHERE drg.division_id = d.id)
+            ) AS has_reserve_goalies
      FROM divisions d
      JOIN seasons s ON s.id = d.season_id
+     JOIN leagues l ON l.id = s.league_id
      WHERE d.id = $1 AND d.is_published = true`,
     [id]
   );
@@ -180,8 +187,116 @@ export const getDivisionDetail = async (req, res) => {
       // Положений здесь больше нет: LMS-овское divisions.regulations_url сайт не читает,
       // документы вкладки «Положения» заводит админ сайта (см. RegulationsController.js)
       seasonName: d.season_name,
+      hasReserveGoalies: d.has_reserve_goalies,
     },
   });
+};
+
+/**
+ * Резервные вратари дивизиона: список, статистика и допуск.
+ *
+ * Вратари на замену — те, кого команда может пригласить на матч, если её
+ * собственный не вышел. Договариваются офлайн, поэтому наружу отдаётся и телефон:
+ * без него список бесполезен, звонить некуда. Это осознанное решение лиги —
+ * остальные персональные данные (документы допуска, сканы) публичными по-прежнему
+ * не делаются.
+ *
+ * Статистика берётся из reserve_goalie_game_statistics — отдельной таблицы, которая
+ * никогда не смешивается с личной статистикой игроков.
+ */
+export const getDivisionReserveGoalies = async (req, res) => {
+  const { id } = req.params;
+
+  const divRows = await sharedPool.query(
+    `SELECT d.id, s.league_id, l.reserve_goalies_enabled, l.reserve_goalie_own_dq_blocks
+     FROM divisions d
+     JOIN seasons s ON s.id = d.season_id
+     JOIN leagues l ON l.id = s.league_id
+     WHERE d.id = $1 AND d.is_published = true`,
+    [id]
+  );
+  const div = divRows.rows[0];
+  if (!div) return res.status(404).json({ message: 'Не найдено' });
+  if (!div.reserve_goalies_enabled) return res.json({ goalies: [] });
+
+  const { rows } = await sharedPool.query(
+    `SELECT
+       drg.player_id, drg.jersey_number, drg.note,
+       u.first_name, u.last_name, u.middle_name, u.phone, u.avatar_url,
+       COALESCE(st.games_played, 0)   AS games_played,
+       COALESCE(st.goals_against, 0)  AS goals_against,
+       COALESCE(st.saves, 0)          AS saves,
+       COALESCE(st.shots_against, 0)  AS shots_against,
+       COALESCE(st.shutouts, 0)       AS shutouts,
+       COALESCE(st.goalie_seconds, 0) AS goalie_seconds,
+       COALESCE(st.tracks_shots, false) AS tracks_shots,
+       st.teams,
+       -- От дисквалификаций публичному списку нужен ровно один факт: закрыт ли
+       -- человеку выход резервным вратарём. Ни причина, ни срок, ни остаток
+       -- матчей наружу не идут — это разбирательство лиги с игроком.
+       COALESCE(dq.has_reserve_dq, false) AS dq_has_reserve,
+       COALESCE(dq.has_own_dq, false)     AS dq_has_own
+     FROM division_reserve_goalies drg
+     JOIN users u ON u.id = drg.player_id
+     LEFT JOIN LATERAL (
+       SELECT
+         COUNT(*)::int                                    AS games_played,
+         COALESCE(SUM(r.goalie_goals_against), 0)::int    AS goals_against,
+         COALESCE(SUM(r.goalie_saves), 0)::int            AS saves,
+         COALESCE(SUM(r.goalie_shots_against), 0)::int    AS shots_against,
+         COUNT(*) FILTER (WHERE r.goalie_shutout)::int    AS shutouts,
+         COALESCE(SUM(r.goalie_seconds), 0)::int          AS goalie_seconds,
+         bool_or(r.shots_is_official)                     AS tracks_shots,
+         (SELECT json_agg(x.team_name ORDER BY x.cnt DESC, x.team_name)
+            FROM (SELECT COALESCE(t.short_name, t.name) AS team_name, COUNT(*)::int AS cnt
+                    FROM reserve_goalie_game_statistics r2
+                    JOIN teams t ON t.id = r2.team_id
+                   WHERE r2.division_id = drg.division_id AND r2.player_id = drg.player_id
+                   GROUP BY COALESCE(t.short_name, t.name)) x) AS teams
+       FROM reserve_goalie_game_statistics r
+       WHERE r.division_id = drg.division_id AND r.player_id = drg.player_id
+     ) st ON true
+     LEFT JOIN LATERAL (
+       SELECT
+         bool_or(d2.is_reserve_goalie)     AS has_reserve_dq,
+         bool_or(NOT d2.is_reserve_goalie) AS has_own_dq
+       FROM disqualifications d2
+       WHERE d2.user_id = drg.player_id AND d2.league_id = $2 AND d2.status = 'active'
+     ) dq ON true
+     WHERE drg.division_id = $1
+     ORDER BY u.last_name, u.first_name`,
+    [id, div.league_id]
+  );
+
+  const goalies = rows.map((r) => {
+    // Правило то же, что в шторке состава LMS: наказание, полученное резервным
+    // вратарём, закрывает выход всегда; полученное в своей команде — только если
+    // лига включила соответствующую настройку.
+    const isBlocked = r.dq_has_reserve || (r.dq_has_own && div.reserve_goalie_own_dq_blocks);
+
+    return {
+      playerId: r.player_id,
+      firstName: r.first_name,
+      lastName: r.last_name,
+      middleName: r.middle_name,
+      avatarUrl: r.avatar_url,
+      phone: r.phone,
+      jerseyNumber: r.jersey_number,
+      note: r.note,
+      gamesPlayed: r.games_played,
+      goalsAgainst: r.goals_against,
+      saves: r.saves,
+      shotsAgainst: r.shots_against,
+      shutouts: r.shutouts,
+      goalieSeconds: r.goalie_seconds,
+      // Прочерк вместо нуля в колонках бросков, если лига их не ведёт
+      tracksShots: r.tracks_shots,
+      teams: r.teams || [],
+      isBlocked,
+    };
+  });
+
+  res.json({ goalies });
 };
 
 // Турнирная таблица. LEFT JOIN на division_standings (а не только чтение готовой таблицы) —

@@ -12,6 +12,7 @@ import {
   getDivisionPlayoff,
   getDivisionNominations,
   getDivisionTeams,
+  getDivisionReserveGoalies,
   getTeamDetail,
   setGameDateEstimate,
   deleteGameDateEstimate,
@@ -32,6 +33,7 @@ router.get('/divisions/:id/week-games', getDivisionWeekGames);
 router.get('/divisions/:id/playoff', getDivisionPlayoff);
 router.get('/divisions/:id/nominations', getDivisionNominations);
 router.get('/divisions/:id/teams', getDivisionTeams);
+router.get('/divisions/:id/reserve-goalies', getDivisionReserveGoalies);
 router.get('/teams/:tournamentTeamId', getTeamDetail);
 
 router.put('/games/:gameId/date-estimate', verifyToken, setGameDateEstimate);
