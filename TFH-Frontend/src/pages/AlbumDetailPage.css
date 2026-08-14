@@ -74,7 +74,9 @@
   height: 26px;
   border-radius: 50%;
   border: 1px solid var(--accbrd);
-  background: rgba(255, 255, 255, .85);
+  /* Токен, а не белый: кнопка лежит поверх фотографии, и в тёмной теме светлый
+     значок на белом кружке был бы нечитаем */
+  background: var(--inner);
   color: var(--navtext);
   cursor: pointer;
   font-size: 11px;
@@ -85,6 +87,6 @@
   padding: 0;
 }
 .gallery-thumb__delete:hover {
-  background: #fde2e2;
-  color: #dc2626;
+  background: var(--dangerbg);
+  color: var(--danger);
 }

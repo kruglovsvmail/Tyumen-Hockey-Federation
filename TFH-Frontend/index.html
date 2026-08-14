@@ -15,6 +15,21 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
+    <!-- Тему ставим до отрисовки страницы: если ждать, пока смонтируется React,
+         у выбравших тёмную тему сначала мигает светлая. Ключ и цвета должны
+         совпадать с src/context/ThemeContext.jsx. -->
+    <script>
+      try {
+        if (localStorage.getItem('tfh_theme') === 'dark') {
+          document.documentElement.dataset.theme = 'dark';
+          document.documentElement.style.colorScheme = 'dark';
+          document.getElementById('theme-meta').setAttribute('content', '#0e1822');
+        }
+      } catch (e) {
+        /* приватный режим — localStorage недоступен, остаёмся на светлой */
+      }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />

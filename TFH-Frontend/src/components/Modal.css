@@ -4,7 +4,7 @@
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: var(--overlay, rgba(18, 49, 74, .35));
+  background: var(--overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -71,7 +71,7 @@
 
 .admin-modal__error {
   font-size: 13px;
-  color: #dc2626;
+  color: var(--danger);
 }
 
 .admin-modal__buttons {
@@ -102,13 +102,13 @@
   padding: 12px 16px;
   border-radius: 999px;
   border: none;
-  background: var(--acc);
+  background: var(--accsolid);
   color: #fff;
   cursor: pointer;
   transition: background .3s;
 }
 .admin-modal__submit:hover {
-  background: var(--accbtn);
+  background: var(--accsolidhover);
 }
 .admin-modal__submit:disabled {
   opacity: .6;

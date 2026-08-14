@@ -72,7 +72,7 @@
   color: var(--acc);
 }
 .date-picker__cell.is-selected {
-  background: var(--acc);
+  background: var(--accsolid);
   color: #fff;
 }
 

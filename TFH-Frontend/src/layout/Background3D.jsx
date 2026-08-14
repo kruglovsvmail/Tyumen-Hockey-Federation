@@ -1,7 +1,8 @@
-import { Suspense, useMemo, useRef, useState, useEffect } from 'react';
+import { Component, Suspense, useMemo, useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, OrbitControls, Environment } from '@react-three/drei';
 import * as THREE from 'three';
+import { useTheme } from '../context/ThemeContext.jsx';
 import './Background.css';
 
 // Камера на каждую секцию сайта — те же орбита/угол/зум, что были в старой CSS-версии
@@ -46,10 +47,15 @@ const ZONE_CAMERA = Object.fromEntries(
 // Ручной подбор ракурса мышкой (OrbitControls + лог в консоль) — включается по необходимости.
 const DEBUG_CAMERA = false;
 
+// Своя модель арены на каждую тему: светлая сцена на тёмной странице светит как
+// лампа, поэтому в тёмной теме грузится отдельный тёмный экспорт.
+const ARENA_LIGHT = '/models/arena.glb';
+const ARENA_DARK = '/models/arena-dark.glb';
+
 // Цвет фона канваса. Им же красим туман — только при точном совпадении дальний край
 // модели растворяется в фоне, а не обрывается видимой границей. Поэтому значение одно
 // на два места: разъедутся — граница вернётся.
-const SCENE_BG = '#e8eff2';
+const SCENE_BG = { light: '#e8eff2', dark: '#0b141d' };
 
 // Туман, чтобы жёсткий silhouette-край льда не упирался в фон. Ориентиры по геометрии:
 // арена в мировых координатах — 40 x 20 единиц (X x Z), камера в зависимости от раздела
@@ -60,9 +66,34 @@ const SCENE_BG = '#e8eff2';
 const FOG_NEAR = 10;
 const FOG_FAR = 45;
 
-function Arena() {
-  const { scene } = useGLTF('/models/arena.glb');
+function Arena({ url }) {
+  const { scene } = useGLTF(url);
   return <primitive object={scene} />;
+}
+
+/**
+ * Пока тёмного экспорта нет в public/models, useGLTF на нём падает — и вместе с
+ * ним падал бы весь канвас, то есть фон сайта целиком. Здесь ловим и сообщаем
+ * наверх: модель тогда не рисуем, канвас остаётся прозрачным и виден градиент
+ * (см. Background.css). Светлую арену на тёмной теме не подставляем — она светит
+ * как лампа.
+ *
+ * Класс, а не хук: перехват ошибок рендера в React есть только у классов.
+ */
+class ArenaBoundary extends Component {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch() {
+    this.props.onMissing?.();
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
 }
 
 function CameraRig({ zone }) {
@@ -114,6 +145,17 @@ function DebugLogger({ zone }) {
 }
 
 export default function Background3D({ zone = 'home' }) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const sceneBg = SCENE_BG[theme];
+  const arenaUrl = isDark ? ARENA_DARK : ARENA_LIGHT;
+
+  // Тёмной модели ещё может не быть в public/models. Сбрасывать флаг при возврате
+  // к светлой теме незачем: он проверяется только вместе с isDark, а повторная
+  // попытка загрузки всё равно упёрлась бы в закэшированную ошибку.
+  const [darkArenaMissing, setDarkArenaMissing] = useState(false);
+  const hasArena = !(isDark && darkArenaMissing);
+
   const [dpr, setDpr] = useState(1.5);
   useEffect(() => {
     setDpr(Math.min(window.devicePixelRatio || 1, 2));
@@ -130,15 +172,29 @@ export default function Background3D({ zone = 'home' }) {
   }
 
   return (
-    <div className="ice-scene" style={DEBUG_CAMERA ? { zIndex: 9999 } : undefined}>
-      <Canvas dpr={dpr} camera={initialCameraRef.current} gl={{ antialias: true, alpha: false }}>
-        <color attach="background" args={[SCENE_BG]} />
-        <fog attach="fog" args={[SCENE_BG, FOG_NEAR, FOG_FAR]} />
+    <div
+      className={`ice-scene${hasArena ? '' : ' ice-scene--flat'}`}
+      style={DEBUG_CAMERA ? { zIndex: 9999 } : undefined}
+    >
+      {/* Канвас живёт всё время работы сайта и по темам не пересоздаётся. Снимать
+          его при отсутствии модели нельзя: вместе с ним уходит WebGL-контекст, а
+          разобранная модель остаётся в кэше useGLTF — при обратном монтировании
+          в новый контекст она уже не встаёт, и фон не появляется вовсе.
+          Поэтому alpha: true — без модели канвас просто прозрачен, и сквозь него
+          виден градиент из CSS. */}
+      <Canvas dpr={dpr} camera={initialCameraRef.current} gl={{ antialias: true, alpha: true }}>
+        {/* Заливка и туман — только вместе с моделью: иначе они закрасили бы градиент */}
+        {hasArena && <color attach="background" args={[sceneBg]} />}
+        {hasArena && <fog attach="fog" args={[sceneBg, FOG_NEAR, FOG_FAR]} />}
         <ambientLight intensity={1.0} />
         <directionalLight position={[6, 10, 6]} intensity={2.4} />
         <directionalLight position={[-6, 4, -4]} intensity={1} />
         <Suspense fallback={null}>
-          <Arena />
+          {/* key — чтобы при смене темы граница ошибок сбрасывалась и заново
+              пробовала загрузить модель нужной темы */}
+          <ArenaBoundary key={arenaUrl} onMissing={() => setDarkArenaMissing(true)}>
+            <Arena url={arenaUrl} />
+          </ArenaBoundary>
           {/* Environment даёт PBR-материалам (металл рамы ворот и т.п.) реалистичные
               отражения/заполняющий свет — без неё они выглядят плоскими и тёмными
               даже при ярких directional-источниках. */}
@@ -151,4 +207,6 @@ export default function Background3D({ zone = 'home' }) {
   );
 }
 
-useGLTF.preload('/models/arena.glb');
+// Предзагружаем только светлую: тёмная нужна меньшинству, а запрос за
+// несуществующим файлом сыпал бы ошибками в консоль, пока модель не добавили
+useGLTF.preload(ARENA_LIGHT);

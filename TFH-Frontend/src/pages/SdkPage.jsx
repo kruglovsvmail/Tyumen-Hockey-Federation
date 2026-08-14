@@ -34,8 +34,8 @@ export default function SdkPage() {
   const [deleteError, setDeleteError] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Протоколы: слева список заседаний, справа выбранное — грузится отдельным запросом,
-  // потому что в списке нужны только номер и дата, а в протоколе весь состав и решения
+  // Протоколы: сначала сетка заседаний, по клику — сам протокол. Он грузится отдельным
+  // запросом, потому что в сетке нужны только номер и дата, а в протоколе весь состав и решения
   const [meetings, setMeetings] = useState([]);
   const [meetingsLoading, setMeetingsLoading] = useState(true);
   const [selectedMeetingId, setSelectedMeetingId] = useState(null);
@@ -65,18 +65,15 @@ export default function SdkPage() {
       .finally(() => setLoading(false));
   }, [seasonId]);
 
-  // При смене сезона список протоколов перезагружается, а открытый сбрасывается:
-  // протокол прошлого сезона рядом с новым списком читался бы как его часть
+  // При смене сезона список протоколов перезагружается, а открытый закрывается:
+  // иначе протокол прошлого сезона остался бы висеть поверх нового списка
   useEffect(() => {
     if (!seasonId) return;
     setMeetingsLoading(true);
     setSelectedMeetingId(null);
     setMeeting(null);
     apiGet(`/api/sdk/meetings?seasonId=${seasonId}`)
-      .then((data) => {
-        setMeetings(data.meetings);
-        setSelectedMeetingId(data.meetings[0]?.id ?? null);
-      })
+      .then((data) => setMeetings(data.meetings))
       .catch(() => setMeetings([]))
       .finally(() => setMeetingsLoading(false));
   }, [seasonId]);
@@ -89,6 +86,13 @@ export default function SdkPage() {
       .catch(() => setMeeting(null))
       .finally(() => setMeetingLoading(false));
   }, [selectedMeetingId]);
+
+  // Возврат к сетке: открытый протокол забываем, иначе при выборе следующего
+  // на миг показался бы предыдущий
+  const closeProtocol = () => {
+    setSelectedMeetingId(null);
+    setMeeting(null);
+  };
 
   const handleFilesSelected = async (event) => {
     const files = Array.from(event.target.files || []);
@@ -176,38 +180,42 @@ export default function SdkPage() {
               <PageHeading title="ПРОТОКОЛЫ СДК" />
             </div>
 
-            {meetingsLoading ? (
-              <Loader />
-            ) : meetings.length === 0 ? (
-              <PlaceholderSection>В этом сезоне заседаний СДК пока не было.</PlaceholderSection>
-            ) : (
-              <div className="sdk-protocols">
-                <nav className="sdk-protocols__list" aria-label="Протоколы СДК">
-                  {meetings.map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      className={`sdk-protocols__item${m.id === selectedMeetingId ? ' is-active' : ''}`}
-                      onClick={() => setSelectedMeetingId(m.id)}
-                    >
-                      Протокол СДК №{m.number ?? '—'} от {formatProtocolDate(m.heldAt)}
-                    </button>
-                  ))}
-                </nav>
+            {meetingsLoading && <Loader />}
 
-                {/* Пока грузится следующий протокол, предыдущий остаётся на месте и
-                    только гаснет: если подменять его лоадером, высота страницы
-                    схлопывается и прокрутка дёргается на каждом переключении */}
-                <div className={`sdk-protocols__view${meetingLoading ? ' is-loading' : ''}`}>
-                  {meeting ? (
-                    <SdkProtocol meeting={meeting} />
-                  ) : meetingLoading ? (
-                    <Loader />
-                  ) : (
-                    <PlaceholderSection>Не удалось загрузить протокол.</PlaceholderSection>
-                  )}
-                </div>
-              </div>
+            {!meetingsLoading && meetings.length === 0 && (
+              <PlaceholderSection>В этом сезоне заседаний СДК пока не было.</PlaceholderSection>
+            )}
+
+            {/* Сетка названий и сам протокол показываются по очереди, а не рядом:
+                открытому протоколу нужна вся ширина страницы */}
+            {!meetingsLoading && meetings.length > 0 && !selectedMeetingId && (
+              <nav className="sdk-protocols__grid content-in" aria-label="Протоколы СДК">
+                {meetings.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    className="sdk-protocols__item"
+                    onClick={() => setSelectedMeetingId(m.id)}
+                  >
+                    Протокол СДК №{m.number ?? '—'} от {formatProtocolDate(m.heldAt)}
+                  </button>
+                ))}
+              </nav>
+            )}
+
+            {selectedMeetingId && (
+              meetingLoading ? (
+                <Loader />
+              ) : meeting ? (
+                <SdkProtocol meeting={meeting} onBack={closeProtocol} />
+              ) : (
+                <PlaceholderSection>
+                  Не удалось загрузить протокол.{' '}
+                  <button type="button" className="sdk-protocols__back-link" onClick={closeProtocol}>
+                    Вернуться к списку
+                  </button>
+                </PlaceholderSection>
+              )
             )}
           </section>
         </>

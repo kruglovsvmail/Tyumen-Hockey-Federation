@@ -1,8 +1,155 @@
-/* Просмотрщик положения дивизиона: слева список страниц, справа сам документ. */
+/* Вкладка «Положения»: сетка документов, а по клику — просмотрщик выбранного
+   (слева список страниц, справа сам документ). */
 
+/* --- Сетка документов --- */
+
+/* Две колонки, а не пять как у протоколов СДК: у положений название длинное
+   («Положение о городском чемпионате…») и в узкой плашке разъезжается на строк пять */
+.regulations-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (max-width: 700px) {
+  .regulations-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Плашка положения повторяет пункт списка протоколов СДК (см. SdkPage.css) */
+.regulation-card {
+  position: relative;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  padding: 16px 18px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: var(--glass);
+  backdrop-filter: blur(12px) saturate(1.7);
+  -webkit-backdrop-filter: blur(12px) saturate(1.7);
+  box-shadow: var(--pshadow);
+  color: var(--label);
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+}
+.regulation-card:hover,
+.regulation-card:focus-visible {
+  color: var(--head);
+  border-color: var(--accbrd);
+  outline: none;
+}
+
+/* У админа первая строка названия иначе уходила бы под кнопки в углу */
+.regulation-card--editable {
+  padding-right: 74px;
+}
+
+.regulation-card__actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+}
+.regulation-card__action {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--accbrd);
+  background: var(--navbg);
+  color: var(--navtext);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+}
+.regulation-card__action:hover {
+  background: var(--chip);
+  color: var(--acc);
+}
+.regulation-card__action--danger:hover {
+  background: var(--dangerbg);
+  color: var(--danger);
+}
+
+/* Высоту не задаём — плашка «+ ДОБАВИТЬ» тянется по строке сетки, вровень
+   с соседними положениями */
+.regulations-add-card {
+  min-height: 58px;
+  border-radius: 10px;
+  border: 1px dashed var(--accbrd);
+  background: var(--chip);
+  color: var(--acc);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .25s;
+}
+.regulations-add-card:hover {
+  background: var(--chipStrong);
+}
+
+/* --- Просмотрщик --- */
+
+.regulations-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Панель над документом: возврат к сетке, название, счётчик страниц и скачивание */
+.regulations__bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Текстовая кнопка, как выход из протокола СДК. margin-right: auto отжимает
+   счётчик и скачивание к правому краю — название документа в панели не дублируем,
+   человек только что кликнул по нему в сетке */
+.regulations__back {
+  flex: none;
+  margin-right: auto;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--acc);
+  cursor: pointer;
+}
+.regulations__back:hover {
+  text-decoration: underline;
+}
+
+.regulations__download {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--acc);
+  text-decoration: none;
+}
+
+.regulations__download:hover {
+  text-decoration: underline;
+}
+
+/* Колонка превью шире обычного: документ показывается в 0.7 ширины области
+   просмотра (см. DOC_SCALE), и освободившееся место отдано страницам слева —
+   в мелких превью не разобрать, к какому листу переходишь */
 .regulations {
   display: grid;
-  grid-template-columns: 140px 1fr;
+  grid-template-columns: 200px 1fr;
   gap: 20px;
   align-items: start;
 }
@@ -12,6 +159,7 @@
 .regulations__pages {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 10px;
   /* Собственная прокрутка: у длинного положения список не должен тянуть
      страницу вниз вместе с документом */
@@ -67,34 +215,12 @@
   min-width: 0;
 }
 
-.regulations__toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.regulations__counter {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--muted);
-}
-
-.regulations__download {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--acc);
-  text-decoration: none;
-}
-
-.regulations__download:hover {
-  text-decoration: underline;
-}
-
+/* Лист уже колонки — держим его по центру, иначе документ прижимался бы
+   к списку страниц, а справа оставалась бы пустая полоса */
 .regulations__viewport {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 16px;
 }
 
@@ -111,7 +237,7 @@
 }
 
 /* Канвас растягиваем по контейнеру: внутренний размер задан в 2x под плотные
-   экраны, на странице лист должен занимать ровно ширину области просмотра */
+   экраны, на странице лист должен занимать ровно отведённую ему ширину */
 .regulations__canvas {
   display: block;
   width: 100%;
@@ -121,7 +247,8 @@
 /* --- Мобильные --- */
 
 /* Колонка со страницами слева не помещается на узком экране: разворачиваем её
-   в ленту над документом, порядок задаём через order */
+   в ленту над документом, порядок задаём через order. Сам лист здесь идёт во всю
+   ширину (см. isNarrow в RegulationsTab.jsx) — уменьшенный на телефоне нечитаем. */
 @media (max-width: 860px) {
   .regulations {
     display: flex;

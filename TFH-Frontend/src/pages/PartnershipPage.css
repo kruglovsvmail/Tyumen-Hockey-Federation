@@ -89,8 +89,8 @@
   color: var(--acc);
 }
 .partner-card__action--danger:hover {
-  background: #fde2e2;
-  color: #dc2626;
+  background: var(--dangerbg);
+  color: var(--danger);
 }
 
 .partner-card__logo {

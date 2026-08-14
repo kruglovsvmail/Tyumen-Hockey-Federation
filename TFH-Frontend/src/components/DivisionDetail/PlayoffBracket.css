@@ -31,8 +31,8 @@
 .playoff-bracket__hidden-notice {
   font-size: 13px;
   font-weight: 600;
-  color: #b45309;
-  background: #fef3c7;
+  color: var(--warn);
+  background: var(--warnbg);
   padding: 10px 14px;
   border-radius: 8px;
   margin-bottom: 20px;

@@ -50,6 +50,31 @@
 .placeholder-card {
   animation: tabIn .3s cubic-bezier(.2, .8, .2, 1);
 }
+
+/* Появление содержимого без смены страницы: вкладки дивизиона, открытый протокол
+   СДК, документ вместо сетки положений. Тот же почерк, что у смены страниц
+   (см. Layout.css), только короче и с меньшим сдвигом — контекст вокруг остаётся
+   на месте, и длинный проезд читался бы как перезагрузка раздела.
+
+   Как и там — только transform, без прозрачности: под предком с opacity < 1
+   стеклянные плашки в Chrome теряют матовость (см. подробности в Layout.css).
+   Уходящего состояния здесь нет: держать его пришлось бы копией в state, а выигрыш
+   на такой дистанции незаметен. */
+.content-in {
+  animation: contentIn .28s cubic-bezier(.22, .8, .25, 1) both;
+}
+
+@keyframes contentIn {
+  from { transform: translateY(10px); }
+  to { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-in {
+    animation: none;
+    transform: none;
+  }
+}
 .placeholder-card p {
   margin: 0;
   font-size: 15px;
@@ -93,8 +118,8 @@
   background: none;
 }
 .pagination__page.is-active {
-  background: var(--acc);
-  border-color: var(--acc);
+  background: var(--accsolid);
+  border-color: var(--accsolid);
   color: #fff;
 }
 

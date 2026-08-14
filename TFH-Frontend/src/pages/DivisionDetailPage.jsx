@@ -19,7 +19,7 @@ const TABS = [
   { key: 'teams', label: 'Команды' },
   // СДК отсюда убран: и таблица штрафов, и протоколы одни на весь сезон,
   // а не на дивизион — они живут на отдельной странице /sdk
-  { key: 'regulations', label: 'Положение' },
+  { key: 'regulations', label: 'Положения' },
 ];
 
 // backTo/backLabel — куда и с какой подписью вести хлебную крошку "‹ Дивизионы «Любитель»":
@@ -70,14 +70,18 @@ export default function DivisionDetailPage({ backTo, backLabel }) {
             )}
           </div>
 
-          {tab === 'standings' && <StandingsTab divisionId={id} teamLinkBase={`${backTo}/${id}/komanda`} />}
-          {tab === 'calendar' && <CalendarTab divisionId={id} />}
-          {tab === 'teams' && <TeamsTab divisionId={id} teamLinkBase={`${backTo}/${id}/komanda`} />}
-          {tab === 'regulations' && (
-            <Suspense fallback={<Loader />}>
-              <RegulationsTab regulationsUrl={division.regulationsUrl} />
-            </Suspense>
-          )}
+          {/* key — чтобы при переключении вкладки обёртка пересоздалась и анимация
+              появления проигралась заново */}
+          <div className="content-in" key={tab}>
+            {tab === 'standings' && <StandingsTab divisionId={id} teamLinkBase={`${backTo}/${id}/komanda`} />}
+            {tab === 'calendar' && <CalendarTab divisionId={id} />}
+            {tab === 'teams' && <TeamsTab divisionId={id} teamLinkBase={`${backTo}/${id}/komanda`} />}
+            {tab === 'regulations' && (
+              <Suspense fallback={<Loader />}>
+                <RegulationsTab divisionId={id} />
+              </Suspense>
+            )}
+          </div>
         </>
       )}
     </div>

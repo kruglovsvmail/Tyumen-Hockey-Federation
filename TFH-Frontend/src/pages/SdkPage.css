@@ -163,25 +163,27 @@
   background: rgba(200, 30, 30, .85);
 }
 
-/* --- Протоколы СДК: слева список заседаний, справа выбранный протокол --- */
+/* --- Протоколы СДК: сетка названий, по клику — сам протокол на её месте --- */
 
-.sdk-protocols {
+.sdk-protocols__grid {
   display: grid;
-  grid-template-columns: 30% 1fr;
-  gap: 20px;
-  align-items: start;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
 }
-
-.sdk-protocols__list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  /* Своя прокрутка: за сезон заседаний набирается пара десятков, и список не должен
-     растягивать страницу под собой, пока справа открыт короткий протокол */
-  max-height: 70vh;
-  overflow-y: auto;
-  position: sticky;
-  top: 90px;
+@media (max-width: 1100px) {
+  .sdk-protocols__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .sdk-protocols__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 440px) {
+  .sdk-protocols__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .sdk-protocols__item {
@@ -190,30 +192,33 @@
   font-weight: 700;
   text-align: left;
   line-height: 1.4;
-  padding: 12px 14px;
+  padding: 16px 18px;
   border-radius: 10px;
   border: 1px solid transparent;
   background: var(--glass);
   backdrop-filter: blur(12px) saturate(1.7);
   -webkit-backdrop-filter: blur(12px) saturate(1.7);
+  box-shadow: var(--pshadow);
   color: var(--label);
   cursor: pointer;
+  transition: color .2s, border-color .2s;
 }
 .sdk-protocols__item:hover {
   color: var(--head);
   border-color: var(--accbrd);
 }
-.sdk-protocols__item.is-active {
-  color: var(--acc);
-  border-color: var(--acc);
-}
 
-.sdk-protocols__view {
-  min-width: 0;
-  /* Запас по высоте, чтобы при переходе с длинного протокола на короткий страница
-     не укорачивалась рывком вместе с прокруткой. Фона у обёртки нет — пустое
-     место под коротким протоколом остаётся невидимым */
-  min-height: 70vh;
+/* Единственный выход из неудавшейся загрузки протокола — обычная ссылка в тексте
+   заглушки, самой плашки с кнопкой «назад» в этом случае нет */
+.sdk-protocols__back-link {
+  font: inherit;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--acc);
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* --- Сам протокол --- */
@@ -232,14 +237,31 @@
   line-height: 1.55;
 }
 
-/* Гаснет и проявляется только содержимое протокола, сама плашка остаётся на месте
-   и лишь меняет высоту под новый текст: если гасить её целиком, при каждом
-   переключении мигает и стеклянный фон */
-.sdk-protocol > * {
-  transition: opacity .2s ease;
+/* Текстовая кнопка у края плашки: рамка и фон делали из неё элемент управления
+   поверх документа, а это просто выход из него */
+.sdk-protocol__back {
+  align-self: flex-start;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--acc);
+  cursor: pointer;
 }
-.sdk-protocols__view.is-loading .sdk-protocol > * {
-  opacity: .25;
+.sdk-protocol__back:hover {
+  text-decoration: underline;
+}
+
+/* Поля текста задаёт обёртка, а не сама плашка: кнопка возврата остаётся у её
+   края. К этому padding прибавляются 28px самой плашки. Во всю ширину контейнера
+   строка слишком длинная и читается как таблица, а не как документ */
+.sdk-protocol__body {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding: 0 150px;
 }
 
 .sdk-protocol__title {
@@ -293,13 +315,10 @@
   white-space: pre-line;
 }
 
-@media (max-width: 860px) {
-  .sdk-protocols {
-    grid-template-columns: 1fr;
-  }
-  .sdk-protocols__list {
-    position: static;
-    max-height: none;
+/* Уже ширины контейнера поля по 158px съедали бы почти всю строку — ужимаем их */
+@media (max-width: 1100px) {
+  .sdk-protocol__body {
+    padding: 0 20px;
   }
 }
 
@@ -313,5 +332,8 @@
   }
   .sdk-protocol {
     padding: 20px 18px;
+  }
+  .sdk-protocol__body {
+    padding: 0;
   }
 }

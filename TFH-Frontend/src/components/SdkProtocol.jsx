@@ -92,8 +92,11 @@ const penaltyText = (d) => {
  * Из данных LMS это собирается так: «вопрос» — само нарушение (пункт таблицы
  * штрафов и нарушитель), «постановление» — вынесенный вердикт и санкция.
  * Отдельных текстов под вопрос и постановление в модели нет.
+ *
+ * onBack — возврат к сетке протоколов. Кнопка живёт внутри самого блока, а не над
+ * ним: протокол открывается на месте списка, и выход из него — часть этого блока.
  */
-export default function SdkProtocol({ meeting }) {
+export default function SdkProtocol({ meeting, onBack }) {
   const { decisions = [], members = [] } = meeting;
 
   // Основания у решений часто повторяются (один рапорт на несколько нарушений) —
@@ -113,90 +116,101 @@ export default function SdkProtocol({ meeting }) {
       && String(meeting.periodStart).slice(0, 4) === String(meeting.periodEnd).slice(0, 4);
 
   return (
-    <article className="sdk-protocol">
-      <h3 className="sdk-protocol__title">
-        Протокол СДК №{meeting.number ?? '—'} от {formatProtocolDate(meeting.heldAt)}
-      </h3>
+    <article className="sdk-protocol content-in">
+      {/* Кнопка возврата — у самого края плашки, вне полей текста протокола */}
+      {onBack && (
+        <button type="button" className="sdk-protocol__back" onClick={onBack}>
+          ‹ Все протоколы
+        </button>
+      )}
 
-      <div className="sdk-protocol__meta">
-        <div>Дата проведения: {formatHeldAt(meeting.heldAt)}</div>
-        {meeting.venueName && <div>Место проведения: {meeting.venueName}</div>}
-        {meeting.periodStart && meeting.periodEnd && (
-          <div>
-            За период: {formatPeriodPart(meeting.periodStart, !sameYear)} -{' '}
-            {formatPeriodPart(meeting.periodEnd, true)}
-          </div>
+      {/* Поля текста задаёт обёртка, а не сама плашка: кнопка возврата должна
+          остаться у её края */}
+      <div className="sdk-protocol__body">
+        <h3 className="sdk-protocol__title">
+          Протокол СДК №{meeting.number ?? '—'} от {formatProtocolDate(meeting.heldAt)}
+        </h3>
+
+        <div className="sdk-protocol__meta">
+          <div>Дата проведения: {formatHeldAt(meeting.heldAt)}</div>
+          {meeting.venueName && <div>Место проведения: {meeting.venueName}</div>}
+          {meeting.periodStart && meeting.periodEnd && (
+            <div>
+              За период: {formatPeriodPart(meeting.periodStart, !sameYear)} -{' '}
+              {formatPeriodPart(meeting.periodEnd, true)}
+            </div>
+          )}
+        </div>
+
+        {members.length > 0 && (
+          <section className="sdk-protocol__block">
+            <h4 className="sdk-protocol__subtitle">Присутствовали:</h4>
+            <div className="sdk-protocol__list">
+              {members.map((m, i) => (
+                <div key={i}>{m.position ? `${m.position}: ` : ''}{m.fullName}</div>
+              ))}
+            </div>
+          </section>
         )}
-      </div>
 
-      {members.length > 0 && (
-        <section className="sdk-protocol__block">
-          <h4 className="sdk-protocol__subtitle">Присутствовали:</h4>
-          <div className="sdk-protocol__list">
-            {members.map((m, i) => (
-              <div key={i}>{m.position ? `${m.position}: ` : ''}{m.fullName}</div>
-            ))}
-          </div>
-        </section>
-      )}
+        {bases.length > 0 && (
+          <section className="sdk-protocol__block">
+            <h4 className="sdk-protocol__subtitle">Основания для рассмотрения:</h4>
+            <div className="sdk-protocol__list">
+              {bases.map((text, i) => <div key={i}>{text}.</div>)}
+            </div>
+          </section>
+        )}
 
-      {bases.length > 0 && (
-        <section className="sdk-protocol__block">
-          <h4 className="sdk-protocol__subtitle">Основания для рассмотрения:</h4>
-          <div className="sdk-protocol__list">
-            {bases.map((text, i) => <div key={i}>{text}.</div>)}
-          </div>
-        </section>
-      )}
+        {decisions.length > 0 ? (
+          <>
+            <section className="sdk-protocol__block">
+              <h4 className="sdk-protocol__subtitle">Рассмотрены вопросы:</h4>
+              <ol className="sdk-protocol__items">
+                {decisions.map((d) => (
+                  <li key={d.id}>
+                    {d.violationCode ? (
+                      <>Нарушение <b>п.{d.violationCode}.</b> {d.violationTitle} {targetText(d, 'instrumental')}.</>
+                    ) : (
+                      <>{d.violationTitle || 'Вопрос к рассмотрению'} {targetText(d, 'instrumental')}.</>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </section>
 
-      {decisions.length > 0 ? (
-        <>
+            <section className="sdk-protocol__block">
+              <h4 className="sdk-protocol__subtitle">
+                Арбитры СДК, ознакомившись с представленными материалами, постановили:
+              </h4>
+              <ol className="sdk-protocol__items">
+                {decisions.map((d) => {
+                  const penalty = penaltyText(d);
+                  return (
+                    <li key={d.id}>
+                      {d.verdictDescription
+                        ? <span className="sdk-protocol__verdict">{d.verdictDescription}</span>
+                        : (
+                          <>
+                            Наказать {targetText(d, 'accusative')}
+                            {d.violationCode ? <> по <b>п.{d.violationCode}.</b></> : null}
+                            {d.violationTitle ? ` (${d.violationTitle})` : ''}
+                          </>
+                        )}
+                      {penalty && <> <b>{penalty}</b></>}
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          </>
+        ) : (
           <section className="sdk-protocol__block">
             <h4 className="sdk-protocol__subtitle">Рассмотрены вопросы:</h4>
-            <ol className="sdk-protocol__items">
-              {decisions.map((d) => (
-                <li key={d.id}>
-                  {d.violationCode ? (
-                    <>Нарушение <b>п.{d.violationCode}.</b> {d.violationTitle} {targetText(d, 'instrumental')}.</>
-                  ) : (
-                    <>{d.violationTitle || 'Вопрос к рассмотрению'} {targetText(d, 'instrumental')}.</>
-                  )}
-                </li>
-              ))}
-            </ol>
+            <div className="sdk-protocol__list">Вопросов к рассмотрению не поступало.</div>
           </section>
-
-          <section className="sdk-protocol__block">
-            <h4 className="sdk-protocol__subtitle">
-              Арбитры СДК, ознакомившись с представленными материалами, постановили:
-            </h4>
-            <ol className="sdk-protocol__items">
-              {decisions.map((d) => {
-                const penalty = penaltyText(d);
-                return (
-                  <li key={d.id}>
-                    {d.verdictDescription
-                      ? <span className="sdk-protocol__verdict">{d.verdictDescription}</span>
-                      : (
-                        <>
-                          Наказать {targetText(d, 'accusative')}
-                          {d.violationCode ? <> по <b>п.{d.violationCode}.</b></> : null}
-                          {d.violationTitle ? ` (${d.violationTitle})` : ''}
-                        </>
-                      )}
-                    {penalty && <> <b>{penalty}</b></>}
-                  </li>
-                );
-              })}
-            </ol>
-          </section>
-        </>
-      ) : (
-        <section className="sdk-protocol__block">
-          <h4 className="sdk-protocol__subtitle">Рассмотрены вопросы:</h4>
-          <div className="sdk-protocol__list">Вопросов к рассмотрению не поступало.</div>
-        </section>
-      )}
+        )}
+      </div>
     </article>
   );
 }

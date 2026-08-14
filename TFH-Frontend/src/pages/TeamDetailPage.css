@@ -340,8 +340,8 @@
 /* Действующая дисквалификация — красный бейдж с подсказкой по клику (сроки/матчи).
    Причину наказания на публичной странице не показываем. */
 .team-roster__dq-btn {
-  color: #dc2626;
-  background: rgba(220, 38, 38, .12);
+  color: var(--danger);
+  background: var(--dangerbg);
 }
 .team-roster__doc-btn {
   width: 28px;
@@ -363,14 +363,14 @@
   height: 15px;
 }
 .team-roster__doc-btn--ok {
-  color: #16a34a;
-  background: rgba(22, 163, 74, .12);
+  color: var(--ok);
+  background: var(--okbg);
 }
 /* Нет документа или он просрочен — нейтральный серый, без «тревожного» красного:
    на публичной странице это статус заявки, а не сигнал о нарушении. */
 .team-roster__doc-btn--missing {
   color: var(--muted);
-  background: rgba(113, 145, 168, .12);
+  background: var(--neutralbg);
 }
 
 /* Подсказка живёт в body (портал), поэтому позиционируется фиксированно по координатам
@@ -383,8 +383,8 @@
   max-width: 300px;
   padding: 9px 12px;
   border-radius: 8px;
-  background: var(--head);
-  color: #fff;
+  background: var(--tipbg);
+  color: var(--tiptext);
   font-size: 11.5px;
   font-weight: 600;
   line-height: 1.45;

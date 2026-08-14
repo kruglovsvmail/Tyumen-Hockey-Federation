@@ -161,8 +161,8 @@
   color: var(--acc);
 }
 .document-card__action--danger:hover {
-  background: #fde2e2;
-  color: #dc2626;
+  background: var(--dangerbg);
+  color: var(--danger);
 }
 
 .document-card__icon {

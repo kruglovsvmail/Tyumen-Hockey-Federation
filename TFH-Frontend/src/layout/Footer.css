@@ -76,6 +76,12 @@
   gap: 12px;
 }
 
+.site-footer__actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
 .site-footer__admin-btn {
   font-family: inherit;
   font-size: 12px;
@@ -87,5 +93,27 @@
   padding: 0;
 }
 .site-footer__admin-btn:hover {
+  color: var(--acc);
+}
+
+/* Переключатель темы: в отличие от «Входа админ» — пилюля, чтобы читался как
+   кнопка, а не как служебная ссылка */
+.site-footer__theme-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--navtext);
+  background: var(--chip);
+  border: 1px solid var(--accbrd);
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background .25s, color .25s;
+}
+.site-footer__theme-btn:hover {
+  background: var(--chipStrong);
   color: var(--acc);
 }
