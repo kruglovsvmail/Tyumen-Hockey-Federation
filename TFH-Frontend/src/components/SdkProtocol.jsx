@@ -153,14 +153,14 @@ export default function SdkProtocol({ meeting, onBack }) {
           </section>
         )}
 
-        {bases.length > 0 && (
-          <section className="sdk-protocol__block">
-            <h4 className="sdk-protocol__subtitle">Основания для рассмотрения:</h4>
-            <div className="sdk-protocol__list">
-              {bases.map((text, i) => <div key={i}>{text}.</div>)}
-            </div>
-          </section>
-        )}
+        {/* Блок стоит всегда: на заседании без решений оснований и не бывает, но
+            пропущенная строка читалась бы как недосмотр вёрстки, а не как факт */}
+        <section className="sdk-protocol__block">
+          <h4 className="sdk-protocol__subtitle">Основания для рассмотрения:</h4>
+          <div className="sdk-protocol__list">
+            {bases.length > 0 ? bases.map((text, i) => <div key={i}>{text}.</div>) : 'нет'}
+          </div>
+        </section>
 
         {decisions.length > 0 ? (
           <>

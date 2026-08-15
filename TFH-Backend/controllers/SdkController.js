@@ -91,10 +91,13 @@ export const getMeetings = async (req, res) => {
   if (!seasonId) return res.status(400).json({ message: 'Не указан сезон' });
 
   const { rows } = await sharedPool.query(
+    // По номеру, а не по дате: номер и стоит в названии протокола, и сетка на сайте
+    // должна читаться как непрерывный ряд. Дата остаётся вторым ключом — на случай
+    // заседаний без номера
     `SELECT id, sequence_number, held_at, status
      FROM sdk_meetings
      WHERE league_id = $1 AND season_id = $2 AND meeting_type = 'sdk'
-     ORDER BY held_at DESC NULLS LAST, sequence_number DESC`,
+     ORDER BY sequence_number DESC NULLS LAST, held_at DESC`,
     [LEAGUE_ID, seasonId]
   );
 
