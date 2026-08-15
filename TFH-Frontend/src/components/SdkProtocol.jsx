@@ -162,7 +162,9 @@ export default function SdkProtocol({ meeting, onBack }) {
           </div>
         </section>
 
-        {decisions.length > 0 ? (
+        {/* Заседание без решений заканчивается на основаниях: пустые «Рассмотрены
+            вопросы» с оговоркой ничего не добавляют к «нет» строкой выше */}
+        {decisions.length > 0 && (
           <>
             <section className="sdk-protocol__block">
               <h4 className="sdk-protocol__subtitle">Рассмотрены вопросы:</h4>
@@ -204,11 +206,6 @@ export default function SdkProtocol({ meeting, onBack }) {
               </ol>
             </section>
           </>
-        ) : (
-          <section className="sdk-protocol__block">
-            <h4 className="sdk-protocol__subtitle">Рассмотрены вопросы:</h4>
-            <div className="sdk-protocol__list">Вопросов к рассмотрению не поступало.</div>
-          </section>
         )}
       </div>
     </article>
