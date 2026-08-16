@@ -64,6 +64,25 @@ const documentHint = (doc) => {
     : `Срок истёк ${formatBirthDate(doc.expiresAt)}`;
 };
 
+// Квалификация лиговая и меняется целиком по лиге, поэтому в старом сезоне у игрока
+// показан её сегодняшний бейдж. Чтобы это не выглядело ошибкой, под бейджем к описанию
+// добавляем историю смен. Одна запись — это и есть текущая квалификация, истории нет.
+const qualificationHint = (qual) => {
+  const lines = [qual.description || 'Описание квалификации не заполнено'];
+  const history = qual.history || [];
+
+  if (history.length > 1) {
+    lines.push('', 'История квалификаций:');
+    history.forEach((h) => {
+      lines.push(h.to
+        ? `${h.short}: ${formatBirthDate(h.from)} — ${formatBirthDate(h.to)}`
+        : `${h.short}: с ${formatBirthDate(h.from)}`);
+    });
+  }
+
+  return lines.join('\n');
+};
+
 const disqualificationHint = (dq) => {
   const parts = [];
   if (dq.gamesLeft > 0) parts.push(`Осталось матчей: ${dq.gamesLeft}`);
@@ -222,7 +241,7 @@ function PlayerCells({ player }) {
           <TipBadge
             className="team-roster__qual-btn"
             tipTitle={player.qualification.name}
-            tipText={player.qualification.description || 'Описание квалификации не заполнено'}
+            tipText={qualificationHint(player.qualification)}
           >
             {player.qualification.short}
           </TipBadge>

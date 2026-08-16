@@ -805,6 +805,20 @@ export const getTeamDetail = async (req, res) => {
        COALESCE(tm_photo.photo_url, u.avatar_url) AS photo_url,
        lq.short_name AS qualification_short_name, lq.name AS qualification_name,
        lq.description AS qualification_description,
+       -- История смен квалификации в этой лиге: на странице команды показывается
+       -- в подсказке под бейджем. Даты отдаём строками, чтобы node-postgres не сдвинул
+       -- их на день при переводе date -> JS Date по локальной полуночи.
+       COALESCE((
+         SELECT json_agg(json_build_object(
+                  'short', COALESCE(NULLIF(btrim(hlq.short_name), ''), hlq.name),
+                  'name', hlq.name,
+                  'from', to_char(huq.assigned_at, 'YYYY-MM-DD'),
+                  'to', to_char(huq.ended_at, 'YYYY-MM-DD')
+                ) ORDER BY huq.assigned_at DESC)
+         FROM user_qualifications huq
+         JOIN league_qualifications hlq ON hlq.id = huq.qualification_id
+         WHERE huq.user_id = u.id AND huq.league_id = $3
+       ), '[]'::json) AS qualification_history,
        dq.total AS dq_total, dq.games_left AS dq_games_left,
        dq.until_date AS dq_until, dq.has_manual AS dq_has_manual,
        (tr.medical_url IS NOT NULL) AS has_medical,
@@ -819,7 +833,10 @@ export const getTeamDetail = async (req, res) => {
      FROM tournament_rosters tr
      JOIN users u ON u.id = tr.player_id
      ${TEAM_MEMBER_PHOTO_LATERAL}
-     LEFT JOIN league_qualifications lq ON lq.id = tr.qualification_id
+     -- Квалификация принадлежит паре «человек + лига» (user_qualifications), а не заявке:
+     -- на странице команды всегда показывается текущая, в том числе в прошлых сезонах.
+     LEFT JOIN user_qualifications uq ON uq.user_id = u.id AND uq.league_id = $3 AND uq.ended_at IS NULL
+     LEFT JOIN league_qualifications lq ON lq.id = uq.qualification_id
      ${ACTIVE_DISQUALIFICATION_LATERAL}
      ${PLAYER_STATS_LATERAL}
      WHERE tr.tournament_team_id = $1 AND tr.period_end IS NULL
@@ -872,6 +889,7 @@ export const getTeamDetail = async (req, res) => {
           short: r.qualification_short_name?.trim() || r.qualification_name,
           name: r.qualification_name,
           description: r.qualification_description?.trim() || null,
+          history: r.qualification_history || [],
         }
       : null,
     disqualification: Number(r.dq_total) > 0
