@@ -350,7 +350,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9px;
+  border-radius: 7px;
   border: 1px solid currentColor;
   cursor: pointer;
   transition: transform .2s;
@@ -402,6 +402,34 @@
   display: block;
   font-weight: 800;
   margin-bottom: 2px;
+}
+
+/* Подсказки курсор не ловят (см. pointer-events выше) — иначе перехватывали бы клики
+   по таблице под собой. Единственной, внутри которой есть своя кнопка (согласие
+   на обработку данных), события возвращаем. */
+.team-roster__tip--interactive {
+  pointer-events: auto;
+}
+
+/* Кнопка «Заполнить» внутри подсказки. Плашка тёмная (--tipbg), поэтому кнопка светлая,
+   а не акцентная: акцент на тёмно-синем читается хуже белого. display: block — чтобы
+   встала под текстом подсказки, а не в его строку. */
+.team-roster__tip-action {
+  display: block;
+  width: max-content;
+  margin-top: 18px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--tiptext);
+  color: var(--tipbg);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.team-roster__tip-action:hover {
+  opacity: .85;
 }
 
 /* --- Представители команды --- */

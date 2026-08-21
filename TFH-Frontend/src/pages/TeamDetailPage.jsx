@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, Link } from 'react-router-dom';
 import { apiGet } from '../api/client.js';
 import PlaceholderSection from '../components/PlaceholderSection.jsx';
 import PhotoLightbox from '../components/PhotoLightbox.jsx';
+import ConsentFormModal from '../components/ConsentFormModal.jsx';
 import Loader from '../components/Loader.jsx';
 import { getImageUrl } from '../utils/getImageUrl.js';
 import { formatAge, formatBirthDate } from '../utils/formatDate.js';
@@ -31,6 +32,12 @@ const DOCUMENT_LABELS = {
   insurance: 'Страховка',
   consent: 'Согласие на обработку данных',
 };
+
+// Открытие формы согласия. Кнопка живёт глубоко внизу дерева: страница -> RosterSection
+// или SidelinedSection -> таблица -> PlayerCells -> DocumentBadges. Тащить обработчик
+// пропсами через пять компонентов ради одной кнопки — только шум в их сигнатурах,
+// поэтому берём его из контекста.
+const ConsentSigningContext = createContext(null);
 
 function PersonPhoto({ url, className }) {
   return url ? (
@@ -96,17 +103,21 @@ const disqualificationHint = (dq) => {
 // (overflow на обёртке), и внутри неё всплывающий блок был бы обрезан.
 const TIP_HALF_WIDTH = 160;
 
-function TipBadge({ className, tipTitle, tipText, children }) {
+function TipBadge({ className, tipTitle, tipText, tipAction, children }) {
   const [pos, setPos] = useState(null);
   const btnRef = useRef(null);
+  const tipRef = useRef(null);
 
   useEffect(() => {
     if (!pos) return undefined;
     const close = () => setPos(null);
     // Клик по своей же кнопке пропускаем — её обработчик сам закроет подсказку
     // (иначе повторный клик успевал бы закрыть и тут же открыть её заново).
+    // Клик внутри самой подсказки — тоже: у неё бывает своя кнопка (например,
+    // «Заполнить» у согласия), и подсказка не должна исчезать раньше, чем та сработает.
     const closeIfOutside = (e) => {
       if (btnRef.current?.contains(e.target)) return;
+      if (tipRef.current?.contains(e.target)) return;
       setPos(null);
     };
     const onKeyDown = (e) => {
@@ -154,12 +165,15 @@ function TipBadge({ className, tipTitle, tipText, children }) {
       {pos &&
         createPortal(
           <span
-            className={`team-roster__tip${pos.below ? ' team-roster__tip--below' : ''}`}
+            ref={tipRef}
+            className={`team-roster__tip${pos.below ? ' team-roster__tip--below' : ''}`
+              + (tipAction ? ' team-roster__tip--interactive' : '')}
             role="tooltip"
             style={{ top: pos.top, left: pos.left }}
           >
             <b>{tipTitle}</b>
             {tipText}
+            {tipAction}
           </span>,
           document.body
         )}
@@ -167,8 +181,28 @@ function TipBadge({ className, tipTitle, tipText, children }) {
   );
 }
 
-function DocumentBadges({ documents }) {
+function DocumentBadges({ player }) {
+  const onSignConsent = useContext(ConsentSigningContext);
+  const documents = player.documents;
   if (documents.length === 0) return <span className="team-roster__muted">—</span>;
+
+  // Согласие игрок подписывает сам, прямо здесь: в подсказке появляется кнопка,
+  // открывающая форму. Показываем её и когда документа нет, и когда он просрочен —
+  // иначе игрок с истёкшим согласием не смог бы продлить его без руководителя команды.
+  // Остальные документы (медсправка, страховка) загружает команда — у них кнопки нет.
+  const signAction = (doc) => (
+    doc.key === 'consent' && !isDocumentValid(doc)
+      ? (
+        <button
+          type="button"
+          className="team-roster__tip-action"
+          onClick={() => onSignConsent(player.rosterId)}
+        >
+          Заполнить
+        </button>
+      )
+      : null
+  );
 
   return (
     <span className="team-roster__docs">
@@ -178,6 +212,7 @@ function DocumentBadges({ documents }) {
           className={`team-roster__doc-btn team-roster__doc-btn--${isDocumentValid(doc) ? 'ok' : 'missing'}`}
           tipTitle={DOCUMENT_LABELS[doc.key] || doc.key}
           tipText={documentHint(doc)}
+          tipAction={onSignConsent ? signAction(doc) : null}
         >
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path
@@ -250,7 +285,7 @@ function PlayerCells({ player }) {
         )}
       </td>
       <td>
-        <DocumentBadges documents={player.documents} />
+        <DocumentBadges player={player} />
       </td>
       <td className="team-roster__col-age">{formatAge(player.age) || '—'}</td>
     </>
@@ -445,6 +480,7 @@ export default function TeamDetailPage({ backTo, backLabel }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [photoOpen, setPhotoOpen] = useState(false);
+  const [consentRosterId, setConsentRosterId] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -454,6 +490,15 @@ export default function TeamDetailPage({ backTo, backLabel }) {
       .then(setData)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+  }, [teamId]);
+
+  // Перечитывание состава после подписания согласия — чтобы иконка документа сразу
+  // позеленела, а кнопка «Заполнить» из подсказки пропала. Без общего индикатора
+  // загрузки: страница уже отрисована, и мигать ею из-за фонового обновления незачем.
+  // Ошибку глотаем намеренно — согласие к этому моменту уже сохранено, и единственное
+  // последствие неудачи здесь в том, что иконка обновится при следующем заходе.
+  const refreshRoster = useCallback(() => {
+    apiGet(`/api/championship/teams/${teamId}`).then(setData).catch(() => {});
   }, [teamId]);
 
   return (
@@ -534,11 +579,16 @@ export default function TeamDetailPage({ backTo, backLabel }) {
             </div>
           </div>
 
-          <RosterSection data={data} />
+          {/* Кнопка «Заполнить» нужна во всех трёх списках: недопущенному и
+              дисквалифицированному игроку согласие требуется ровно так же — недостающий
+              документ как раз и бывает причиной, по которой человек ещё не допущен. */}
+          <ConsentSigningContext.Provider value={setConsentRosterId}>
+            <RosterSection data={data} />
 
-          <SidelinedSection title="Недопущенные игроки" players={data.notAdmitted || []} />
+            <SidelinedSection title="Недопущенные игроки" players={data.notAdmitted || []} />
 
-          <SidelinedSection title="Дисквалифицированные" players={data.disqualified || []} />
+            <SidelinedSection title="Дисквалифицированные" players={data.disqualified || []} />
+          </ConsentSigningContext.Provider>
 
           <StaffSection staff={data.staff} />
 
@@ -552,6 +602,16 @@ export default function TeamDetailPage({ backTo, backLabel }) {
             />
           )}
         </>
+      )}
+
+      {/* Модалка вынесена из блока с данными: фоновое обновление состава после
+          подписания не должно её закрывать. */}
+      {consentRosterId && (
+        <ConsentFormModal
+          rosterId={consentRosterId}
+          onClose={() => setConsentRosterId(null)}
+          onSigned={refreshRoster}
+        />
       )}
     </div>
   );
