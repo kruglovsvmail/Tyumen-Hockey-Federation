@@ -303,6 +303,11 @@ export const getDivisionReserveGoalies = async (req, res) => {
 // подстраховка на случай, если для какой-то допущенной команды строка ещё не посчиталась
 // (см. недавний фикс пересчёта при допуске в tournamentTeamController.js): такая команда
 // всё равно попадёт в список с нулевой статистикой, а не пропадёт молча.
+// Порядок: пока в дивизионе не сыграно ни одного матча (SUM(games_played) OVER () = 0),
+// различать команды нечем — гасим rank и выстраиваем всю таблицу по алфавиту. Как только
+// появился первый результат, ключ снова становится rank, то есть порядок по критериям
+// дивизиона. COALESCE на points обязателен: у допущенных там 0, а у заявок в статусе
+// revision/pending строки в division_standings нет вовсе, и NULL разбил бы алфавит надвое.
 export const getDivisionStandings = async (req, res) => {
   const { id } = req.params;
 
@@ -329,7 +334,12 @@ export const getDivisionStandings = async (req, res) => {
      JOIN teams t ON t.id = tt.team_id
      LEFT JOIN division_standings ds ON ds.division_id = tt.division_id AND ds.team_id = tt.team_id
      WHERE tt.division_id = $1 AND tt.status IN ('approved', 'revision', 'pending')
-     ORDER BY COALESCE(ds.rank, 999999), ds.points DESC NULLS LAST, t.name`,
+     ORDER BY
+       CASE WHEN SUM(COALESCE(ds.games_played, 0)) OVER () = 0
+            THEN NULL
+            ELSE COALESCE(ds.rank, 999999) END,
+       COALESCE(ds.points, 0) DESC,
+       t.name`,
     [id]
   );
 
