@@ -481,3 +481,19 @@
   line-height: 1.45;
   color: var(--label);
 }
+
+/* Имя и роли занимают всё свободное место, документы прижимаются к правому краю
+   карточки и выстраиваются столбиком — иконок тут максимум три. */
+.team-staff__info {
+  min-width: 0;
+  flex: 1;
+}
+.team-staff__docs {
+  flex: none;
+  margin-left: auto;
+}
+.team-staff__docs .team-roster__docs {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}

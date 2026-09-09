@@ -459,19 +459,21 @@ function StaffSection({ staff }) {
         {staff.map((person) => (
           <div key={person.userId} className="team-staff__card">
             <PersonPhoto url={person.photoUrl} className="team-staff__photo" />
-            <div>
+            <div className="team-staff__info">
               <div className="team-staff__name">{person.fullName}</div>
               <div className="team-staff__roles">
                 {person.roles.map((role) => (
                   <div key={role}>{STAFF_ROLE_LABELS[role] || role}</div>
                 ))}
               </div>
-              {person.documents?.length > 0 && (
-                <div className="team-staff__docs">
-                  <DocumentBadges player={person} />
-                </div>
-              )}
             </div>
+            {/* Документы — справа столбиком: в карточке представителя их немного,
+                и рядом с ролями они читаются как продолжение текста, а не как статус. */}
+            {person.documents?.length > 0 && (
+              <div className="team-staff__docs">
+                <DocumentBadges player={person} />
+              </div>
+            )}
           </div>
         ))}
       </div>
