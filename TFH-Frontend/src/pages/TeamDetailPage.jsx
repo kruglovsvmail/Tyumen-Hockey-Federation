@@ -196,7 +196,7 @@ function DocumentBadges({ player }) {
         <button
           type="button"
           className="team-roster__tip-action"
-          onClick={() => onSignConsent(player.rosterId)}
+          onClick={() => onSignConsent(player.userId)}
         >
           Заполнить
         </button>
@@ -448,6 +448,8 @@ function RosterSection({ data }) {
   );
 }
 
+// Документы допуска дивизион требует и с представителей — по тем же флагам, что и с игроков.
+// Согласие представитель подписывает сам, той же формой: карточка получает те же значки.
 function StaffSection({ staff }) {
   if (staff.length === 0) return null;
   return (
@@ -464,6 +466,11 @@ function StaffSection({ staff }) {
                   <div key={role}>{STAFF_ROLE_LABELS[role] || role}</div>
                 ))}
               </div>
+              {person.documents?.length > 0 && (
+                <div className="team-staff__docs">
+                  <DocumentBadges player={person} />
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -480,7 +487,7 @@ export default function TeamDetailPage({ backTo, backLabel }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [photoOpen, setPhotoOpen] = useState(false);
-  const [consentRosterId, setConsentRosterId] = useState(null);
+  const [consentUserId, setConsentUserId] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -582,15 +589,17 @@ export default function TeamDetailPage({ backTo, backLabel }) {
           {/* Кнопка «Заполнить» нужна во всех трёх списках: недопущенному и
               дисквалифицированному игроку согласие требуется ровно так же — недостающий
               документ как раз и бывает причиной, по которой человек ещё не допущен. */}
-          <ConsentSigningContext.Provider value={setConsentRosterId}>
+          <ConsentSigningContext.Provider value={setConsentUserId}>
             <RosterSection data={data} />
 
             <SidelinedSection title="Недопущенные игроки" players={data.notAdmitted || []} />
 
             <SidelinedSection title="Дисквалифицированные" players={data.disqualified || []} />
-          </ConsentSigningContext.Provider>
 
-          <StaffSection staff={data.staff} />
+            {/* Представители внутри провайдера намеренно: согласие они подписывают сами,
+                той же формой, и без контекста кнопка «Заполнить» у них бы не появилась. */}
+            <StaffSection staff={data.staff} />
+          </ConsentSigningContext.Provider>
 
           {photoOpen && (
             <PhotoLightbox
@@ -606,10 +615,11 @@ export default function TeamDetailPage({ backTo, backLabel }) {
 
       {/* Модалка вынесена из блока с данными: фоновое обновление состава после
           подписания не должно её закрывать. */}
-      {consentRosterId && (
+      {consentUserId && (
         <ConsentFormModal
-          rosterId={consentRosterId}
-          onClose={() => setConsentRosterId(null)}
+          appId={teamId}
+          userId={consentUserId}
+          onClose={() => setConsentUserId(null)}
           onSigned={refreshRoster}
         />
       )}

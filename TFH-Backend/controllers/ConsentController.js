@@ -73,24 +73,46 @@ const todayIso = () => {
 // Заявка + всё, что нужно и для проверок доступа, и для самого бланка. Условия видимости
 // те же, что на публичной странице команды (см. getTeamDetail в ChampionshipController):
 // подписать можно только то, что на этой странице реально показано.
-const ROSTER_QUERY = `
+const PERSON_QUERY = `
   SELECT
-    tr.id, tr.player_id, tr.consent_url,
-    to_char(tr.consent_expires_at, 'YYYY-MM-DD') AS consent_expires_at,
+    tt.id AS tournament_team_id,
+    p.user_id AS player_id,
+    p.tournament_roster_id,
+    tpd.consent_url,
+    to_char(tpd.consent_expires_at, 'YYYY-MM-DD') AS consent_expires_at,
     u.first_name, u.last_name, u.middle_name,
     to_char(u.birth_date, 'YYYY-MM-DD') AS birth_date,
     d.req_consent, d.name AS division_name,
     t.name AS team_name,
     to_char(s.end_date, 'YYYY-MM-DD') AS season_end_date,
     s.league_id
-  FROM tournament_rosters tr
-  JOIN users u ON u.id = tr.player_id
-  JOIN tournament_teams tt ON tt.id = tr.tournament_team_id
-  JOIN teams t ON t.id = tt.team_id
+  FROM tournament_teams tt
   JOIN divisions d ON d.id = tt.division_id
   JOIN seasons s ON s.id = d.season_id
-  WHERE tr.id = $1
-    AND tr.period_end IS NULL
+  JOIN teams t ON t.id = tt.team_id
+  -- Человек в заявке — игрок или представитель. Строка состава приоритетнее: у играющего
+  -- тренера подписанное согласие должно лечь на тот же комплект документов.
+  JOIN LATERAL (
+    SELECT user_id, tournament_roster_id
+      FROM (
+        SELECT tr.player_id AS user_id, MIN(tr.id) AS tournament_roster_id, 1 AS pri
+          FROM tournament_rosters tr
+         WHERE tr.tournament_team_id = tt.id AND tr.player_id = $2 AND tr.period_end IS NULL
+         GROUP BY tr.player_id
+        UNION ALL
+        SELECT ttr.user_id, NULL::int, 2
+          FROM tournament_team_roles ttr
+         WHERE ttr.tournament_team_id = tt.id AND ttr.user_id = $2 AND ttr.left_at IS NULL
+         GROUP BY ttr.user_id
+      ) candidates
+     ORDER BY pri
+     LIMIT 1
+  ) p ON true
+  JOIN users u ON u.id = p.user_id
+  -- Документы допуска лежат на паре «заявка + человек»
+  LEFT JOIN tournament_person_docs tpd
+         ON tpd.tournament_team_id = tt.id AND tpd.user_id = p.user_id
+  WHERE tt.id = $1
     AND tt.status IN ('approved', 'revision', 'pending')
     AND d.is_published = true
 `;
@@ -115,9 +137,9 @@ const signingBlockedReason = (roster) => {
   return null;
 };
 
-// id заявки уходит в запрос как есть, поэтому нечисловое значение отсекаем заранее:
-// иначе Postgres упадёт на приведении типа, и посетитель увидит 500 вместо «не найдено».
-const parseRosterId = (value) => (/^\d+$/.test(value || '') ? value : null);
+// Значения уходят в запрос как есть, поэтому нечисловые отсекаем заранее: иначе Postgres
+// упадёт на приведении типа, и посетитель увидит 500 вместо «не найдено».
+const parseId = (value) => (/^\d+$/.test(value || '') ? value : null);
 
 const trimmed = (value, max) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
 
@@ -203,15 +225,16 @@ export const getBlankConsent = async (req, res) => {
   }
 };
 
-// GET /api/consent/:rosterId — что показать в модалке: форму или причину отказа.
+// GET /api/consent/:appId/:userId — что показать в модалке: форму или причину отказа.
 // Публичный эндпоинт, поэтому наружу отдаём только то, что и так есть на странице
 // команды (ФИО, команда, дивизион). Телефон и прочие контакты — не отдаём.
 export const getConsentState = async (req, res) => {
   try {
-    const rosterId = parseRosterId(req.params.rosterId);
-    if (!rosterId) return res.status(404).json({ message: 'Заявка не найдена' });
+    const appId = parseId(req.params.appId);
+    const userId = parseId(req.params.userId);
+    if (!appId || !userId) return res.status(404).json({ message: 'Заявка не найдена' });
 
-    const { rows } = await sharedPool.query(ROSTER_QUERY, [rosterId]);
+    const { rows } = await sharedPool.query(PERSON_QUERY, [appId, userId]);
     const roster = rows[0];
     if (!roster) return res.status(404).json({ message: 'Заявка не найдена' });
 
@@ -238,15 +261,16 @@ export const getConsentState = async (req, res) => {
   }
 };
 
-// POST /api/consent/:rosterId — собрать PDF, положить в S3 и прописать в заявку.
+// POST /api/consent/:appId/:userId — собрать PDF, положить в S3 и прописать в заявку.
 export const signConsent = async (req, res) => {
   let uploadedKey = null;
 
   try {
-    const rosterId = parseRosterId(req.params.rosterId);
-    if (!rosterId) return res.status(404).json({ message: 'Заявка не найдена' });
+    const appId = parseId(req.params.appId);
+    const userId = parseId(req.params.userId);
+    if (!appId || !userId) return res.status(404).json({ message: 'Заявка не найдена' });
 
-    const { rows } = await sharedPool.query(ROSTER_QUERY, [rosterId]);
+    const { rows } = await sharedPool.query(PERSON_QUERY, [appId, userId]);
     const roster = rows[0];
     if (!roster) return res.status(404).json({ message: 'Заявка не найдена' });
 
@@ -290,7 +314,7 @@ export const signConsent = async (req, res) => {
 
     // Имя файла — та же схема, что у сканов, которые вручную грузят в LMS и в кабинете
     // команды (uploads/tournament_rosters_{id}_consent.*), плюс случайный хвост.
-    const s3Key = `uploads/tournament_rosters_${roster.id}_consent_${token}.pdf`;
+    const s3Key = `uploads/tournament_person_${roster.tournament_team_id}_${roster.player_id}_consent_${token}.pdf`;
     try {
       await s3.send(new PutObjectCommand({
         Bucket: SHARED_S3_BUCKET,
@@ -321,10 +345,12 @@ export const signConsent = async (req, res) => {
       await tfhClient.query('BEGIN');
       await tfhClient.query(
         `INSERT INTO roster_consent_signatures
-           (tournament_roster_id, user_id, document_code, form_version, file_url, expires_at, ip, user_agent)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+           (tournament_roster_id, tournament_team_id, user_id, document_code, form_version, file_url, expires_at, ip, user_agent)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         [
-          roster.id,
+          // У представителя строки состава нет вовсе — заявка и человек есть всегда
+          roster.tournament_roster_id,
+          roster.tournament_team_id,
           roster.player_id,
           documentCode,
           CONSENT_FORM_VERSION,
@@ -335,10 +361,13 @@ export const signConsent = async (req, res) => {
         ]
       );
       await sharedPool.query(
-        `UPDATE tournament_rosters
-         SET consent_url = $1, consent_expires_at = $2, updated_at = NOW()
-         WHERE id = $3`,
-        [`/${s3Key}`, roster.season_end_date, roster.id]
+        `INSERT INTO tournament_person_docs (tournament_team_id, user_id, consent_url, consent_expires_at)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT ON CONSTRAINT tournament_person_docs_unique
+         DO UPDATE SET consent_url = EXCLUDED.consent_url,
+                       consent_expires_at = EXCLUDED.consent_expires_at,
+                       updated_at = NOW()`,
+        [roster.tournament_team_id, roster.player_id, `/${s3Key}`, roster.season_end_date]
       );
       await tfhClient.query('COMMIT');
     } catch (err) {
@@ -364,8 +393,11 @@ export const signConsent = async (req, res) => {
     // уже после успешной записи — иначе при сбое в БД заявка осталась бы вообще без
     // документа. Трогаем только то, что лежит по «нашему» имени для этой же заявки.
     const previousKey = (roster.consent_url || '').replace(/^\//, '');
-    if (previousKey && previousKey !== s3Key
-        && previousKey.startsWith(`uploads/tournament_rosters_${roster.id}_consent`)) {
+    // Кроме своего формата ключа принимаем старый, от строки ростера: согласия,
+    // подписанные до переезда документов на человека, лежат под ним.
+    const isOwnPreviousKey = previousKey.startsWith(`uploads/tournament_person_${roster.tournament_team_id}_${roster.player_id}_consent`)
+      || /^uploads\/tournament_rosters_\d+_consent/.test(previousKey);
+    if (previousKey && previousKey !== s3Key && isOwnPreviousKey) {
       await s3
         .send(new DeleteObjectCommand({ Bucket: SHARED_S3_BUCKET, Key: previousKey }))
         .catch((err) => console.error('Не удалось удалить прежний файл согласия:', err.message));

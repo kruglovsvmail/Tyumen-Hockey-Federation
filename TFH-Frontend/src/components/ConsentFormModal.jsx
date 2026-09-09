@@ -77,7 +77,7 @@ const isFormComplete = (form, agreed) => agreed
   && form.registrationAddress.trim().length >= 5
   && phoneDigits(form.phone).length === 10;
 
-export default function ConsentFormModal({ rosterId, onClose, onSigned }) {
+export default function ConsentFormModal({ appId, userId, onClose, onSigned }) {
   const [state, setState] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -88,11 +88,11 @@ export default function ConsentFormModal({ rosterId, onClose, onSigned }) {
 
   useEffect(() => {
     let cancelled = false;
-    apiGet(`/api/consent/${rosterId}`)
+    apiGet(`/api/consent/${appId}/${userId}`)
       .then((data) => { if (!cancelled) setState(data); })
       .catch(() => { if (!cancelled) setLoadError('Не удалось загрузить форму. Попробуйте позже'); });
     return () => { cancelled = true; };
-  }, [rosterId]);
+  }, [appId, userId]);
 
   useEffect(() => {
     const onKeyDown = (e) => { if (e.key === 'Escape') onClose(); };
@@ -107,7 +107,7 @@ export default function ConsentFormModal({ rosterId, onClose, onSigned }) {
     setError(null);
     setSubmitting(true);
     try {
-      const result = await apiPost(`/api/consent/${rosterId}`, { ...form, agreed });
+      const result = await apiPost(`/api/consent/${appId}/${userId}`, { ...form, agreed });
       setSigned(result);
       // Обновляем состав на странице, чтобы иконка документа позеленела сразу,
       // а кнопка «Заполнить» из подсказки исчезла.

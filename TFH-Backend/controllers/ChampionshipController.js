@@ -831,17 +831,22 @@ export const getTeamDetail = async (req, res) => {
        ), '[]'::json) AS qualification_history,
        dq.total AS dq_total, dq.games_left AS dq_games_left,
        dq.until_date AS dq_until, dq.has_manual AS dq_has_manual,
-       (tr.medical_url IS NOT NULL) AS has_medical,
-       to_char(tr.medical_expires_at, 'YYYY-MM-DD') AS medical_expires_at,
-       (tr.insurance_url IS NOT NULL) AS has_insurance,
-       to_char(tr.insurance_expires_at, 'YYYY-MM-DD') AS insurance_expires_at,
-       (tr.consent_url IS NOT NULL) AS has_consent,
-       to_char(tr.consent_expires_at, 'YYYY-MM-DD') AS consent_expires_at,
+       -- Документы допуска лежат на паре «заявка + человек» (tournament_person_docs):
+       -- у играющего представителя они одни и те же в составе и в штабе
+       tr.player_id AS user_id,
+       (tpd.medical_url IS NOT NULL) AS has_medical,
+       to_char(tpd.medical_expires_at, 'YYYY-MM-DD') AS medical_expires_at,
+       (tpd.insurance_url IS NOT NULL) AS has_insurance,
+       to_char(tpd.insurance_expires_at, 'YYYY-MM-DD') AS insurance_expires_at,
+       (tpd.consent_url IS NOT NULL) AS has_consent,
+       to_char(tpd.consent_expires_at, 'YYYY-MM-DD') AS consent_expires_at,
        tr.application_status,
        ps.games_played, ps.goals, ps.assists, ps.points, ps.penalty_minutes,
        ps.goals_against, ps.shutouts
      FROM tournament_rosters tr
      JOIN users u ON u.id = tr.player_id
+     LEFT JOIN tournament_person_docs tpd
+            ON tpd.tournament_team_id = tr.tournament_team_id AND tpd.user_id = tr.player_id
      ${TEAM_MEMBER_PHOTO_LATERAL}
      -- Квалификация принадлежит паре «человек + лига» (user_qualifications), а не заявке:
      -- на странице команды всегда показывается текущая, в том числе в прошлых сезонах.
@@ -862,9 +867,18 @@ export const getTeamDetail = async (req, res) => {
        ttr.user_id,
        array_agg(ttr.tournament_role ORDER BY ${STAFF_ROLE_ORDER}) AS roles,
        u.first_name, u.last_name, u.middle_name,
-       COALESCE(tm_photo.photo_url, u.avatar_url) AS photo_url
+       COALESCE(tm_photo.photo_url, u.avatar_url) AS photo_url,
+       -- Дивизион требует документы и с представителей — по тем же флагам, что и с игроков
+       (MAX(tpd.medical_url) IS NOT NULL) AS has_medical,
+       to_char(MAX(tpd.medical_expires_at), 'YYYY-MM-DD') AS medical_expires_at,
+       (MAX(tpd.insurance_url) IS NOT NULL) AS has_insurance,
+       to_char(MAX(tpd.insurance_expires_at), 'YYYY-MM-DD') AS insurance_expires_at,
+       (MAX(tpd.consent_url) IS NOT NULL) AS has_consent,
+       to_char(MAX(tpd.consent_expires_at), 'YYYY-MM-DD') AS consent_expires_at
      FROM tournament_team_roles ttr
      JOIN users u ON u.id = ttr.user_id
+     LEFT JOIN tournament_person_docs tpd
+            ON tpd.tournament_team_id = ttr.tournament_team_id AND tpd.user_id = ttr.user_id
      ${TEAM_MEMBER_PHOTO_LATERAL}
      WHERE ttr.tournament_team_id = $1 AND ttr.left_at IS NULL
      GROUP BY ttr.user_id, u.first_name, u.last_name, u.middle_name, tm_photo.photo_url, u.avatar_url
@@ -883,6 +897,9 @@ export const getTeamDetail = async (req, res) => {
 
   const mapPlayerBase = (r) => ({
     rosterId: r.roster_id,
+    // Для подписания согласия адресуемся человеком в заявке, а не строкой состава:
+    // представителю строки состава может не быть вовсе (см. ConsentController)
+    userId: r.user_id,
     jerseyNumber: r.jersey_number,
     position: r.position,
     fullName: formatPlayerName(r),
@@ -976,6 +993,13 @@ export const getTeamDetail = async (req, res) => {
       fullName: formatPlayerName(r),
       photoUrl: r.photo_url,
       roles: r.roles,
+      // Тот же набор документов, что и у игроков: наружу отдаём только факт наличия
+      // и срок — сканы это персональные данные, ссылок на них публично нет.
+      documents: requiredDocuments.map((doc) => ({
+        key: doc.key,
+        present: r[doc.hasField],
+        expiresAt: r[doc.expiresField],
+      })),
     })),
   });
 };

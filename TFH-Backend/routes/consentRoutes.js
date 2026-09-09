@@ -27,9 +27,11 @@ const signLimiter = rateLimit({
   message: { message: 'Слишком много попыток подписания с этого адреса. Попробуйте позже' },
 });
 
-// Пустой бланк объявлен раньше '/:rosterId' — иначе его перехватил бы этот шаблон.
+// Адресуемся человеком в заявке, а не строкой состава: представитель команды подписывает
+// то же согласие, а строки в составе у него может не быть вовсе.
+// Пустой бланк объявлен раньше шаблонов — иначе его перехватил бы '/:appId'.
 router.get('/blank.pdf', getBlankConsent);
-router.get('/:rosterId', getConsentState);
-router.post('/:rosterId', signLimiter, signConsent);
+router.get('/:appId/:userId', getConsentState);
+router.post('/:appId/:userId', signLimiter, signConsent);
 
 export default router;
