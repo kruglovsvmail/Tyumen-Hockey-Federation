@@ -39,6 +39,56 @@ const DOCUMENT_LABELS = {
 // поэтому берём его из контекста.
 const ConsentSigningContext = createContext(null);
 
+// Настройки обозначений экипировки приходят с составом; их читает PlayerCells,
+// а он лежит глубоко в таблицах — поэтому контекст, а не проброс через все секции.
+const EquipmentMarksContext = createContext(null);
+
+// Обозначения обязательной экипировки рядом с фамилией. Оба правила включаются и
+// настраиваются в LMS («Настройки лиги → Параметры»):
+//   «ушк» — моложе N лет: защита ушей и шеи плюс капа;
+//   «к»   — родившимся после указанной даты: капа.
+// Возраст считаем на сегодня — так же, как в LMS. Значок один: «ушк» уже включает капу.
+const EQUIPMENT_MARK_LABELS = {
+  ushk: { code: 'ушк', title: 'Уши, шея, капа', text: 'Игроку нужна защита ушей и шеи, а также капа.' },
+  mouthguard: { code: 'к', title: 'Капа', text: 'Игроку нужна капа.' },
+};
+
+// Полных лет на сегодня. Дата приходит строкой 'YYYY-MM-DD' — разбираем сами,
+// чтобы не создавать Date и не ловить сдвиг на день из-за часового пояса.
+function fullYearsOld(birthDate) {
+  const iso = String(birthDate || '').slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  const [year, month, day] = iso.split('-').map(Number);
+  const now = new Date();
+  let age = now.getFullYear() - year;
+  const hadBirthday = (now.getMonth() + 1 > month) || (now.getMonth() + 1 === month && now.getDate() >= day);
+  return hadBirthday ? age : age - 1;
+}
+
+function getEquipmentMark(birthDate, settings) {
+  if (!settings) return null;
+  const iso = String(birthDate || '').slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+
+  if (settings.ushkEnabled) {
+    const maxAge = Number(settings.ushkMaxAge ?? 20);
+    const age = fullYearsOld(iso);
+    if (age !== null && age < maxAge) {
+      return { ...EQUIPMENT_MARK_LABELS.ushk, text: `${EQUIPMENT_MARK_LABELS.ushk.text} Правило действует до ${maxAge} лет.` };
+    }
+  }
+
+  if (settings.mouthguardEnabled) {
+    const bornAfter = String(settings.mouthguardBornAfter || '').slice(0, 10);
+    if (bornAfter && iso > bornAfter) {
+      const [y, m, d] = bornAfter.split('-');
+      return { ...EQUIPMENT_MARK_LABELS.mouthguard, text: `${EQUIPMENT_MARK_LABELS.mouthguard.text} Правило действует для родившихся после ${d}.${m}.${y}.` };
+    }
+  }
+
+  return null;
+}
+
 function PersonPhoto({ url, className }) {
   return url ? (
     <img src={getImageUrl(url)} alt="" className={className} />
@@ -248,6 +298,19 @@ const PLAYER_HEAD_CELLS = (
   </>
 );
 
+// Маленькие строчные буквы рядом с фамилией: по нажатию всплывает пояснение.
+function EquipmentMarkBadge({ birthDate }) {
+  const settings = useContext(EquipmentMarksContext);
+  const mark = getEquipmentMark(birthDate, settings);
+  if (!mark) return null;
+
+  return (
+    <TipBadge className="team-roster__equip-btn" tipTitle={mark.title} tipText={mark.text}>
+      {mark.code}
+    </TipBadge>
+  );
+}
+
 function PlayerCells({ player }) {
   return (
     <>
@@ -259,6 +322,7 @@ function PlayerCells({ player }) {
         {player.fullName}
         {player.isCaptain && <span className="team-roster__badge">К</span>}
         {player.isAssistant && <span className="team-roster__badge">А</span>}
+        <EquipmentMarkBadge birthDate={player.birthDate} />
       </td>
       <td className="team-roster__col-dq">
         {player.disqualification && (
@@ -591,6 +655,7 @@ export default function TeamDetailPage({ backTo, backLabel }) {
           {/* Кнопка «Заполнить» нужна во всех трёх списках: недопущенному и
               дисквалифицированному игроку согласие требуется ровно так же — недостающий
               документ как раз и бывает причиной, по которой человек ещё не допущен. */}
+          <EquipmentMarksContext.Provider value={data.equipmentMarks}>
           <ConsentSigningContext.Provider value={setConsentUserId}>
             <RosterSection data={data} />
 
@@ -602,6 +667,7 @@ export default function TeamDetailPage({ backTo, backLabel }) {
                 той же формой, и без контекста кнопка «Заполнить» у них бы не появилась. */}
             <StaffSection staff={data.staff} />
           </ConsentSigningContext.Provider>
+          </EquipmentMarksContext.Provider>
 
           {photoOpen && (
             <PhotoLightbox

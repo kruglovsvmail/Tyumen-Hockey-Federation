@@ -222,7 +222,10 @@ export const getDivisionReserveGoalies = async (req, res) => {
   const { rows } = await sharedPool.query(
     `SELECT
        drg.player_id, drg.jersey_number, drg.note,
-       u.first_name, u.last_name, u.middle_name, u.phone, u.avatar_url,
+       u.first_name, u.last_name, u.middle_name, u.phone,
+       -- Личный аватар на сайте лиги не показываем: сначала снимок из заявки этой лиги
+       -- (фото на момент допуска), иначе последнее фото человека в составе команды
+       COALESCE(photo.snapshot_url, photo.member_url) AS avatar_url,
        COALESCE(st.games_played, 0)   AS games_played,
        COALESCE(st.goals_against, 0)  AS goals_against,
        COALESCE(st.saves, 0)          AS saves,
@@ -238,6 +241,21 @@ export const getDivisionReserveGoalies = async (req, res) => {
        COALESCE(dq.has_own_dq, false)     AS dq_has_own
      FROM division_reserve_goalies drg
      JOIN users u ON u.id = drg.player_id
+     LEFT JOIN LATERAL (
+       SELECT
+         (SELECT tr.photo_snapshot_url
+            FROM tournament_rosters tr
+            JOIN tournament_teams tt ON tt.id = tr.tournament_team_id
+            JOIN divisions d3 ON d3.id = tt.division_id
+            JOIN seasons s3 ON s3.id = d3.season_id
+           WHERE tr.player_id = drg.player_id AND s3.league_id = $2
+             AND tr.photo_snapshot_url IS NOT NULL
+           ORDER BY tr.id DESC LIMIT 1) AS snapshot_url,
+         (SELECT tm3.photo_url
+            FROM team_members tm3
+           WHERE tm3.user_id = drg.player_id AND tm3.photo_url IS NOT NULL
+           ORDER BY tm3.id DESC LIMIT 1) AS member_url
+     ) photo ON true
      LEFT JOIN LATERAL (
        SELECT
          COUNT(*)::int                                    AS games_played,
@@ -792,10 +810,15 @@ export const getTeamDetail = async (req, res) => {
        t.id AS team_id, t.name, t.short_name, t.logo_url, t.description, t.jersey_light_url, t.jersey_dark_url,
        t.team_photo_url,
        d.id AS division_id, d.name AS division_name,
-       d.req_med_cert, d.req_insurance, d.req_consent, d.hide_stats_unpaid
+       d.req_med_cert, d.req_insurance, d.req_consent, d.hide_stats_unpaid,
+       -- Обозначения экипировки по возрасту («ушк» и «к» рядом с фамилией) — настройка лиги
+       l.equip_mark_ushk_enabled, l.equip_mark_ushk_max_age, l.equip_mark_mouthguard_enabled,
+       to_char(l.equip_mark_mouthguard_born_after, 'YYYY-MM-DD') AS equip_mark_mouthguard_born_after
      FROM tournament_teams tt
      JOIN teams t ON t.id = tt.team_id
      JOIN divisions d ON d.id = tt.division_id
+     JOIN seasons s ON s.id = d.season_id
+     JOIN leagues l ON l.id = s.league_id
      WHERE tt.id = $1 AND tt.status IN ('approved', 'revision', 'pending') AND d.is_published = true`,
     [tournamentTeamId]
   );
@@ -812,7 +835,10 @@ export const getTeamDetail = async (req, res) => {
        -- в JS Date по локальной полуночи, и при сериализации в JSON дата могла бы съехать на день.
        to_char(u.birth_date, 'YYYY-MM-DD') AS birth_date,
        date_part('year', age(u.birth_date))::int AS age,
-       COALESCE(tm_photo.photo_url, u.avatar_url) AS photo_url,
+       -- Пока игрок допущен, показываем слепок фотографии из заявки: фото в команде
+       -- руководитель меняет когда угодно, а в лиге лицо должно оставаться тем, что
+       -- допустили. Личный аватар в лиговых разделах не показываем вовсе.
+       COALESCE(tr.photo_snapshot_url, tm_photo.photo_url) AS photo_url,
        lq.short_name AS qualification_short_name, lq.name AS qualification_name,
        lq.description AS qualification_description,
        -- История смен квалификации в этой лиге: на странице команды показывается
@@ -867,7 +893,9 @@ export const getTeamDetail = async (req, res) => {
        ttr.user_id,
        array_agg(ttr.tournament_role ORDER BY ${STAFF_ROLE_ORDER}) AS roles,
        u.first_name, u.last_name, u.middle_name,
-       COALESCE(tm_photo.photo_url, u.avatar_url) AS photo_url,
+       -- У представителей слепка нет (тумблера допуска у них тоже нет), но личный
+       -- аватар в лиговых разделах не показываем — только фото в команде
+       tm_photo.photo_url AS photo_url,
        -- Дивизион требует документы и с представителей — по тем же флагам, что и с игроков
        (MAX(tpd.medical_url) IS NOT NULL) AS has_medical,
        to_char(MAX(tpd.medical_expires_at), 'YYYY-MM-DD') AS medical_expires_at,
@@ -881,7 +909,7 @@ export const getTeamDetail = async (req, res) => {
             ON tpd.tournament_team_id = ttr.tournament_team_id AND tpd.user_id = ttr.user_id
      ${TEAM_MEMBER_PHOTO_LATERAL}
      WHERE ttr.tournament_team_id = $1 AND ttr.left_at IS NULL
-     GROUP BY ttr.user_id, u.first_name, u.last_name, u.middle_name, tm_photo.photo_url, u.avatar_url
+     GROUP BY ttr.user_id, u.first_name, u.last_name, u.middle_name, tm_photo.photo_url
      ORDER BY MIN(${STAFF_ROLE_ORDER}), u.last_name, u.first_name`,
     [tournamentTeamId, row.team_id]
   );
@@ -988,6 +1016,14 @@ export const getTeamDetail = async (req, res) => {
     forwards: admittedRows.filter((r) => r.position === 'forward').map(mapSkater),
     notAdmitted: notAdmittedRows.map(mapPlayerBase),
     disqualified: disqualifiedRows.map(mapPlayerBase),
+    // Настройки обозначений экипировки: фронт по ним решает, показывать ли «ушк» и «к».
+    // Сами буквы считаются на клиенте — по дате рождения, которая уже есть в карточке.
+    equipmentMarks: {
+      ushkEnabled: row.equip_mark_ushk_enabled,
+      ushkMaxAge: row.equip_mark_ushk_max_age,
+      mouthguardEnabled: row.equip_mark_mouthguard_enabled,
+      mouthguardBornAfter: row.equip_mark_mouthguard_born_after,
+    },
     staff: staffRes.rows.map((r) => ({
       userId: r.user_id,
       fullName: formatPlayerName(r),

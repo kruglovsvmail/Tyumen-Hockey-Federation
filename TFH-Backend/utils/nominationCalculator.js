@@ -92,11 +92,13 @@ export async function calculateNomination(nomination) {
               : '(array_agg(s.team_id ORDER BY s.game_date DESC NULLS LAST))[1] AS team_id'},
             u.first_name,
             u.last_name,
-            u.avatar_url,
+            -- Фото в лиговых разделах: слепок из заявки, пока игрок допущен, иначе живое
+            -- фото в команде. Личный аватар тут не показываем.
+            COALESCE(r.photo_snapshot_url, tm.photo_url) AS avatar_url,
             COUNT(*)::int AS games_played,
             ${mainDef.expr} AS value${tbSelect ? ',\n               ' + tbSelect : ''}`;
 
-    const groupBy = `s.player_id, u.first_name, u.last_name, u.avatar_url${isTeamScope ? ', s.team_id' : ''}`;
+    const groupBy = `s.player_id, u.first_name, u.last_name, COALESCE(r.photo_snapshot_url, tm.photo_url)${isTeamScope ? ', s.team_id' : ''}`;
 
     // Заявку игрока могут закрыть и переоформить — тогда прямой join к
     // tournament_rosters размножил бы ему всю статистику. Берём ровно одну
@@ -104,7 +106,7 @@ export async function calculateNomination(nomination) {
     const sql = `
         WITH roster AS (
             SELECT DISTINCT ON (tt.team_id, tr.player_id)
-                   tt.team_id, tr.player_id, tr.position
+                   tt.team_id, tr.player_id, tr.position, tr.photo_snapshot_url
             FROM tournament_rosters tr
             JOIN tournament_teams tt ON tt.id = tr.tournament_team_id
             WHERE tt.division_id = $1 AND tr.application_status = 'approved'
@@ -115,6 +117,7 @@ export async function calculateNomination(nomination) {
             FROM player_game_statistics s
             JOIN roster r ON r.player_id = s.player_id AND r.team_id = s.team_id
             JOIN users u ON u.id = s.player_id
+            LEFT JOIN team_members tm ON tm.user_id = s.player_id AND tm.team_id = s.team_id AND tm.left_at IS NULL
             WHERE ${where.join(' AND ')}
             GROUP BY ${groupBy}
             HAVING COUNT(*) >= ${minGamesParam}
