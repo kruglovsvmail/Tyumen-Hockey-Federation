@@ -4,7 +4,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import 'dotenv/config';
 
-import { tfhPool } from './config/db.js';
+import { tfhPool, sharedPool } from './config/db.js';
 import championshipRoutes from './routes/championshipRoutes.js';
 import adminAuthRoutes from './routes/adminAuthRoutes.js';
 import staffRoutes from './routes/staffRoutes.js';
@@ -106,3 +106,26 @@ app.listen(PORT, '0.0.0.0', () => {
 tfhPool.query('SELECT NOW()')
   .then((res) => console.log('PostgreSQL (TFH) connected:', res.rows[0].now))
   .catch((err) => console.error('PostgreSQL (TFH) connection check failed:', err.message));
+
+// Подписание согласий — единственная запись сайта в общую базу, и идёт она через функцию
+// tfh_sign_consent (см. ConsentController). Проверяем на старте, что функция есть и её
+// можно вызвать: иначе о поломке узнаёт игрок при следующей попытке подписать, а между
+// попытками, как показывал лог, проходят дни. Порт при этом открываем всё равно — сайт
+// без подписания лучше, чем сайт, который не поднялся.
+sharedPool.query(
+  `SELECT has_function_privilege(current_user, 'public.tfh_sign_consent(int, int, text, date)', 'EXECUTE') AS ok`
+)
+  .then(({ rows }) => {
+    if (rows[0]?.ok) {
+      console.log('PostgreSQL (shared): функция tfh_sign_consent доступна, подписание согласий работает');
+    } else {
+      console.error('🚨 PostgreSQL (shared): у роли нет права вызвать tfh_sign_consent — ПОДПИСАНИЕ СОГЛАСИЙ НЕ РАБОТАЕТ. Нужен GRANT EXECUTE от владельца базы.');
+    }
+  })
+  .catch((err) => {
+    // 42883 = функции нет вовсе (не создали или удалили вместе с чем-то ещё)
+    const reason = err.code === '42883'
+      ? 'функции tfh_sign_consent нет в базе'
+      : `проверка не удалась: ${err.message}`;
+    console.error(`🚨 PostgreSQL (shared): ${reason} — ПОДПИСАНИЕ СОГЛАСИЙ НЕ РАБОТАЕТ.`);
+  });
