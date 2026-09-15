@@ -291,6 +291,11 @@
 .team-roster__photo {
   display: block;
   width: 40px;
+  /* Колонка «Игрок» с width: 100% ужимает остальные до минимума содержимого, а голый
+     <img> с max-width: 100% (preflight) в этот минимум не входит — колонка «Фото»
+     схлопывалась до ширины заголовка, и фото становилось 35×40. min-width сильнее
+     max-width, поэтому картинка сама держит колонку. */
+  min-width: 40px;
   height: 40px;
   margin: 0 auto;
   border-radius: 10px;
