@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiGet } from '../../api/client.js';
+import { useAdmin } from '../../context/AdminContext.jsx';
 import Loader from '../Loader.jsx';
 import PlaceholderSection from '../PlaceholderSection.jsx';
 import { formatGameDate, formatGameTime } from '../../utils/formatDate.js';
@@ -9,6 +10,7 @@ import GameScore from './GameScore.jsx';
 import ArenaLink from './ArenaLink.jsx';
 import PlayoffBracket from './PlayoffBracket.jsx';
 import NominationsBlock from './NominationsBlock.jsx';
+import MatchesWidgetSettingsModal from './MatchesWidgetSettingsModal.jsx';
 import { useScrollCarousel } from '../../hooks/useScrollCarousel.js';
 import './DivisionDetailTabs.css';
 
@@ -34,28 +36,46 @@ function TeamCell({ team, teamLinkBase }) {
 }
 
 export default function StandingsTab({ divisionId, teamLinkBase }) {
+  const { isAdmin } = useAdmin();
   const [standings, setStandings] = useState([]);
-  const [weekGames, setWeekGames] = useState([]);
+  const [nearestGames, setNearestGames] = useState([]);
+  // Сколько матчей показывает блок и сколько из них прошедших — приходит вместе со
+  // списком, форма админа открывается с этими значениями
+  const [widgetSettings, setWidgetSettings] = useState({ total: 0, past: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  const weekGamesListRef = useRef(null);
-  const { canScrollUp, canScrollDown, scrollUp, scrollDown } = useScrollCarousel(weekGamesListRef, [weekGames.length]);
+  const nearestGamesListRef = useRef(null);
+  const { canScrollUp, canScrollDown, scrollUp, scrollDown } = useScrollCarousel(nearestGamesListRef, [nearestGames.length]);
+
+  // Отдельной функцией: после сохранения настроек блока список перезапрашивается
+  // сам по себе, без перезагрузки турнирной таблицы
+  const loadNearestGames = useCallback(
+    () => apiGet(`/api/championship/divisions/${divisionId}/nearest-games`).then((data) => {
+      setNearestGames(data.games);
+      setWidgetSettings(data.settings);
+    }),
+    [divisionId]
+  );
 
   useEffect(() => {
     setLoading(true);
     setError(null);
     Promise.all([
       apiGet(`/api/championship/divisions/${divisionId}/standings`),
-      apiGet(`/api/championship/divisions/${divisionId}/week-games`),
+      loadNearestGames(),
     ])
-      .then(([standingsData, weekData]) => {
-        setStandings(standingsData.standings);
-        setWeekGames(weekData.games);
-      })
+      .then(([standingsData]) => setStandings(standingsData.standings))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [divisionId]);
+  }, [divisionId, loadNearestGames]);
+
+  const handleWidgetSettingsSaved = (saved) => {
+    setWidgetSettings(saved);
+    setIsSettingsOpen(false);
+    loadNearestGames().catch((err) => setError(err.message));
+  };
 
   if (error) return <PlaceholderSection>Не удалось загрузить таблицу: {error}</PlaceholderSection>;
   if (loading) return <Loader />;
@@ -106,35 +126,48 @@ export default function StandingsTab({ divisionId, teamLinkBase }) {
 
         <div className="glass-card week-games">
           <div className="week-games__header">
-            <h3 className="division-tab__title">Предстоящие матчи</h3>
-            {(canScrollUp || canScrollDown) && (
-              <div className="week-games__nav">
+            <h3 className="division-tab__title">Ближайшие матчи</h3>
+            <div className="week-games__nav">
+              {(canScrollUp || canScrollDown) && (
+                <>
+                  <button
+                    type="button"
+                    className="week-games__nav-btn"
+                    onClick={scrollUp}
+                    disabled={!canScrollUp}
+                    aria-label="Прокрутить вверх"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    className="week-games__nav-btn"
+                    onClick={scrollDown}
+                    disabled={!canScrollDown}
+                    aria-label="Прокрутить вниз"
+                  >
+                    ↓
+                  </button>
+                </>
+              )}
+              {isAdmin && (
                 <button
                   type="button"
-                  className="week-games__nav-btn"
-                  onClick={scrollUp}
-                  disabled={!canScrollUp}
-                  aria-label="Прокрутить вверх"
+                  className="week-games__nav-btn week-games__settings-btn"
+                  onClick={() => setIsSettingsOpen(true)}
+                  aria-label="Настроить блок"
+                  title="Сколько матчей показывать"
                 >
-                  ↑
+                  ⚙
                 </button>
-                <button
-                  type="button"
-                  className="week-games__nav-btn"
-                  onClick={scrollDown}
-                  disabled={!canScrollDown}
-                  aria-label="Прокрутить вниз"
-                >
-                  ↓
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-          {weekGames.length === 0 ? (
-            <p className="week-games__empty">На этой неделе матчей нет.</p>
+          {nearestGames.length === 0 ? (
+            <p className="week-games__empty">Матчей с назначенной датой пока нет.</p>
           ) : (
-            <div className="week-games__list" ref={weekGamesListRef}>
-              {weekGames.map((g) => (
+            <div className="week-games__list" ref={nearestGamesListRef}>
+              {nearestGames.map((g) => (
                 <div key={g.id} className="week-games__item">
                   <span className="week-games__date">
                     {formatGameDate(g.date)} · {formatGameTime(g.date)}
@@ -159,6 +192,15 @@ export default function StandingsTab({ divisionId, teamLinkBase }) {
       <NominationsBlock divisionId={divisionId} />
 
       <PlayoffBracket divisionId={divisionId} />
+
+      {isSettingsOpen && (
+        <MatchesWidgetSettingsModal
+          divisionId={divisionId}
+          settings={widgetSettings}
+          onClose={() => setIsSettingsOpen(false)}
+          onSaved={handleWidgetSettingsSaved}
+        />
+      )}
     </div>
   );
 }

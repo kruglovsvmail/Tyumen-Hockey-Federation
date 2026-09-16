@@ -31,6 +31,37 @@
   max-height: 90vh;
   overflow-y: auto;
 }
+
+/* Окно, за которым нужно видеть страницу (настройка сетки команд: сетка перерисовывается
+   прямо под бегунками). Затемнения нет, окно прижато к правому нижнему углу, чтобы не
+   закрывать собой то, что настраивают; подложка плотнее обычного стекла (--navbg, как у
+   всплывающей подсказки арены) — под ней не ровный тёмный фон, а живая страница. Клик
+   мимо окна закрывает его, как и у остальных модалок. На узком экране — шторкой снизу. */
+.admin-modal-overlay--transparent {
+  background: transparent;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 24px;
+}
+.admin-modal--docked {
+  max-width: 380px;
+  background: var(--navbg);
+  box-shadow: var(--pshadow2), 0 0 0 1px var(--glassbrd);
+  animation: dockedIn .22s cubic-bezier(.2, .8, .2, 1);
+}
+@keyframes dockedIn {
+  from { transform: translateY(12px); }
+  to { transform: none; }
+}
+@media (max-width: 560px) {
+  .admin-modal-overlay--transparent {
+    padding: 0;
+  }
+  .admin-modal--docked {
+    max-width: none;
+    border-radius: 14px 14px 0 0;
+  }
+}
 .admin-modal__textarea-large {
   min-height: 320px;
   resize: vertical;
@@ -67,6 +98,39 @@
 .admin-modal__input:focus {
   outline: none;
   border-color: var(--accbrd);
+}
+
+/* Поле с бегунком (RangeSlider.css): подпись слева, текущее значение справа, под ними
+   бегунок во всю ширину. Плейсхолдер тут не годится — после выбора числа не видно,
+   что это за число. */
+.admin-modal__slider-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.admin-modal__slider-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.admin-modal__slider-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--label);
+}
+.admin-modal__slider-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accnum);
+  white-space: nowrap;
+}
+
+.admin-modal__hint {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--body2);
 }
 
 .admin-modal__error {

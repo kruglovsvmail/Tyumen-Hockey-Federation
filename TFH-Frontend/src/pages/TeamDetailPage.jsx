@@ -48,6 +48,7 @@ const EquipmentMarksContext = createContext(null);
 //   «ушк» — моложе N лет: защита ушей и шеи плюс капа;
 //   «к»   — родившимся после указанной даты: капа.
 // Возраст считаем на сегодня — так же, как в LMS. Значок один: «ушк» уже включает капу.
+// Вратарям значков нет: они играют в полной защитной маске (то же правило в LMS).
 const EQUIPMENT_MARK_LABELS = {
   ushk: { code: 'ушк', title: 'Уши, шея, капа', text: 'Игроку нужна защита ушей и шеи, а также капа.' },
   mouthguard: { code: 'к', title: 'Капа', text: 'Игроку нужна капа.' },
@@ -65,8 +66,9 @@ function fullYearsOld(birthDate) {
   return hadBirthday ? age : age - 1;
 }
 
-function getEquipmentMark(birthDate, settings) {
+function getEquipmentMark(birthDate, settings, position) {
   if (!settings) return null;
+  if (position === 'goalie') return null;
   const iso = String(birthDate || '').slice(0, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
 
@@ -299,9 +301,9 @@ const PLAYER_HEAD_CELLS = (
 );
 
 // Маленькие строчные буквы рядом с фамилией: по нажатию всплывает пояснение.
-function EquipmentMarkBadge({ birthDate }) {
+function EquipmentMarkBadge({ birthDate, position }) {
   const settings = useContext(EquipmentMarksContext);
-  const mark = getEquipmentMark(birthDate, settings);
+  const mark = getEquipmentMark(birthDate, settings, position);
   if (!mark) return null;
 
   return (
@@ -322,7 +324,7 @@ function PlayerCells({ player }) {
         {player.fullName}
         {player.isCaptain && <span className="team-roster__badge">К</span>}
         {player.isAssistant && <span className="team-roster__badge">А</span>}
-        <EquipmentMarkBadge birthDate={player.birthDate} />
+        <EquipmentMarkBadge birthDate={player.birthDate} position={player.position} />
       </td>
       <td className="team-roster__col-dq">
         {player.disqualification && (
@@ -648,7 +650,7 @@ export default function TeamDetailPage({ backTo, backLabel }) {
                   <span>Гостевая</span>
                 </div>
               </div>
-              <div className="team-detail__jerseys-credit">создано ИИ</div>
+              <div className="team-detail__jerseys-credit">мокапы сгенерированы ИИ</div>
             </div>
           </div>
 

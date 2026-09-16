@@ -15,7 +15,7 @@
   letter-spacing: .5px;
 }
 
-/* --- Таблица (standings) + Матчи недели + Плей-офф (отдельным блоком ниже) --- */
+/* --- Таблица (standings) + Ближайшие матчи + Плей-офф (отдельным блоком ниже) --- */
 .division-tab-page {
   display: flex;
   flex-direction: column;
@@ -27,7 +27,7 @@
   grid-template-columns: 1fr 1.3fr;
   gap: 20px;
   /* align-items не задаём (по умолчанию stretch) — обе карточки в ряду растягиваются
-     до высоты более высокой из них, отсюда "Матчи недели" всегда вровень с таблицей. */
+     до высоты более высокой из них, отсюда "Ближайшие матчи" всегда вровень с таблицей. */
 }
 @media (max-width: 860px) {
   .division-tab-layout {
@@ -106,7 +106,8 @@
   text-transform: uppercase;
 }
 
-/* Карточка "Матчи недели" растянута grid'ом до высоты таблицы (см. .division-tab-layout) —
+/* Карточка "Ближайшие матчи" (классы week-games — историческое имя: раньше блок показывал
+   матчи текущей недели) растянута grid'ом до высоты таблицы (см. .division-tab-layout) —
    делаем её flex-колонкой, чтобы список занял всё оставшееся место и мог скроллиться/
    резаться внутри этой фиксированной высоты, а не распирать карточку своим содержимым. */
 .week-games {
@@ -147,6 +148,11 @@
 .week-games__nav-btn:disabled {
   opacity: .35;
   cursor: default;
+}
+/* Шестерёнка админа стоит в том же ряду, что стрелки прокрутки, и отбита от них */
+.week-games__settings-btn {
+  margin-left: 6px;
+  font-size: 14px;
 }
 
 .week-games__list {
@@ -380,7 +386,7 @@
   }
 }
 
-/* --- Счёт матча (общий для календаря и "Матчей недели") --- */
+/* --- Счёт матча (общий для календаря и "Ближайших матчей") --- */
 .game-score {
   position: relative;
   display: inline-flex;
@@ -482,11 +488,62 @@
 }
 
 /* --- Команды --- */
-.teams-tab-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+.teams-tab {
+  display: flex;
+  flex-direction: column;
   gap: 16px;
 }
+
+/* Сколько карточек в ряду и размер логотипа админ сайта задаёт для каждого дивизиона
+   отдельно (division_display_settings): TeamsTab.jsx ставит их на сетку CSS-переменными
+   --teams-cols / --teams-logo, здесь только умолчания на случай, если переменные не пришли.
+
+   Колонок ровно --teams-cols, но не за счёт читаемости: min-ширина трека —
+   "1/N ширины минус промежуток" (тогда auto-fill укладывает ровно N колонок), а когда
+   на узком экране эта доля становится меньше --teams-card-min, минимум упирается в
+   него и auto-fill сам сбрасывает число колонок. Иначе на телефоне 5 колонок
+   ужались бы до нечитаемых полосок. */
+.teams-tab-grid {
+  --teams-cols: 5;
+  --teams-logo: 140px;
+  --teams-gap: 16px;
+  --teams-card-min: 150px;
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(max(var(--teams-card-min), calc(100% / var(--teams-cols) - var(--teams-gap))), 1fr)
+  );
+  gap: var(--teams-gap);
+}
+
+/* Кнопка админа над сеткой — открывает окно настройки (TeamsGridSettingsModal).
+   Таблетка в духе переключателя плей-офф, а не круглая иконка: у вкладки нет
+   заголовка, к которому иконку можно было бы прижать, и одной шестерёнке в пустом
+   ряду нечем объясниться. */
+.teams-tab__toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+.teams-tab__settings-btn {
+  font-family: inherit;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12.5px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--chip);
+  border: 1px solid var(--accbrd);
+  color: var(--acc);
+  white-space: nowrap;
+}
+.teams-tab__settings-btn:hover {
+  background: var(--chipStrong);
+}
+.teams-tab__settings-btn:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
 .teams-tab__card {
   padding: 24px 18px;
   border-radius: 12px;
@@ -505,9 +562,13 @@
   transform: translateY(-2px);
   box-shadow: var(--pshadow), 0 0 0 2px var(--accbrd);
 }
+/* Размер — из настройки, но не шире карточки: на узком экране (или при 8 колонках
+   с крупным логотипом) карточка может оказаться у́же заданного размера, тогда логотип
+   ужимается под неё, а не вылезает за края */
 .teams-tab__logo-wrap {
-  width: 140px;
-  height: 140px;
+  width: 100%;
+  max-width: var(--teams-logo);
+  aspect-ratio: 1 / 1;
 }
 .teams-tab__logo {
   width: 100%;

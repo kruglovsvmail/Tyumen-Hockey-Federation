@@ -2,6 +2,11 @@ import jwt from 'jsonwebtoken';
 import { sharedPool, tfhPool } from '../config/db.js';
 import { METRIC_DEFS } from '../utils/nominationMetrics.js';
 import { calculateNomination } from '../utils/nominationCalculator.js';
+import {
+  loadDivisionDisplaySettings,
+  toDisplaySettingsDto,
+  DISPLAY_SETTINGS_LIMITS,
+} from '../utils/divisionDisplaySettings.js';
 
 // Мягкая проверка токена — в отличие от middleware/auth.js не роняет запрос при
 // отсутствии/невалидности токена, просто считает запрос анонимным. Нужна там, где
@@ -536,8 +541,16 @@ export const getDivisionGames = async (req, res) => {
   res.json({ games: await attachDateEstimates(rows.map(mapGameRow)) });
 };
 
-// Матчи текущей недели (пн–вс) — виджет-сайдбар на вкладке "Таблица".
-export const getDivisionWeekGames = async (req, res) => {
+// Ближайшие матчи дивизиона — виджет-сайдбар на вкладке "Таблица". Раньше брались матчи
+// текущей недели (пн–вс), и в паузах между турами блок пустел; теперь — N ближайших по
+// дате, хоть через месяц. Сколько показывать всего и сколько из них уже сыгранных —
+// настройка админа сайта для этого дивизиона (division_display_settings).
+//
+// Граница "прошедший/предстоящий" — по дате относительно текущего момента, а не по
+// статусу: матч, которому забыли закрыть протокол, всё равно уже прошёл, и в верхушке
+// предстоящих ему делать нечего. Игры без даты сюда не попадают — у них нет "близости".
+// Отменённые тоже: это не матч, на который кто-то соберётся.
+export const getDivisionNearestGames = async (req, res) => {
   const { id } = req.params;
 
   const divRows = await sharedPool.query(
@@ -546,21 +559,52 @@ export const getDivisionWeekGames = async (req, res) => {
   );
   if (divRows.rows.length === 0) return res.status(404).json({ message: 'Не найдено' });
 
-  const { rows } = await sharedPool.query(
-    `${GAMES_SELECT}
-     WHERE g.division_id = $1 AND g.status <> 'draft'
-       AND g.game_date >= date_trunc('week', CURRENT_DATE)
-       AND g.game_date <  date_trunc('week', CURRENT_DATE) + interval '7 days'
-     ORDER BY g.game_date ASC`,
-    [id]
-  );
+  const settings = await loadDivisionDisplaySettings(id);
+  const total = settings.matchesWidgetTotal;
 
-  res.json({ games: rows.map(mapGameRow) });
+  // С каждой стороны берём по total, а не по своей доле: если с одной стороны матчей
+  // меньше настроенного (в начале сезона прошедших ещё нет, в конце — предстоящих уже
+  // нет), остаток добираем с другой, чтобы блок показывал total матчей, а не пустел.
+  const [pastRes, upcomingRes] = await Promise.all([
+    sharedPool.query(
+      `${GAMES_SELECT}
+       WHERE g.division_id = $1 AND g.status NOT IN ('draft', 'cancelled')
+         AND g.game_date < now()
+       ORDER BY g.game_date DESC
+       LIMIT $2`,
+      [id, total]
+    ),
+    sharedPool.query(
+      `${GAMES_SELECT}
+       WHERE g.division_id = $1 AND g.status NOT IN ('draft', 'cancelled')
+         AND g.game_date >= now()
+       ORDER BY g.game_date ASC
+       LIMIT $2`,
+      [id, total]
+    ),
+  ]);
+
+  const pastWanted = Math.min(settings.matchesWidgetPast, pastRes.rows.length);
+  const upcomingCount = Math.min(total - pastWanted, upcomingRes.rows.length);
+  const pastCount = Math.min(total - upcomingCount, pastRes.rows.length);
+
+  // Прошедшие выбраны от сегодня назад — разворачиваем, чтобы весь список шёл хронологически
+  const games = [
+    ...pastRes.rows.slice(0, pastCount).reverse(),
+    ...upcomingRes.rows.slice(0, upcomingCount),
+  ];
+
+  res.json({
+    games: games.map(mapGameRow),
+    // Текущие настройки отдаём вместе со списком — форма админа на этой же вкладке
+    // открывается с ними, без отдельного запроса
+    settings: { total, past: settings.matchesWidgetPast },
+  });
 };
 
-// Матчи текущей недели по ВСЕМ опубликованным дивизионам/турнирам сразу — карусель
-// на главной странице сайта (в отличие от getDivisionWeekGames, которая скопирована
-// под один конкретный дивизион на его собственной странице).
+// Матчи текущей недели (пн–вс) по ВСЕМ опубликованным дивизионам/турнирам сразу —
+// карусель на главной странице сайта. На странице дивизиона логика другая
+// (getDivisionNearestGames): там N ближайших без привязки к неделе.
 export const getHomeWeekGames = async (req, res) => {
   const { rows } = await sharedPool.query(
     // Общая БД обслуживает несколько лиг, а сайт — только свою (LEAGUE_ID): без этого
@@ -702,14 +746,17 @@ export const getDivisionTeams = async (req, res) => {
   );
   if (divRows.rows.length === 0) return res.status(404).json({ message: 'Не найдено' });
 
-  const { rows } = await sharedPool.query(
-    `SELECT tt.id AS tournament_team_id, t.id AS team_id, t.name, t.short_name, t.logo_url
-     FROM tournament_teams tt
-     JOIN teams t ON t.id = tt.team_id
-     WHERE tt.division_id = $1 AND tt.status IN ('approved', 'revision', 'pending')
-     ORDER BY t.name`,
-    [id]
-  );
+  const [{ rows }, settings] = await Promise.all([
+    sharedPool.query(
+      `SELECT tt.id AS tournament_team_id, t.id AS team_id, t.name, t.short_name, t.logo_url
+       FROM tournament_teams tt
+       JOIN teams t ON t.id = tt.team_id
+       WHERE tt.division_id = $1 AND tt.status IN ('approved', 'revision', 'pending')
+       ORDER BY t.name`,
+      [id]
+    ),
+    loadDivisionDisplaySettings(id),
+  ]);
 
   res.json({
     teams: rows.map((r) => ({
@@ -719,7 +766,50 @@ export const getDivisionTeams = async (req, res) => {
       shortName: r.short_name,
       logoUrl: r.logo_url,
     })),
+    // Раскладка сетки карточек — настройка админа сайта для этого дивизиона
+    // (division_display_settings). Отдаём вместе со списком, чтобы вкладка
+    // рисовалась одним запросом.
+    grid: { columns: settings.teamsGridColumns, logoSize: settings.teamsGridLogoSize },
   });
+};
+
+// Настройки отображения страницы дивизиона (блок "Ближайшие матчи", сетка "Команд") —
+// правит админ сайта на самих вкладках. Хранится только в БД ТФХ, по строке на дивизион.
+// Обновление частичное: каждая форма присылает только свои поля (форма блока матчей —
+// про матчи, панель сетки — про сетку), остальные остаются как были. Что за поля и
+// умолчания — см. utils/divisionDisplaySettings.js.
+export const setDivisionDisplaySettings = async (req, res) => {
+  const { id } = req.params;
+  const next = await loadDivisionDisplaySettings(id);
+
+  for (const [key, { min, max, label }] of Object.entries(DISPLAY_SETTINGS_LIMITS)) {
+    if (req.body[key] === undefined) continue;
+    const value = Number(req.body[key]);
+    if (!Number.isInteger(value) || value < min || value > max) {
+      return res.status(400).json({ message: `${label}: нужно целое число от ${min} до ${max}` });
+    }
+    next[key] = value;
+  }
+
+  if (next.matchesWidgetPast > next.matchesWidgetTotal) {
+    return res.status(400).json({ message: 'Прошедших матчей не может быть больше, чем матчей всего' });
+  }
+
+  const { rows } = await tfhPool.query(
+    `INSERT INTO division_display_settings
+       (division_id, matches_widget_total, matches_widget_past, teams_grid_columns, teams_grid_logo_size, updated_at)
+     VALUES ($1, $2, $3, $4, $5, now())
+     ON CONFLICT (division_id) DO UPDATE
+       SET matches_widget_total = EXCLUDED.matches_widget_total,
+           matches_widget_past = EXCLUDED.matches_widget_past,
+           teams_grid_columns = EXCLUDED.teams_grid_columns,
+           teams_grid_logo_size = EXCLUDED.teams_grid_logo_size,
+           updated_at = now()
+     RETURNING *`,
+    [id, next.matchesWidgetTotal, next.matchesWidgetPast, next.teamsGridColumns, next.teamsGridLogoSize]
+  );
+
+  res.json({ settings: toDisplaySettingsDto(rows[0]) });
 };
 
 const formatPlayerName = (r) =>

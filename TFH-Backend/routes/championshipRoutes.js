@@ -7,7 +7,7 @@ import {
   getDivisionDetail,
   getDivisionStandings,
   getDivisionGames,
-  getDivisionWeekGames,
+  getDivisionNearestGames,
   getHomeWeekGames,
   getDivisionPlayoff,
   getDivisionNominations,
@@ -17,6 +17,7 @@ import {
   setGameDateEstimate,
   deleteGameDateEstimate,
   setDivisionPlayoffVisibility,
+  setDivisionDisplaySettings,
 } from '../controllers/ChampionshipController.js';
 
 const router = Router();
@@ -29,7 +30,7 @@ router.get('/tournaments', getTournaments);
 router.get('/divisions/:id', getDivisionDetail);
 router.get('/divisions/:id/standings', getDivisionStandings);
 router.get('/divisions/:id/games', getDivisionGames);
-router.get('/divisions/:id/week-games', getDivisionWeekGames);
+router.get('/divisions/:id/nearest-games', getDivisionNearestGames);
 router.get('/divisions/:id/playoff', getDivisionPlayoff);
 router.get('/divisions/:id/nominations', getDivisionNominations);
 router.get('/divisions/:id/teams', getDivisionTeams);
@@ -39,5 +40,6 @@ router.get('/teams/:tournamentTeamId', getTeamDetail);
 router.put('/games/:gameId/date-estimate', verifyToken, setGameDateEstimate);
 router.delete('/games/:gameId/date-estimate', verifyToken, deleteGameDateEstimate);
 router.put('/divisions/:id/playoff-visibility', verifyToken, setDivisionPlayoffVisibility);
+router.put('/divisions/:id/display-settings', verifyToken, setDivisionDisplaySettings);
 
 export default router;
