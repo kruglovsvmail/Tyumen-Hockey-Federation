@@ -899,7 +899,7 @@ export const getTeamDetail = async (req, res) => {
        tt.custom_team_photo_url,
        t.id AS team_id, t.name, t.short_name, t.logo_url, t.description, t.jersey_light_url, t.jersey_dark_url,
        t.team_photo_url,
-       d.id AS division_id, d.name AS division_name,
+       d.id AS division_id, d.name AS division_name, d.season_id,
        d.req_med_cert, d.req_insurance, d.req_consent, d.hide_stats_unpaid,
        -- Обозначения экипировки по возрасту («ушк» и «к» рядом с фамилией) — настройка лиги
        l.equip_mark_ushk_enabled, l.equip_mark_ushk_max_age, l.equip_mark_mouthguard_enabled,
@@ -949,15 +949,15 @@ export const getTeamDetail = async (req, res) => {
        dq.until_date AS dq_until, dq.has_manual AS dq_has_manual,
        -- Документы допуска лежат на паре «заявка + человек» (tournament_person_docs):
        -- у играющего представителя они одни и те же в составе и в штабе. Согласие на ПД —
-       -- на паре «человек + лига» (user_league_consents): подписал раз — действует во всех
-       -- его заявках лиги, в том числе после перехода в другую команду
+       -- на паре «человек + сезон» (user_season_consents): подписал раз — действует во всех
+       -- его заявках сезона, в том числе после перехода в другую команду
        tr.player_id AS user_id,
        (tpd.medical_url IS NOT NULL) AS has_medical,
        to_char(tpd.medical_expires_at, 'YYYY-MM-DD') AS medical_expires_at,
        (tpd.insurance_url IS NOT NULL) AS has_insurance,
        to_char(tpd.insurance_expires_at, 'YYYY-MM-DD') AS insurance_expires_at,
-       (ulc.consent_url IS NOT NULL) AS has_consent,
-       to_char(ulc.consent_expires_at, 'YYYY-MM-DD') AS consent_expires_at,
+       (usc.consent_url IS NOT NULL) AS has_consent,
+       to_char(usc.consent_expires_at, 'YYYY-MM-DD') AS consent_expires_at,
        tr.application_status,
        ps.games_played, ps.goals, ps.assists, ps.points, ps.penalty_minutes,
        ps.goals_against, ps.shutouts
@@ -965,8 +965,8 @@ export const getTeamDetail = async (req, res) => {
      JOIN users u ON u.id = tr.player_id
      LEFT JOIN tournament_person_docs tpd
             ON tpd.tournament_team_id = tr.tournament_team_id AND tpd.user_id = tr.player_id
-     LEFT JOIN user_league_consents ulc
-            ON ulc.user_id = tr.player_id AND ulc.league_id = $3
+     LEFT JOIN user_season_consents usc
+            ON usc.user_id = tr.player_id AND usc.season_id = $4
      ${TEAM_MEMBER_PHOTO_LATERAL}
      -- Квалификация принадлежит паре «человек + лига» (user_qualifications), а не заявке:
      -- на странице команды всегда показывается текущая, в том числе в прошлых сезонах.
@@ -976,7 +976,7 @@ export const getTeamDetail = async (req, res) => {
      ${PLAYER_STATS_LATERAL}
      WHERE tr.tournament_team_id = $1 AND tr.period_end IS NULL
      ORDER BY tr.jersey_number NULLS LAST`,
-    [tournamentTeamId, row.team_id, LEAGUE_ID]
+    [tournamentTeamId, row.team_id, LEAGUE_ID, row.season_id]
   );
 
   // Представители заявки. Группируем по человеку, а не по строке таблицы: один и тот же
@@ -995,20 +995,20 @@ export const getTeamDetail = async (req, res) => {
        to_char(MAX(tpd.medical_expires_at), 'YYYY-MM-DD') AS medical_expires_at,
        (MAX(tpd.insurance_url) IS NOT NULL) AS has_insurance,
        to_char(MAX(tpd.insurance_expires_at), 'YYYY-MM-DD') AS insurance_expires_at,
-       -- Согласие — на человека в лиге (user_league_consents), не на заявку
-       (MAX(ulc.consent_url) IS NOT NULL) AS has_consent,
-       to_char(MAX(ulc.consent_expires_at), 'YYYY-MM-DD') AS consent_expires_at
+       -- Согласие — на человека в сезоне (user_season_consents), не на заявку
+       (MAX(usc.consent_url) IS NOT NULL) AS has_consent,
+       to_char(MAX(usc.consent_expires_at), 'YYYY-MM-DD') AS consent_expires_at
      FROM tournament_team_roles ttr
      JOIN users u ON u.id = ttr.user_id
      LEFT JOIN tournament_person_docs tpd
             ON tpd.tournament_team_id = ttr.tournament_team_id AND tpd.user_id = ttr.user_id
-     LEFT JOIN user_league_consents ulc
-            ON ulc.user_id = ttr.user_id AND ulc.league_id = $3
+     LEFT JOIN user_season_consents usc
+            ON usc.user_id = ttr.user_id AND usc.season_id = $3
      ${TEAM_MEMBER_PHOTO_LATERAL}
      WHERE ttr.tournament_team_id = $1 AND ttr.left_at IS NULL
      GROUP BY ttr.user_id, u.first_name, u.last_name, u.middle_name, tm_photo.photo_url
      ORDER BY MIN(${STAFF_ROLE_ORDER}), u.last_name, u.first_name`,
-    [tournamentTeamId, row.team_id, LEAGUE_ID]
+    [tournamentTeamId, row.team_id, row.season_id]
   );
 
   const requiredDocuments = ROSTER_DOCUMENTS.filter((doc) => row[doc.requiredFlag]);
