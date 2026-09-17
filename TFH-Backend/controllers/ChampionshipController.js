@@ -271,11 +271,12 @@ export const getDivisionReserveGoalies = async (req, res) => {
          COALESCE(SUM(r.goalie_seconds), 0)::int          AS goalie_seconds,
          bool_or(r.shots_is_official)                     AS tracks_shots,
          (SELECT json_agg(x.team_name ORDER BY x.cnt DESC, x.team_name)
-            FROM (SELECT COALESCE(t.short_name, t.name) AS team_name, COUNT(*)::int AS cnt
+            FROM (SELECT COALESCE(tt2.snap_short_name, tt2.snap_name, t.short_name, t.name) AS team_name, COUNT(*)::int AS cnt
                     FROM reserve_goalie_game_statistics r2
                     JOIN teams t ON t.id = r2.team_id
+                    LEFT JOIN tournament_teams tt2 ON tt2.division_id = r2.division_id AND tt2.team_id = r2.team_id
                    WHERE r2.division_id = drg.division_id AND r2.player_id = drg.player_id
-                   GROUP BY COALESCE(t.short_name, t.name)) x) AS teams
+                   GROUP BY COALESCE(tt2.snap_short_name, tt2.snap_name, t.short_name, t.name)) x) AS teams
        FROM reserve_goalie_game_statistics r
        WHERE r.division_id = drg.division_id AND r.player_id = drg.player_id
      ) st ON true
@@ -342,7 +343,12 @@ export const getDivisionStandings = async (req, res) => {
 
   const { rows } = await sharedPool.query(
     `SELECT
-       tt.id AS tournament_team_id, t.id AS team_id, t.name, t.short_name, t.logo_url,
+       -- Название, аббревиатура и лого — по слепку заявки (snap_*), снятому LMS при
+       -- допуске; пока слепка нет — живое из teams. Так прошлые сезоны не переименовываются
+       tt.id AS tournament_team_id, t.id AS team_id,
+       COALESCE(tt.snap_name, t.name) AS name,
+       COALESCE(tt.snap_short_name, t.short_name) AS short_name,
+       COALESCE(tt.snap_logo_url, t.logo_url) AS logo_url,
        COALESCE(ds.games_played, 0) AS games_played,
        COALESCE(ds.wins_reg, 0) AS wins_reg,
        COALESCE(ds.wins_ot, 0) AS wins_ot,
@@ -362,7 +368,7 @@ export const getDivisionStandings = async (req, res) => {
             THEN NULL
             ELSE COALESCE(ds.rank, 999999) END,
        COALESCE(ds.points, 0) DESC,
-       t.name`,
+       COALESCE(tt.snap_name, t.name)`,
     [id]
   );
 
@@ -393,12 +399,17 @@ const GAMES_SELECT = `
     g.game_number, g.series_number,
     g.status, g.home_score, g.away_score, g.is_technical, g.end_type,
     g.video_yt_url, g.video_vk_url,
-    ht.id AS home_team_id, ht.name AS home_team_name, ht.short_name AS home_team_short, ht.logo_url AS home_team_logo,
-    at.id AS away_team_id, at.name AS away_team_name, at.short_name AS away_team_short, at.logo_url AS away_team_logo,
+    -- Команды — по слепку заявки на дивизион (snap_*), снятому LMS при допуске
+    ht.id AS home_team_id, COALESCE(tt_home.snap_name, ht.name) AS home_team_name,
+    COALESCE(tt_home.snap_short_name, ht.short_name) AS home_team_short, COALESCE(tt_home.snap_logo_url, ht.logo_url) AS home_team_logo,
+    at.id AS away_team_id, COALESCE(tt_away.snap_name, at.name) AS away_team_name,
+    COALESCE(tt_away.snap_short_name, at.short_name) AS away_team_short, COALESCE(tt_away.snap_logo_url, at.logo_url) AS away_team_logo,
     a.name AS arena_name, a.city AS arena_city, a.address AS arena_address
   FROM games g
   LEFT JOIN teams ht ON ht.id = g.home_team_id
   LEFT JOIN teams at ON at.id = g.away_team_id
+  LEFT JOIN tournament_teams tt_home ON tt_home.division_id = g.division_id AND tt_home.team_id = g.home_team_id
+  LEFT JOIN tournament_teams tt_away ON tt_away.division_id = g.division_id AND tt_away.team_id = g.away_team_id
   LEFT JOIN arenas a ON a.id = g.arena_id
 `;
 
@@ -662,14 +673,17 @@ export const getDivisionPlayoff = async (req, res) => {
     const matchupsRes = await sharedPool.query(
       `SELECT m.id, m.round_id, m.matchup_number, m.team1_id, m.team2_id,
               m.team1_wins, m.team2_wins, m.winner_id, m.ui_metadata,
-              t1.name AS team1_name, t1.logo_url AS team1_logo,
-              t2.name AS team2_name, t2.logo_url AS team2_logo
+              COALESCE(tt1.snap_name, t1.name) AS team1_name, COALESCE(tt1.snap_logo_url, t1.logo_url) AS team1_logo,
+              COALESCE(tt2.snap_name, t2.name) AS team2_name, COALESCE(tt2.snap_logo_url, t2.logo_url) AS team2_logo
        FROM playoff_matchups m
        LEFT JOIN teams t1 ON m.team1_id = t1.id
        LEFT JOIN teams t2 ON m.team2_id = t2.id
+       -- Слепок заявки на этот дивизион ($2) важнее живого профиля команды
+       LEFT JOIN tournament_teams tt1 ON tt1.division_id = $2 AND tt1.team_id = m.team1_id
+       LEFT JOIN tournament_teams tt2 ON tt2.division_id = $2 AND tt2.team_id = m.team2_id
        WHERE m.round_id IN (SELECT id FROM playoff_rounds WHERE bracket_id = $1)
        ORDER BY m.matchup_number ASC`,
-      [b.id]
+      [b.id, id]
     );
 
     const rounds = roundsRes.rows.map((r) => ({
@@ -748,11 +762,14 @@ export const getDivisionTeams = async (req, res) => {
 
   const [{ rows }, settings] = await Promise.all([
     sharedPool.query(
-      `SELECT tt.id AS tournament_team_id, t.id AS team_id, t.name, t.short_name, t.logo_url
+      `SELECT tt.id AS tournament_team_id, t.id AS team_id,
+              COALESCE(tt.snap_name, t.name) AS name,
+              COALESCE(tt.snap_short_name, t.short_name) AS short_name,
+              COALESCE(tt.snap_logo_url, t.logo_url) AS logo_url
        FROM tournament_teams tt
        JOIN teams t ON t.id = tt.team_id
        WHERE tt.division_id = $1 AND tt.status IN ('approved', 'revision', 'pending')
-       ORDER BY t.name`,
+       ORDER BY COALESCE(tt.snap_name, t.name)`,
       [id]
     ),
     loadDivisionDisplaySettings(id),
@@ -897,7 +914,13 @@ export const getTeamDetail = async (req, res) => {
     `SELECT
        tt.id AS tournament_team_id, tt.custom_description, tt.custom_jersey_light_url, tt.custom_jersey_dark_url,
        tt.custom_team_photo_url,
-       t.id AS team_id, t.name, t.short_name, t.logo_url, t.description, t.jersey_light_url, t.jersey_dark_url,
+       -- Название, аббревиатура, лого — по слепку заявки (snap_*); форма, описание и фото
+       -- при допуске ложатся в custom_* (см. takeTeamSnapshot в LMS), поэтому там COALESCE ниже
+       t.id AS team_id,
+       COALESCE(tt.snap_name, t.name) AS name,
+       COALESCE(tt.snap_short_name, t.short_name) AS short_name,
+       COALESCE(tt.snap_logo_url, t.logo_url) AS logo_url,
+       t.description, t.jersey_light_url, t.jersey_dark_url,
        t.team_photo_url,
        d.id AS division_id, d.name AS division_name, d.season_id,
        d.req_med_cert, d.req_insurance, d.req_consent, d.hide_stats_unpaid,

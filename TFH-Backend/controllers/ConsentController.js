@@ -85,7 +85,7 @@ const PERSON_QUERY = `
     u.first_name, u.last_name, u.middle_name,
     to_char(u.birth_date, 'YYYY-MM-DD') AS birth_date,
     d.req_consent, d.name AS division_name,
-    t.name AS team_name,
+    COALESCE(tt.snap_name, t.name) AS team_name,
     to_char(s.end_date, 'YYYY-MM-DD') AS season_end_date,
     s.league_id
   FROM tournament_teams tt
