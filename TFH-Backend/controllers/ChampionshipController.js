@@ -948,14 +948,16 @@ export const getTeamDetail = async (req, res) => {
        dq.total AS dq_total, dq.games_left AS dq_games_left,
        dq.until_date AS dq_until, dq.has_manual AS dq_has_manual,
        -- Документы допуска лежат на паре «заявка + человек» (tournament_person_docs):
-       -- у играющего представителя они одни и те же в составе и в штабе
+       -- у играющего представителя они одни и те же в составе и в штабе. Согласие на ПД —
+       -- на паре «человек + лига» (user_league_consents): подписал раз — действует во всех
+       -- его заявках лиги, в том числе после перехода в другую команду
        tr.player_id AS user_id,
        (tpd.medical_url IS NOT NULL) AS has_medical,
        to_char(tpd.medical_expires_at, 'YYYY-MM-DD') AS medical_expires_at,
        (tpd.insurance_url IS NOT NULL) AS has_insurance,
        to_char(tpd.insurance_expires_at, 'YYYY-MM-DD') AS insurance_expires_at,
-       (tpd.consent_url IS NOT NULL) AS has_consent,
-       to_char(tpd.consent_expires_at, 'YYYY-MM-DD') AS consent_expires_at,
+       (ulc.consent_url IS NOT NULL) AS has_consent,
+       to_char(ulc.consent_expires_at, 'YYYY-MM-DD') AS consent_expires_at,
        tr.application_status,
        ps.games_played, ps.goals, ps.assists, ps.points, ps.penalty_minutes,
        ps.goals_against, ps.shutouts
@@ -963,6 +965,8 @@ export const getTeamDetail = async (req, res) => {
      JOIN users u ON u.id = tr.player_id
      LEFT JOIN tournament_person_docs tpd
             ON tpd.tournament_team_id = tr.tournament_team_id AND tpd.user_id = tr.player_id
+     LEFT JOIN user_league_consents ulc
+            ON ulc.user_id = tr.player_id AND ulc.league_id = $3
      ${TEAM_MEMBER_PHOTO_LATERAL}
      -- Квалификация принадлежит паре «человек + лига» (user_qualifications), а не заявке:
      -- на странице команды всегда показывается текущая, в том числе в прошлых сезонах.
@@ -991,17 +995,20 @@ export const getTeamDetail = async (req, res) => {
        to_char(MAX(tpd.medical_expires_at), 'YYYY-MM-DD') AS medical_expires_at,
        (MAX(tpd.insurance_url) IS NOT NULL) AS has_insurance,
        to_char(MAX(tpd.insurance_expires_at), 'YYYY-MM-DD') AS insurance_expires_at,
-       (MAX(tpd.consent_url) IS NOT NULL) AS has_consent,
-       to_char(MAX(tpd.consent_expires_at), 'YYYY-MM-DD') AS consent_expires_at
+       -- Согласие — на человека в лиге (user_league_consents), не на заявку
+       (MAX(ulc.consent_url) IS NOT NULL) AS has_consent,
+       to_char(MAX(ulc.consent_expires_at), 'YYYY-MM-DD') AS consent_expires_at
      FROM tournament_team_roles ttr
      JOIN users u ON u.id = ttr.user_id
      LEFT JOIN tournament_person_docs tpd
             ON tpd.tournament_team_id = ttr.tournament_team_id AND tpd.user_id = ttr.user_id
+     LEFT JOIN user_league_consents ulc
+            ON ulc.user_id = ttr.user_id AND ulc.league_id = $3
      ${TEAM_MEMBER_PHOTO_LATERAL}
      WHERE ttr.tournament_team_id = $1 AND ttr.left_at IS NULL
      GROUP BY ttr.user_id, u.first_name, u.last_name, u.middle_name, tm_photo.photo_url
      ORDER BY MIN(${STAFF_ROLE_ORDER}), u.last_name, u.first_name`,
-    [tournamentTeamId, row.team_id]
+    [tournamentTeamId, row.team_id, LEAGUE_ID]
   );
 
   const requiredDocuments = ROSTER_DOCUMENTS.filter((doc) => row[doc.requiredFlag]);
