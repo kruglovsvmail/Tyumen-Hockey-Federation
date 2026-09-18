@@ -1,5 +1,14 @@
 .week-matches {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Ряд с кнопкой админа (.admin-pill, см. pages.css) — только когда вошли как админ */
+.week-matches__toolbar {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .week-matches__row {

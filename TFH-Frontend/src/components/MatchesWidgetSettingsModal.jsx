@@ -1,19 +1,18 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { apiSendJson } from '../../api/client.js';
-import { useAdmin } from '../../context/AdminContext.jsx';
-import RangeSlider from '../RangeSlider.jsx';
-import '../Modal.css';
+import RangeSlider from './RangeSlider.jsx';
+import './Modal.css';
 
-// Те же границы, что проверяет бэкенд (utils/divisionDisplaySettings.js)
+// Те же границы, что проверяет бэкенд (utils/divisionDisplaySettings.js, utils/siteSettings.js)
 const TOTAL_MIN = 1;
 const TOTAL_MAX = 30;
 
-// Настройка блока «Ближайшие матчи»: сколько матчей показывать и сколько из них
-// уже сыгранных. Настройка своя у каждого дивизиона (division_display_settings) —
-// об этом сказано прямо в форме, чтобы не ждать, что она подействует на соседние.
-export default function MatchesWidgetSettingsModal({ divisionId, settings, onClose, onSaved }) {
-  const { token } = useAdmin();
+// Настройка блока ближайших матчей: сколько матчей показывать и сколько из них уже
+// сыгранных. Форма одна на два места — виджет дивизиона и карусель на главной, — а куда
+// сохранять, решает вызывающий код: onSave получает { total, past }, делает запрос и
+// закрывает окно; форма только показывает ошибку, если запрос не удался. note — строка
+// под заголовком, объясняющая область действия («только этот дивизион» / «вся лига»).
+export default function MatchesWidgetSettingsModal({ settings, note, onSave, onClose }) {
   const [total, setTotal] = useState(settings.total);
   const [past, setPast] = useState(settings.past);
   const [submitting, setSubmitting] = useState(false);
@@ -30,13 +29,7 @@ export default function MatchesWidgetSettingsModal({ divisionId, settings, onClo
     setError(null);
     setSubmitting(true);
     try {
-      const data = await apiSendJson(
-        `/api/championship/divisions/${divisionId}/display-settings`,
-        'PUT',
-        { matchesWidgetTotal: total, matchesWidgetPast: past },
-        token
-      );
-      onSaved({ total: data.settings.matchesWidgetTotal, past: data.settings.matchesWidgetPast });
+      await onSave({ total, past });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -48,9 +41,7 @@ export default function MatchesWidgetSettingsModal({ divisionId, settings, onClo
     <div className="admin-modal-overlay" onClick={onClose}>
       <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
         <div className="admin-modal__title font-display">Ближайшие матчи</div>
-        <p className="admin-modal__message">
-          Настройка только для этого дивизиона.
-        </p>
+        {note && <p className="admin-modal__message">{note}</p>}
         <form className="admin-modal__form" onSubmit={handleSubmit}>
           <div className="admin-modal__slider-field">
             <div className="admin-modal__slider-row">

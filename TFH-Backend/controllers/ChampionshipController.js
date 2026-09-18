@@ -7,6 +7,7 @@ import {
   toDisplaySettingsDto,
   DISPLAY_SETTINGS_LIMITS,
 } from '../utils/divisionDisplaySettings.js';
+import { loadSiteSettings } from '../utils/siteSettings.js';
 
 // Мягкая проверка токена — в отличие от middleware/auth.js не роняет запрос при
 // отсутствии/невалидности токена, просто считает запрос анонимным. Нужна там, где
@@ -552,15 +553,46 @@ export const getDivisionGames = async (req, res) => {
   res.json({ games: await attachDateEstimates(rows.map(mapGameRow)) });
 };
 
-// Ближайшие матчи дивизиона — виджет-сайдбар на вкладке "Таблица". Раньше брались матчи
-// текущей недели (пн–вс), и в паузах между турами блок пустел; теперь — N ближайших по
-// дате, хоть через месяц. Сколько показывать всего и сколько из них уже сыгранных —
-// настройка админа сайта для этого дивизиона (division_display_settings).
+// N ближайших по дате матчей: total всего, из них past уже сыгранных, остальные —
+// предстоящие. Одна логика для виджета на странице дивизиона и карусели на главной,
+// различается только область — join и условие WHERE приходят снаружи ($1 — их параметр).
 //
 // Граница "прошедший/предстоящий" — по дате относительно текущего момента, а не по
 // статусу: матч, которому забыли закрыть протокол, всё равно уже прошёл, и в верхушке
 // предстоящих ему делать нечего. Игры без даты сюда не попадают — у них нет "близости".
 // Отменённые тоже: это не матч, на который кто-то соберётся.
+//
+// С каждой стороны берём по total, а не по своей доле: если с одной стороны матчей
+// меньше настроенного (в начале сезона прошедших ещё нет, в конце — предстоящих уже
+// нет), остаток добираем с другой, чтобы блок показывал total матчей, а не пустел.
+const selectNearestGames = async ({ joins = '', scopeWhere, scopeParam, total, past }) => {
+  const query = (dateCondition, order) => sharedPool.query(
+    `${GAMES_SELECT}
+     ${joins}
+     WHERE ${scopeWhere} AND g.status NOT IN ('draft', 'cancelled')
+       AND g.game_date ${dateCondition} now()
+     ORDER BY g.game_date ${order}
+     LIMIT $2`,
+    [scopeParam, total]
+  );
+
+  const [pastRes, upcomingRes] = await Promise.all([query('<', 'DESC'), query('>=', 'ASC')]);
+
+  const pastWanted = Math.min(past, pastRes.rows.length);
+  const upcomingCount = Math.min(total - pastWanted, upcomingRes.rows.length);
+  const pastCount = Math.min(total - upcomingCount, pastRes.rows.length);
+
+  // Прошедшие выбраны от сегодня назад — разворачиваем, чтобы весь список шёл хронологически
+  return [
+    ...pastRes.rows.slice(0, pastCount).reverse(),
+    ...upcomingRes.rows.slice(0, upcomingCount),
+  ].map(mapGameRow);
+};
+
+// Ближайшие матчи дивизиона — виджет-сайдбар на вкладке "Таблица". Раньше брались матчи
+// текущей недели (пн–вс), и в паузах между турами блок пустел; теперь — N ближайших по
+// дате, хоть через месяц. Сколько показывать всего и сколько из них уже сыгранных —
+// настройка админа сайта для этого дивизиона (division_display_settings).
 export const getDivisionNearestGames = async (req, res) => {
   const { id } = req.params;
 
@@ -571,67 +603,43 @@ export const getDivisionNearestGames = async (req, res) => {
   if (divRows.rows.length === 0) return res.status(404).json({ message: 'Не найдено' });
 
   const settings = await loadDivisionDisplaySettings(id);
-  const total = settings.matchesWidgetTotal;
-
-  // С каждой стороны берём по total, а не по своей доле: если с одной стороны матчей
-  // меньше настроенного (в начале сезона прошедших ещё нет, в конце — предстоящих уже
-  // нет), остаток добираем с другой, чтобы блок показывал total матчей, а не пустел.
-  const [pastRes, upcomingRes] = await Promise.all([
-    sharedPool.query(
-      `${GAMES_SELECT}
-       WHERE g.division_id = $1 AND g.status NOT IN ('draft', 'cancelled')
-         AND g.game_date < now()
-       ORDER BY g.game_date DESC
-       LIMIT $2`,
-      [id, total]
-    ),
-    sharedPool.query(
-      `${GAMES_SELECT}
-       WHERE g.division_id = $1 AND g.status NOT IN ('draft', 'cancelled')
-         AND g.game_date >= now()
-       ORDER BY g.game_date ASC
-       LIMIT $2`,
-      [id, total]
-    ),
-  ]);
-
-  const pastWanted = Math.min(settings.matchesWidgetPast, pastRes.rows.length);
-  const upcomingCount = Math.min(total - pastWanted, upcomingRes.rows.length);
-  const pastCount = Math.min(total - upcomingCount, pastRes.rows.length);
-
-  // Прошедшие выбраны от сегодня назад — разворачиваем, чтобы весь список шёл хронологически
-  const games = [
-    ...pastRes.rows.slice(0, pastCount).reverse(),
-    ...upcomingRes.rows.slice(0, upcomingCount),
-  ];
+  const games = await selectNearestGames({
+    scopeWhere: 'g.division_id = $1',
+    scopeParam: id,
+    total: settings.matchesWidgetTotal,
+    past: settings.matchesWidgetPast,
+  });
 
   res.json({
-    games: games.map(mapGameRow),
+    games,
     // Текущие настройки отдаём вместе со списком — форма админа на этой же вкладке
     // открывается с ними, без отдельного запроса
-    settings: { total, past: settings.matchesWidgetPast },
+    settings: { total: settings.matchesWidgetTotal, past: settings.matchesWidgetPast },
   });
 };
 
-// Матчи текущей недели (пн–вс) по ВСЕМ опубликованным дивизионам/турнирам сразу —
-// карусель на главной странице сайта. На странице дивизиона логика другая
-// (getDivisionNearestGames): там N ближайших без привязки к неделе.
-export const getHomeWeekGames = async (req, res) => {
-  const { rows } = await sharedPool.query(
+// Ближайшие матчи по ВСЕМ опубликованным дивизионам и турнирам лиги сразу — карусель
+// на главной странице. Та же логика, что у дивизиона, только область шире и настройка
+// одна на сайт (site_settings): главная страница одна. По сезонам не фильтруем —
+// "ближайшие по дате" сами выбирают текущее: в межсезонье это последние результаты.
+export const getHomeNearestGames = async (req, res) => {
+  const settings = await loadSiteSettings();
+  const games = await selectNearestGames({
     // Общая БД обслуживает несколько лиг, а сайт — только свою (LEAGUE_ID): без этого
     // условия в карусель на главной попадали чужие матчи. Лига у матча определяется
     // через сезон дивизиона (divisions.season_id -> seasons.league_id).
-    `${GAMES_SELECT}
-     JOIN divisions d ON d.id = g.division_id
-     JOIN seasons s ON s.id = d.season_id
-     WHERE s.league_id = $1 AND d.is_published = true AND g.status NOT IN ('draft', 'cancelled')
-       AND g.game_date >= date_trunc('week', CURRENT_DATE)
-       AND g.game_date <  date_trunc('week', CURRENT_DATE) + interval '7 days'
-     ORDER BY g.game_date ASC`,
-    [LEAGUE_ID]
-  );
+    joins: `JOIN divisions d ON d.id = g.division_id
+            JOIN seasons s ON s.id = d.season_id`,
+    scopeWhere: 's.league_id = $1 AND d.is_published = true',
+    scopeParam: LEAGUE_ID,
+    total: settings.homeMatchesTotal,
+    past: settings.homeMatchesPast,
+  });
 
-  res.json({ games: rows.map(mapGameRow) });
+  res.json({
+    games,
+    settings: { total: settings.homeMatchesTotal, past: settings.homeMatchesPast },
+  });
 };
 
 // Сетка плей-офф. Читаем ту же структуру, что строит LMS-конструктор (divisionController.js

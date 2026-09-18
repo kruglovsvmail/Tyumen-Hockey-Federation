@@ -20,6 +20,7 @@ import albumsRoutes from './routes/albumsRoutes.js';
 import sdkRoutes from './routes/sdkRoutes.js';
 import regulationsRoutes from './routes/regulationsRoutes.js';
 import consentRoutes from './routes/consentRoutes.js';
+import siteSettingsRoutes from './routes/siteSettingsRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3003;
@@ -62,6 +63,7 @@ app.use('/api/albums', albumsRoutes);
 app.use('/api/sdk', sdkRoutes);
 app.use('/api/regulations', regulationsRoutes);
 app.use('/api/consent', consentRoutes);
+app.use('/api/site-settings', siteSettingsRoutes);
 
 // --- ГЛОБАЛЬНЫЙ ОБРАБОТЧИК ОШИБОК ---
 

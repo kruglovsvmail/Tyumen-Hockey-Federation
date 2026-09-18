@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
-import { apiGet } from '../api/client.js';
+import { useCallback, useEffect, useState } from 'react';
+import { apiGet, apiSendJson } from '../api/client.js';
+import { useAdmin } from '../context/AdminContext.jsx';
 import { getImageUrl } from '../utils/getImageUrl.js';
 import { formatGameDate, formatGameTime } from '../utils/formatDate.js';
 import GameScore from './DivisionDetail/GameScore.jsx';
 import ArenaLink from './DivisionDetail/ArenaLink.jsx';
+import MatchesWidgetSettingsModal from './MatchesWidgetSettingsModal.jsx';
 import '../components/DivisionDetail/DivisionDetailTabs.css';
 import './WeekMatchesCarousel.css';
 
@@ -101,18 +103,33 @@ function MatchCard({ g }) {
   );
 }
 
+// Карусель ближайших матчей по всей лиге: N ближайших по дате, из них сколько-то уже
+// сыгранных, остальные предстоящие — та же логика, что у виджета на странице дивизиона.
+// Сколько именно — настройка админа, одна на сайт (site_settings): главная страница одна.
+// Имя компонента и классы week-matches — исторические: раньше здесь были матчи недели.
 export default function WeekMatchesCarousel() {
+  const { isAdmin, token } = useAdmin();
   const [games, setGames] = useState([]);
+  // Текущие настройки приходят вместе со списком — форма админа открывается с ними
+  const [settings, setSettings] = useState({ total: 0, past: 0 });
   const [loading, setLoading] = useState(true);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [page, setPage] = useState(0);
   const visibleCount = useVisibleCount();
 
+  const loadGames = useCallback(
+    () => apiGet('/api/championship/nearest-games').then((data) => {
+      setGames(data.games);
+      setSettings(data.settings);
+    }),
+    []
+  );
+
   useEffect(() => {
-    apiGet('/api/championship/week-games')
-      .then((data) => setGames(data.games))
+    loadGames()
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [loadGames]);
 
   const totalPages = Math.max(1, Math.ceil(games.length / visibleCount));
 
@@ -120,10 +137,33 @@ export default function WeekMatchesCarousel() {
     if (page > totalPages - 1) setPage(0);
   }, [totalPages, page]);
 
+  // Ошибку запроса показывает сама форма; список перезапрашиваем уже с новыми настройками
+  const handleSettingsSave = async ({ total, past }) => {
+    const data = await apiSendJson('/api/site-settings', 'PUT', { homeMatchesTotal: total, homeMatchesPast: past }, token);
+    setSettings({ total: data.settings.homeMatchesTotal, past: data.settings.homeMatchesPast });
+    setIsSettingsOpen(false);
+    loadGames().catch(() => {});
+  };
+
   if (loading || games.length === 0) return null;
 
   return (
     <div className="week-matches">
+      {/* Кнопка настройки — только админу, отдельным рядом над каруселью: у карусели нет
+          заголовка, к которому её можно было бы прижать */}
+      {isAdmin && (
+        <div className="week-matches__toolbar">
+          <button
+            type="button"
+            className="admin-pill"
+            onClick={() => setIsSettingsOpen(true)}
+            disabled={isSettingsOpen}
+          >
+            ⚙ Настроить
+          </button>
+        </div>
+      )}
+
       <div className="week-matches__row">
         {totalPages > 1 && (
           <button
@@ -171,6 +211,15 @@ export default function WeekMatchesCarousel() {
           </button>
         )}
       </div>
+
+      {isSettingsOpen && (
+        <MatchesWidgetSettingsModal
+          settings={settings}
+          note="Матчи всех дивизионов и турниров лиги. Настройка только для главной страницы."
+          onSave={handleSettingsSave}
+          onClose={() => setIsSettingsOpen(false)}
+        />
+      )}
     </div>
   );
 }

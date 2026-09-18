@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { apiGet } from '../../api/client.js';
+import { apiGet, apiSendJson } from '../../api/client.js';
 import { useAdmin } from '../../context/AdminContext.jsx';
 import Loader from '../Loader.jsx';
 import PlaceholderSection from '../PlaceholderSection.jsx';
@@ -10,7 +10,7 @@ import GameScore from './GameScore.jsx';
 import ArenaLink from './ArenaLink.jsx';
 import PlayoffBracket from './PlayoffBracket.jsx';
 import NominationsBlock from './NominationsBlock.jsx';
-import MatchesWidgetSettingsModal from './MatchesWidgetSettingsModal.jsx';
+import MatchesWidgetSettingsModal from '../MatchesWidgetSettingsModal.jsx';
 import { useScrollCarousel } from '../../hooks/useScrollCarousel.js';
 import './DivisionDetailTabs.css';
 
@@ -36,7 +36,7 @@ function TeamCell({ team, teamLinkBase }) {
 }
 
 export default function StandingsTab({ divisionId, teamLinkBase }) {
-  const { isAdmin } = useAdmin();
+  const { isAdmin, token } = useAdmin();
   const [standings, setStandings] = useState([]);
   const [nearestGames, setNearestGames] = useState([]);
   // Сколько матчей показывает блок и сколько из них прошедших — приходит вместе со
@@ -71,8 +71,16 @@ export default function StandingsTab({ divisionId, teamLinkBase }) {
       .finally(() => setLoading(false));
   }, [divisionId, loadNearestGames]);
 
-  const handleWidgetSettingsSaved = (saved) => {
-    setWidgetSettings(saved);
+  // Сохранение из формы настройки блока: настройка своя у каждого дивизиона
+  // (division_display_settings). Ошибку запроса показывает сама форма.
+  const handleWidgetSettingsSave = async ({ total, past }) => {
+    const data = await apiSendJson(
+      `/api/championship/divisions/${divisionId}/display-settings`,
+      'PUT',
+      { matchesWidgetTotal: total, matchesWidgetPast: past },
+      token
+    );
+    setWidgetSettings({ total: data.settings.matchesWidgetTotal, past: data.settings.matchesWidgetPast });
     setIsSettingsOpen(false);
     loadNearestGames().catch((err) => setError(err.message));
   };
@@ -195,10 +203,10 @@ export default function StandingsTab({ divisionId, teamLinkBase }) {
 
       {isSettingsOpen && (
         <MatchesWidgetSettingsModal
-          divisionId={divisionId}
           settings={widgetSettings}
+          note="Настройка только для этого дивизиона."
+          onSave={handleWidgetSettingsSave}
           onClose={() => setIsSettingsOpen(false)}
-          onSaved={handleWidgetSettingsSaved}
         />
       )}
     </div>

@@ -55,7 +55,7 @@ export default function TeamsTab({ divisionId, teamLinkBase }) {
         <div className="teams-tab__toolbar">
           <button
             type="button"
-            className="teams-tab__settings-btn"
+            className="admin-pill"
             onClick={() => setIsSettingsOpen(true)}
             disabled={isSettingsOpen}
           >

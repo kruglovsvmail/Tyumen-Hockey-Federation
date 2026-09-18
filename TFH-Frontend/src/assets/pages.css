@@ -47,6 +47,29 @@
   box-shadow: var(--pshadow);
 }
 
+/* Кнопка-таблетка админа рядом с блоком, который она настраивает («⚙ Настроить сетку»
+   на вкладке команд, «⚙ Настроить» у карусели на главной). Общая, чтобы не повторять
+   одни и те же стили в каждом блоке. */
+.admin-pill {
+  font-family: inherit;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12.5px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--chip);
+  border: 1px solid var(--accbrd);
+  color: var(--acc);
+  white-space: nowrap;
+}
+.admin-pill:hover {
+  background: var(--chipStrong);
+}
+.admin-pill:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
 .placeholder-card {
   animation: tabIn .3s cubic-bezier(.2, .8, .2, 1);
 }

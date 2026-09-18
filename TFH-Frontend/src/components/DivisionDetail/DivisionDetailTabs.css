@@ -516,32 +516,13 @@
   gap: var(--teams-gap);
 }
 
-/* Кнопка админа над сеткой — открывает окно настройки (TeamsGridSettingsModal).
-   Таблетка в духе переключателя плей-офф, а не круглая иконка: у вкладки нет
-   заголовка, к которому иконку можно было бы прижать, и одной шестерёнке в пустом
-   ряду нечем объясниться. */
+/* Ряд с кнопкой админа над сеткой (.admin-pill, см. pages.css) — открывает окно
+   настройки (TeamsGridSettingsModal). Таблетка с подписью, а не круглая иконка: у
+   вкладки нет заголовка, к которому иконку можно было бы прижать, и одной шестерёнке
+   в пустом ряду нечем объясниться. */
 .teams-tab__toolbar {
   display: flex;
   justify-content: flex-end;
-}
-.teams-tab__settings-btn {
-  font-family: inherit;
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 12.5px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: var(--chip);
-  border: 1px solid var(--accbrd);
-  color: var(--acc);
-  white-space: nowrap;
-}
-.teams-tab__settings-btn:hover {
-  background: var(--chipStrong);
-}
-.teams-tab__settings-btn:disabled {
-  opacity: .6;
-  cursor: default;
 }
 
 .teams-tab__card {

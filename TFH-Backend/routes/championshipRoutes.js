@@ -8,7 +8,7 @@ import {
   getDivisionStandings,
   getDivisionGames,
   getDivisionNearestGames,
-  getHomeWeekGames,
+  getHomeNearestGames,
   getDivisionPlayoff,
   getDivisionNominations,
   getDivisionTeams,
@@ -22,7 +22,7 @@ import {
 
 const router = Router();
 
-router.get('/week-games', getHomeWeekGames);
+router.get('/nearest-games', getHomeNearestGames);
 router.get('/seasons', getSeasons);
 router.get('/divisions', getDivisions);
 router.get('/tournaments', getTournaments);
