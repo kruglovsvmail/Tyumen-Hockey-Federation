@@ -67,6 +67,8 @@
   font-size: 14px;
   line-height: 1.7;
   color: var(--body1);
+  /* Описание пишут с абзацами в кабинете команды — переносы показываем как есть */
+  white-space: pre-line;
 }
 .team-detail__about-empty {
   margin: 0;
