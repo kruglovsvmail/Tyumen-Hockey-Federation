@@ -3,7 +3,9 @@ import { apiGet } from '../../api/client.js';
 import { getImageUrl } from '../../utils/getImageUrl.js';
 import './DivisionDetailTabs.css';
 
-const COLLAPSED_COUNT = 5;
+// Карточка показывает только верх списка, без раскрытия: полный рейтинг на
+// витрине не нужен, а одинаковая высота карточек держит сетку ровной.
+const VISIBLE_COUNT = 5;
 
 const STAGE_LABEL = { regular: 'регулярка', playoff: 'плей-офф', all: 'регулярка + плей-офф' };
 
@@ -22,11 +24,7 @@ const formatValue = (value, format) => {
 };
 
 function NominationCard({ nomination }) {
-  const [expanded, setExpanded] = useState(false);
-
-  const players = nomination.players || [];
-  const visible = expanded ? players : players.slice(0, COLLAPSED_COUNT);
-  const hiddenCount = players.length - COLLAPSED_COUNT;
+  const players = (nomination.players || []).slice(0, VISIBLE_COUNT);
 
   const subtitle = [
     nomination.metricLabel,
@@ -39,58 +37,44 @@ function NominationCard({ nomination }) {
   return (
     <div className="glass-card nomination-card">
       <h3 className="division-tab__title nomination-card__title">{nomination.name}</h3>
-      <p className="nomination-card__subtitle">{subtitle}</p>
+      <p className="nomination-card__subtitle" title={subtitle}>{subtitle}</p>
 
       {players.length === 0 ? (
         <p className="nomination-card__empty">Нет игроков, подходящих под условия.</p>
       ) : (
-        <>
-          {/* При раскрытии список прокручивается внутри карточки: номинация на
-              сотню игроков иначе растянула бы всю строку сетки */}
-          <div className={`nomination-card__list${expanded ? ' nomination-card__list--scroll' : ''}`}>
-            {visible.map((p, idx) => (
-              <div
-                key={`${p.playerId}-${p.teamId}`}
-                className={`nomination-card__row${idx === 0 ? ' nomination-card__row--leader' : ''}`}
-              >
-                <span className="nomination-card__rank">{idx + 1}</span>
-
-                <span className="nomination-card__avatar">
-                  {p.avatarUrl ? (
-                    <img src={getImageUrl(p.avatarUrl)} alt="" />
-                  ) : (
-                    <span className="nomination-card__avatar-placeholder" />
-                  )}
-                </span>
-
-                <span className="nomination-card__person">
-                  <span className="nomination-card__name" title={`${p.lastName || ''} ${p.firstName || ''}`.trim()}>
-                    {`${p.lastName || ''} ${p.firstName || ''}`.trim()}
-                  </span>
-                  <span className="nomination-card__team">
-                    {p.teamLogoUrl && <img src={getImageUrl(p.teamLogoUrl)} alt="" />}
-                    <span title={p.teamName || ''}>{p.teamName || '—'}</span>
-                  </span>
-                </span>
-
-                <span className="nomination-card__value">
-                  <b>{formatValue(p.value, nomination.metricFormat)}</b>
-                  <small>{p.gamesPlayed} игр</small>
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {hiddenCount > 0 && (
-            <button
-              type="button"
-              className="nomination-card__more"
-              onClick={() => setExpanded((prev) => !prev)}
+        <div className="nomination-card__list">
+          {players.map((p, idx) => (
+            <div
+              key={`${p.playerId}-${p.teamId}`}
+              className={`nomination-card__row${idx === 0 ? ' nomination-card__row--leader' : ''}`}
             >
-              {expanded ? 'Свернуть' : `Показать всех — ещё ${hiddenCount}`}
-            </button>
-          )}
-        </>
+              <span className="nomination-card__rank">{idx + 1}</span>
+
+              <span className="nomination-card__avatar">
+                {p.avatarUrl ? (
+                  <img src={getImageUrl(p.avatarUrl)} alt="" />
+                ) : (
+                  <span className="nomination-card__avatar-placeholder" />
+                )}
+              </span>
+
+              <span className="nomination-card__person">
+                <span className="nomination-card__name" title={`${p.lastName || ''} ${p.firstName || ''}`.trim()}>
+                  {`${p.lastName || ''} ${p.firstName || ''}`.trim()}
+                </span>
+                <span className="nomination-card__team">
+                  {p.teamLogoUrl && <img src={getImageUrl(p.teamLogoUrl)} alt="" />}
+                  <span title={p.teamName || ''}>{p.teamName || '—'}</span>
+                </span>
+              </span>
+
+              <span className="nomination-card__value">
+                <b>{formatValue(p.value, nomination.metricFormat)}</b>
+                <small>{p.gamesPlayed} игр</small>
+              </span>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
