@@ -7,6 +7,7 @@ import SimplePage from './pages/SimplePage.jsx';
 import DivisionsPage from './pages/DivisionsPage.jsx';
 import DivisionDetailPage from './pages/DivisionDetailPage.jsx';
 import TeamDetailPage from './pages/TeamDetailPage.jsx';
+import TeamApplicationPrintPage from './pages/TeamApplicationPrintPage.jsx';
 import ContactsPage from './pages/ContactsPage.jsx';
 import LeadershipPage from './pages/LeadershipPage.jsx';
 import PartnershipPage from './pages/PartnershipPage.jsx';
@@ -92,6 +93,17 @@ function App() {
               <Route path="foto/:albumId" element={<AlbumDetailPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>
+            {/* Печатная заявка команды — вне Layout: на листе для принтера не должно быть
+                ни шапки сайта, ни фона, ни подвала. Открывается в новой вкладке ссылкой
+                со страницы команды, адрес — её адрес плюс /zayavka. */}
+            {FLAT_PAGES.filter((page) => page.group).map((page) => (
+              <Route
+                key={`${page.to}-team-print`}
+                path={`${page.to.slice(1)}/:id/komanda/:teamId/zayavka`}
+                element={<TeamApplicationPrintPage />}
+              />
+            ))}
+            <Route path="turniry/:id/komanda/:teamId/zayavka" element={<TeamApplicationPrintPage />} />
           </Routes>
         </BrowserRouter>
       </AdminProvider>

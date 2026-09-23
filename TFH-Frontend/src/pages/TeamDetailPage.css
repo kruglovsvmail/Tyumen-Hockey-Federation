@@ -517,3 +517,23 @@
   align-items: flex-end;
   gap: 4px;
 }
+
+/* --- Ссылка на печатную заявку (под блоком представителей) --- */
+.team-detail__print {
+  display: flex;
+  justify-content: center;
+}
+.team-detail__print-link {
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1px solid var(--accbrd);
+  background: var(--chip);
+  color: var(--acc);
+  font-size: 13px;
+  font-weight: 700;
+  transition: background .25s;
+}
+.team-detail__print-link:hover {
+  background: var(--chipStrong);
+  color: var(--acc);
+}

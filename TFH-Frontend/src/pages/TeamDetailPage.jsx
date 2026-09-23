@@ -671,6 +671,23 @@ export default function TeamDetailPage({ backTo, backLabel }) {
           </ConsentSigningContext.Provider>
           </EquipmentMarksContext.Provider>
 
+          {/* Печатная заявка открывается в новой вкладке: это отдельный лист для принтера,
+              без шапки сайта (см. TeamApplicationPrintPage). Пустую заявку печатать незачем —
+              без игроков и представителей ссылки нет. */}
+          {data.goalies.length + data.defensemen.length + data.forwards.length
+            + (data.disqualified?.length || 0) + data.staff.length > 0 && (
+            <div className="team-detail__print">
+              <a
+                href={`${backTo}/${id}/komanda/${teamId}/zayavka`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="team-detail__print-link"
+              >
+                Распечатать заявку
+              </a>
+            </div>
+          )}
+
           {photoOpen && (
             <PhotoLightbox
               photos={[{ url: getImageUrl(data.team.teamPhotoUrl) }]}

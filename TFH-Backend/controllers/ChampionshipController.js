@@ -930,6 +930,9 @@ export const getTeamDetail = async (req, res) => {
        COALESCE(tt.snap_logo_url, t.logo_url) AS logo_url,
        t.description, t.jersey_light_url, t.jersey_dark_url,
        t.team_photo_url,
+       -- Город, лига и сезон нужны только шапке печатной заявки
+       COALESCE(tt.snap_city, t.city) AS city,
+       l.name AS league_name, l.logo_url AS league_logo_url, s.name AS season_name,
        d.id AS division_id, d.name AS division_name, d.season_id,
        d.req_med_cert, d.req_insurance, d.req_consent, d.hide_stats_unpaid,
        -- Обозначения экипировки по возрасту («ушк» и «к» рядом с фамилией) — настройка лиги
@@ -1059,6 +1062,11 @@ export const getTeamDetail = async (req, res) => {
     jerseyNumber: r.jersey_number,
     position: r.position,
     fullName: formatPlayerName(r),
+    // По частям — для печатной заявки: там фамилия, имя и отчество идут отдельными строками,
+    // а резать fullName по пробелам нельзя из-за двойных фамилий
+    lastName: r.last_name,
+    firstName: r.first_name,
+    middleName: r.middle_name,
     photoUrl: r.photo_url,
     birthDate: r.birth_date,
     age: r.age === null ? null : Number(r.age),
@@ -1137,7 +1145,14 @@ export const getTeamDetail = async (req, res) => {
       teamPhotoUrl: row.custom_team_photo_url || row.team_photo_url,
       jerseyLightUrl: row.custom_jersey_light_url || row.jersey_light_url,
       jerseyDarkUrl: row.custom_jersey_dark_url || row.jersey_dark_url,
-      division: { id: row.division_id, name: row.division_name },
+      city: row.city,
+      division: {
+        id: row.division_id,
+        name: row.division_name,
+        seasonName: row.season_name,
+        leagueName: row.league_name,
+        leagueLogoUrl: row.league_logo_url,
+      },
     },
     goalies: admittedRows.filter((r) => r.position === 'goalie').map(mapGoalie),
     defensemen: admittedRows.filter((r) => r.position === 'defense').map(mapSkater),
@@ -1155,6 +1170,9 @@ export const getTeamDetail = async (req, res) => {
     staff: staffRes.rows.map((r) => ({
       userId: r.user_id,
       fullName: formatPlayerName(r),
+      lastName: r.last_name,
+      firstName: r.first_name,
+      middleName: r.middle_name,
       photoUrl: r.photo_url,
       roles: r.roles,
       // Тот же набор документов, что и у игроков: наружу отдаём только факт наличия
