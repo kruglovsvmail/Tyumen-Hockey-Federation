@@ -611,12 +611,6 @@
   line-clamp: 2;
   overflow: hidden;
 }
-.nomination-card__empty {
-  margin: 0;
-  font-size: 12px;
-  color: var(--muted);
-}
-
 .nomination-card__list {
   display: flex;
   flex-direction: column;
@@ -637,6 +631,19 @@
 .nomination-card__row--leader {
   background: var(--chipStrong);
   border-color: var(--accbrd);
+}
+/* Свободное место в пятёрке: строка той же высоты, пустая и пунктирная — как
+   заглушки логотипов на остальных вкладках */
+.nomination-card__row--empty {
+  background: transparent;
+  border-style: dashed;
+}
+.nomination-card__row--empty .nomination-card__avatar {
+  background: transparent;
+  border-style: dashed;
+}
+.nomination-card__row--empty .nomination-card__name {
+  color: var(--muted);
 }
 
 .nomination-card__rank {

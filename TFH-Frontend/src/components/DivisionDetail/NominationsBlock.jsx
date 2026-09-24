@@ -4,7 +4,9 @@ import { getImageUrl } from '../../utils/getImageUrl.js';
 import './DivisionDetailTabs.css';
 
 // Карточка показывает только верх списка, без раскрытия: полный рейтинг на
-// витрине не нужен, а одинаковая высота карточек держит сетку ровной.
+// витрине не нужен, а одинаковая высота карточек держит сетку ровной. Поэтому
+// строк всегда пять: сервер отдаёт только игроков с результатом, а свободные
+// места занимают пустые строки-заглушки.
 const VISIBLE_COUNT = 5;
 
 const STAGE_LABEL = { regular: 'регулярка', playoff: 'плей-офф', all: 'регулярка + плей-офф' };
@@ -25,6 +27,7 @@ const formatValue = (value, format) => {
 
 function NominationCard({ nomination }) {
   const players = (nomination.players || []).slice(0, VISIBLE_COUNT);
+  const emptySlots = VISIBLE_COUNT - players.length;
 
   const subtitle = [
     nomination.metricLabel,
@@ -39,43 +42,51 @@ function NominationCard({ nomination }) {
       <h3 className="division-tab__title nomination-card__title">{nomination.name}</h3>
       <p className="nomination-card__subtitle" title={subtitle}>{subtitle}</p>
 
-      {players.length === 0 ? (
-        <p className="nomination-card__empty">Нет игроков, подходящих под условия.</p>
-      ) : (
-        <div className="nomination-card__list">
-          {players.map((p, idx) => (
-            <div
-              key={`${p.playerId}-${p.teamId}`}
-              className={`nomination-card__row${idx === 0 ? ' nomination-card__row--leader' : ''}`}
-            >
-              <span className="nomination-card__rank">{idx + 1}</span>
+      <div className="nomination-card__list">
+        {players.map((p, idx) => (
+          <div
+            key={`${p.playerId}-${p.teamId}`}
+            className={`nomination-card__row${idx === 0 ? ' nomination-card__row--leader' : ''}`}
+          >
+            <span className="nomination-card__rank">{idx + 1}</span>
 
-              <span className="nomination-card__avatar">
-                {p.avatarUrl ? (
-                  <img src={getImageUrl(p.avatarUrl)} alt="" />
-                ) : (
-                  <span className="nomination-card__avatar-placeholder" />
-                )}
-              </span>
+            <span className="nomination-card__avatar">
+              {p.avatarUrl ? (
+                <img src={getImageUrl(p.avatarUrl)} alt="" />
+              ) : (
+                <span className="nomination-card__avatar-placeholder" />
+              )}
+            </span>
 
-              <span className="nomination-card__person">
-                <span className="nomination-card__name" title={`${p.lastName || ''} ${p.firstName || ''}`.trim()}>
-                  {`${p.lastName || ''} ${p.firstName || ''}`.trim()}
-                </span>
-                <span className="nomination-card__team">
-                  {p.teamLogoUrl && <img src={getImageUrl(p.teamLogoUrl)} alt="" />}
-                  <span title={p.teamName || ''}>{p.teamName || '—'}</span>
-                </span>
+            <span className="nomination-card__person">
+              <span className="nomination-card__name" title={`${p.lastName || ''} ${p.firstName || ''}`.trim()}>
+                {`${p.lastName || ''} ${p.firstName || ''}`.trim()}
               </span>
+              <span className="nomination-card__team">
+                {p.teamLogoUrl && <img src={getImageUrl(p.teamLogoUrl)} alt="" />}
+                <span title={p.teamName || ''}>{p.teamName || '—'}</span>
+              </span>
+            </span>
 
-              <span className="nomination-card__value">
-                <b>{formatValue(p.value, nomination.metricFormat)}</b>
-                <small>{p.gamesPlayed} игр</small>
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
+            <span className="nomination-card__value">
+              <b>{formatValue(p.value, nomination.metricFormat)}</b>
+              <small>{p.gamesPlayed} игр</small>
+            </span>
+          </div>
+        ))}
+
+        {/* Место, на которое пока никто не набрал результата */}
+        {Array.from({ length: emptySlots }, (_, i) => (
+          <div key={`empty-${i}`} className="nomination-card__row nomination-card__row--empty">
+            <span className="nomination-card__rank">{players.length + i + 1}</span>
+            <span className="nomination-card__avatar" />
+            <span className="nomination-card__person">
+              <span className="nomination-card__name">—</span>
+            </span>
+            <span className="nomination-card__value" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
