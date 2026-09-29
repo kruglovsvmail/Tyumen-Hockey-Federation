@@ -8,6 +8,8 @@ import ConsentFormModal from '../components/ConsentFormModal.jsx';
 import Loader from '../components/Loader.jsx';
 import { getImageUrl } from '../utils/getImageUrl.js';
 import { formatAge, formatBirthDate } from '../utils/formatDate.js';
+import { getEquipmentMark } from '../utils/equipmentMarks.js';
+import { useClampOverflow } from '../hooks/useClampOverflow.js';
 import '../components/DivisionDetail/DivisionDetailTabs.css';
 import './TeamDetailPage.css';
 
@@ -42,54 +44,6 @@ const ConsentSigningContext = createContext(null);
 // Настройки обозначений экипировки приходят с составом; их читает PlayerCells,
 // а он лежит глубоко в таблицах — поэтому контекст, а не проброс через все секции.
 const EquipmentMarksContext = createContext(null);
-
-// Обозначения обязательной экипировки рядом с фамилией. Оба правила включаются и
-// настраиваются в LMS («Настройки лиги → Параметры»):
-//   «ушк» — моложе N лет: защита ушей и шеи плюс капа;
-//   «к»   — родившимся после указанной даты: капа.
-// Возраст считаем на сегодня — так же, как в LMS. Значок один: «ушк» уже включает капу.
-// Вратарям значков нет: они играют в полной защитной маске (то же правило в LMS).
-const EQUIPMENT_MARK_LABELS = {
-  ushk: { code: 'ушк', title: 'Уши, шея, капа', text: 'Игроку нужна защита ушей и шеи, а также капа.' },
-  mouthguard: { code: 'к', title: 'Капа', text: 'Игроку нужна капа.' },
-};
-
-// Полных лет на сегодня. Дата приходит строкой 'YYYY-MM-DD' — разбираем сами,
-// чтобы не создавать Date и не ловить сдвиг на день из-за часового пояса.
-function fullYearsOld(birthDate) {
-  const iso = String(birthDate || '').slice(0, 10);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
-  const [year, month, day] = iso.split('-').map(Number);
-  const now = new Date();
-  let age = now.getFullYear() - year;
-  const hadBirthday = (now.getMonth() + 1 > month) || (now.getMonth() + 1 === month && now.getDate() >= day);
-  return hadBirthday ? age : age - 1;
-}
-
-function getEquipmentMark(birthDate, settings, position) {
-  if (!settings) return null;
-  if (position === 'goalie') return null;
-  const iso = String(birthDate || '').slice(0, 10);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
-
-  if (settings.ushkEnabled) {
-    const maxAge = Number(settings.ushkMaxAge ?? 20);
-    const age = fullYearsOld(iso);
-    if (age !== null && age < maxAge) {
-      return { ...EQUIPMENT_MARK_LABELS.ushk, text: `${EQUIPMENT_MARK_LABELS.ushk.text} Правило действует до ${maxAge} лет.` };
-    }
-  }
-
-  if (settings.mouthguardEnabled) {
-    const bornAfter = String(settings.mouthguardBornAfter || '').slice(0, 10);
-    if (bornAfter && iso > bornAfter) {
-      const [y, m, d] = bornAfter.split('-');
-      return { ...EQUIPMENT_MARK_LABELS.mouthguard, text: `${EQUIPMENT_MARK_LABELS.mouthguard.text} Правило действует для родившихся после ${d}.${m}.${y}.` };
-    }
-  }
-
-  return null;
-}
 
 function PersonPhoto({ url, className }) {
   return url ? (
@@ -556,11 +510,14 @@ export default function TeamDetailPage({ backTo, backLabel }) {
   const [error, setError] = useState(null);
   const [photoOpen, setPhotoOpen] = useState(false);
   const [consentUserId, setConsentUserId] = useState(null);
+  const [aboutExpanded, setAboutExpanded] = useState(false);
+  const { ref: aboutRef, isTruncated: aboutTruncated } = useClampOverflow(data?.team?.description, aboutExpanded, 8);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
     setPhotoOpen(false);
+    setAboutExpanded(false);
     apiGet(`/api/championship/teams/${teamId}`)
       .then(setData)
       .catch((err) => setError(err.message))
@@ -604,7 +561,26 @@ export default function TeamDetailPage({ backTo, backLabel }) {
             <div className="glass-card team-detail__about">
               <h3 className="division-tab__title team-detail__block-title">О команде</h3>
               {data.team.description ? (
-                <p className="team-detail__about-text">{data.team.description}</p>
+                <>
+                  <p
+                    id="team-about-description"
+                    ref={aboutRef}
+                    className={`team-detail__about-text${aboutExpanded ? '' : ` team-detail__about-text--clamped${aboutTruncated ? ' team-detail__about-text--with-toggle' : ''}`}`}
+                  >
+                    {data.team.description}
+                  </p>
+                  {aboutTruncated && (
+                    <button
+                      type="button"
+                      className="team-detail__about-toggle"
+                      aria-controls="team-about-description"
+                      aria-expanded={aboutExpanded}
+                      onClick={() => setAboutExpanded((value) => !value)}
+                    >
+                      {aboutExpanded ? 'Свернуть' : 'Развернуть'}
+                    </button>
+                  )}
+                </>
               ) : (
                 <p className="team-detail__about-empty">Описание команды пока не добавлено.</p>
               )}

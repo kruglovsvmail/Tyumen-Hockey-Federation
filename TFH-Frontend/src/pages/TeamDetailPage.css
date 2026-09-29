@@ -70,6 +70,29 @@
   /* Описание пишут с абзацами в кабинете команды — переносы показываем как есть */
   white-space: pre-line;
 }
+.team-detail__about-text--clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 8;
+  line-clamp: 8;
+  overflow: hidden;
+}
+.team-detail__about-text--with-toggle {
+  -webkit-line-clamp: 7;
+  line-clamp: 7;
+}
+.team-detail__about-toggle {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--acc);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.7;
+  cursor: pointer;
+}
 .team-detail__about-empty {
   margin: 0;
   font-size: 14px;

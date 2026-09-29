@@ -182,6 +182,17 @@
 .app-print__birth {
   font-size: 8pt;
 }
+.app-print__equip-badge {
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 0.2mm 0.7mm;
+  border: 0.6pt solid var(--ink);
+  border-radius: 1mm;
+  font-size: 6.5pt;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
 
 /* --- Карточка игрока: слева номер, К/А и буквы позиций, справа фото и данные --- */
 .app-print__player {
@@ -203,17 +214,17 @@
 }
 .app-print__captain {
   margin-top: 1.5mm;
+  min-height: 12pt;
   font-size: 12pt;
   font-weight: 700;
   line-height: 1;
 }
 .app-print__positions {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
   align-items: center;
-  margin-top: 1mm;
+  gap: 1mm;
+  margin-top: 1.5mm;
 }
 .app-print__position {
   display: grid;
@@ -238,6 +249,41 @@
   text-align: center;
   line-height: 1.2;
   overflow-wrap: anywhere;
+}
+.app-print__identity {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.app-print__identity > :not(.app-print__dq-stamp) {
+  position: relative;
+  z-index: 1;
+}
+.app-print__dq-stamp {
+  position: absolute;
+  inset: -0.5mm -0.7mm;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.4pt solid currentColor;
+  border-radius: 2.5mm;
+  background: transparent;
+  color: rgba(186, 18, 36, 0.35);
+  font-size: 14pt;
+  font-weight: 900;
+  letter-spacing: 0.2pt;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.app-print__dq-stamp-text {
+  display: block;
+  transform: scaleY(2);
 }
 
 /* --- Карточка представителя: роль красным сверху, под ней фото и ФИО --- */

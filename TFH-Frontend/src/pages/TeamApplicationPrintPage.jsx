@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { apiGet } from '../api/client.js';
 import { getImageUrl } from '../utils/getImageUrl.js';
+import { getEquipmentMark } from '../utils/equipmentMarks.js';
 import './TeamApplicationPrintPage.css';
 
 // Печатная заявка команды на сезон: лист A4 с фотографиями, который печатают из браузера.
@@ -17,7 +18,7 @@ const COLUMNS = 5;
 const STAFF_ROLE_LABELS = {
   team_manager: 'Руководитель команды',
   team_admin: 'Администратор команды',
-  coach: 'Тренер команды',
+  coach: <>Тренер<br />команды</>,
 };
 
 // Позиция на карточке — буквой, как в бумажных заявках: обводится своя из трёх.
@@ -89,7 +90,8 @@ function PersonName({ person }) {
   );
 }
 
-function PlayerCard({ player }) {
+function PlayerCard({ player, equipmentMarks }) {
+  const equipmentMark = getEquipmentMark(player.birthDate, equipmentMarks, player.position);
   return (
     <div className="app-print__cell app-print__player">
       <div className="app-print__side">
@@ -107,14 +109,24 @@ function PlayerCard({ player }) {
             </span>
           ))}
         </span>
+        {equipmentMark && (
+          <span className="app-print__equip-badge" title={equipmentMark.title}>{equipmentMark.code}</span>
+        )}
       </div>
       <div className="app-print__main">
         <Photo url={player.photoUrl} />
-        <PersonName person={player} />
-        <span className="app-print__birth">
-          {formatShortDate(player.birthDate)}
-          {player.qualification && <> [<b>{player.qualification.short}</b>]</>}
-        </span>
+        <div className="app-print__identity">
+          <PersonName person={player} />
+          <span className="app-print__birth">
+            {formatShortDate(player.birthDate)}
+            {player.qualification && <> [<b>{player.qualification.short}</b>]</>}
+          </span>
+          {player.disqualification && (
+            <span className="app-print__dq-stamp" title="Дисквалифицирован">
+              <span className="app-print__dq-stamp-text">ДИСКВ</span>
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -162,7 +174,7 @@ export default function TeamApplicationPrintPage() {
   if (error) return <p className="app-print__status">Не удалось загрузить заявку: {error}</p>;
   if (!data) return <p className="app-print__status">Загрузка заявки…</p>;
 
-  const { team, staff } = data;
+  const { team, staff, equipmentMarks } = data;
 
   // В заявке все допущенные, в том числе дисквалифицированные: из заявки они не выбывают,
   // просто пропускают матчи. Недопущенных (снят тумблер в LMS) на листе нет.
@@ -206,7 +218,7 @@ export default function TeamApplicationPrintPage() {
         <div className="app-print__grid">
           <CardRows
             items={[...goalies, ...skaters]}
-            renderCard={(p) => <PlayerCard key={p.rosterId} player={p} />}
+            renderCard={(p) => <PlayerCard key={p.rosterId} player={p} equipmentMarks={equipmentMarks} />}
           />
           <CardRows items={staff} renderCard={(s) => <StaffCard key={s.userId} person={s} />} />
         </div>
