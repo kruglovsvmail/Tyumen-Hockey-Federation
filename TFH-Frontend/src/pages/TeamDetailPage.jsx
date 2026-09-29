@@ -481,6 +481,17 @@ function StaffSection({ staff }) {
             <PersonPhoto url={person.photoUrl} className="team-staff__photo" />
             <div className="team-staff__info">
               <div className="team-staff__name">{person.fullName}</div>
+              {person.disqualification && (
+                <div className="team-staff__disqualification">
+                  <TipBadge
+                    className="team-roster__dq-btn"
+                    tipTitle="Дисквалификация"
+                    tipText={disqualificationHint(person.disqualification)}
+                  >
+                    Дискв.
+                  </TipBadge>
+                </div>
+              )}
               <div className="team-staff__roles">
                 {person.roles.map((role) => (
                   <div key={role}>{STAFF_ROLE_LABELS[role] || role}</div>

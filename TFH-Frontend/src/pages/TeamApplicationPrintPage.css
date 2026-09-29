@@ -257,6 +257,10 @@
   flex-direction: column;
   align-items: center;
 }
+.app-print__identity--staff-dq {
+  min-height: 11mm;
+  justify-content: center;
+}
 .app-print__identity > :not(.app-print__dq-stamp) {
   position: relative;
   z-index: 1;

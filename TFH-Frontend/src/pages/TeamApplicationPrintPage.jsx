@@ -90,6 +90,14 @@ function PersonName({ person }) {
   );
 }
 
+function DisqualificationStamp() {
+  return (
+    <span className="app-print__dq-stamp" title="Дисквалифицирован">
+      <span className="app-print__dq-stamp-text">ДИСКВ</span>
+    </span>
+  );
+}
+
 function PlayerCard({ player, equipmentMarks }) {
   const equipmentMark = getEquipmentMark(player.birthDate, equipmentMarks, player.position);
   return (
@@ -121,11 +129,7 @@ function PlayerCard({ player, equipmentMarks }) {
             {formatShortDate(player.birthDate)}
             {player.qualification && <> [<b>{player.qualification.short}</b>]</>}
           </span>
-          {player.disqualification && (
-            <span className="app-print__dq-stamp" title="Дисквалифицирован">
-              <span className="app-print__dq-stamp-text">ДИСКВ</span>
-            </span>
-          )}
+          {player.disqualification && <DisqualificationStamp />}
         </div>
       </div>
     </div>
@@ -141,7 +145,10 @@ function StaffCard({ person }) {
         ))}
       </div>
       <Photo url={person.photoUrl} />
-      <PersonName person={person} />
+      <div className={`app-print__identity${person.disqualification ? ' app-print__identity--staff-dq' : ''}`}>
+        <PersonName person={person} />
+        {person.disqualification && <DisqualificationStamp />}
+      </div>
     </div>
   );
 }

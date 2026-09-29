@@ -875,7 +875,7 @@ const TEAM_MEMBER_PHOTO_LATERAL = `
 // Командные штрафы (target_type = 'team') сюда не попадают — у них user_id пустой,
 // и на игрока как дисквалификация они не распространяются, это денежный штраф команде.
 // Причину наказания наружу не отдаём: публичной странице достаточно факта и срока.
-const ACTIVE_DISQUALIFICATION_LATERAL = `
+const activeDisqualificationLateral = (leagueParam) => `
   LEFT JOIN LATERAL (
     SELECT
       count(*) AS total,
@@ -884,7 +884,7 @@ const ACTIVE_DISQUALIFICATION_LATERAL = `
       to_char(MAX(d.end_date) FILTER (WHERE d.penalty_type = 'time'), 'YYYY-MM-DD') AS until_date,
       bool_or(d.penalty_type = 'manual') AS has_manual
     FROM disqualifications d
-    WHERE d.user_id = u.id AND d.league_id = $3 AND d.status = 'active'
+    WHERE d.user_id = u.id AND d.league_id = $${leagueParam} AND d.status = 'active'
   ) dq ON true
 `;
 
@@ -1023,7 +1023,7 @@ export const getTeamDetail = async (req, res) => {
      -- на странице команды всегда показывается текущая, в том числе в прошлых сезонах.
      LEFT JOIN user_qualifications uq ON uq.user_id = u.id AND uq.league_id = $3 AND uq.ended_at IS NULL
      LEFT JOIN league_qualifications lq ON lq.id = uq.qualification_id
-     ${ACTIVE_DISQUALIFICATION_LATERAL}
+     ${activeDisqualificationLateral(3)}
      ${PLAYER_STATS_LATERAL}
      WHERE tr.tournament_team_id = $1 AND tr.period_end IS NULL
      ORDER BY tr.jersey_number NULLS LAST`,
@@ -1041,6 +1041,8 @@ export const getTeamDetail = async (req, res) => {
        -- У представителей слепка нет (тумблера допуска у них тоже нет), но личный
        -- аватар в лиговых разделах не показываем — только фото в команде
        tm_photo.photo_url AS photo_url,
+       MAX(dq.total) AS dq_total, MAX(dq.games_left) AS dq_games_left,
+       MAX(dq.until_date) AS dq_until, bool_or(dq.has_manual) AS dq_has_manual,
        -- Дивизион требует документы и с представителей — по тем же флагам, что и с игроков
        (MAX(tpd.medical_url) IS NOT NULL) AS has_medical,
        to_char(MAX(tpd.medical_expires_at), 'YYYY-MM-DD') AS medical_expires_at,
@@ -1056,10 +1058,11 @@ export const getTeamDetail = async (req, res) => {
      LEFT JOIN user_season_consents usc
             ON usc.user_id = ttr.user_id AND usc.season_id = $3
      ${TEAM_MEMBER_PHOTO_LATERAL}
+     ${activeDisqualificationLateral(4)}
      WHERE ttr.tournament_team_id = $1 AND ttr.left_at IS NULL
      GROUP BY ttr.user_id, u.first_name, u.last_name, u.middle_name, tm_photo.photo_url
      ORDER BY MIN(${STAFF_ROLE_ORDER}), u.last_name, u.first_name`,
-    [tournamentTeamId, row.team_id, row.season_id]
+    [tournamentTeamId, row.team_id, row.season_id, LEAGUE_ID]
   );
 
   const requiredDocuments = ROSTER_DOCUMENTS.filter((doc) => row[doc.requiredFlag]);
@@ -1070,6 +1073,14 @@ export const getTeamDetail = async (req, res) => {
   // Количество сыгранных игр не скрывается — оно видно и в TR.
   const isStatsHidden = (r) => Boolean(row.hide_stats_unpaid) && !r.is_fee_paid;
   const stat = (r, value) => (isStatsHidden(r) ? null : Number(value || 0));
+
+  const mapDisqualification = (r) => Number(r.dq_total) > 0
+    ? {
+        gamesLeft: Number(r.dq_games_left),
+        until: r.dq_until,
+        manual: r.dq_has_manual,
+      }
+    : null;
 
   const mapPlayerBase = (r) => ({
     rosterId: r.roster_id,
@@ -1100,13 +1111,7 @@ export const getTeamDetail = async (req, res) => {
           history: r.qualification_history || [],
         }
       : null,
-    disqualification: Number(r.dq_total) > 0
-      ? {
-          gamesLeft: Number(r.dq_games_left),
-          until: r.dq_until,
-          manual: r.dq_has_manual,
-        }
-      : null,
+    disqualification: mapDisqualification(r),
     documents: requiredDocuments.map((doc) => ({
       key: doc.key,
       present: r[doc.hasField],
@@ -1135,7 +1140,7 @@ export const getTeamDetail = async (req, res) => {
   //  1. играющие — идут в основной блок со статистикой;
   //  2. без допуска — его ставят в LMS тумблером (tournament_rosters.application_status),
   //     снятый допуск это 'declined';
-  //  3. с активной дисквалификацией в этой лиге (dq_total из ACTIVE_DISQUALIFICATION_LATERAL).
+  //  3. с активной дисквалификацией в этой лиге (dq_total из activeDisqualificationLateral).
   // Недопуск проверяем раньше дисквалификации: это более основательная причина не играть,
   // и в двух списках сразу один и тот же человек оказаться не должен.
   // Порядок в служебных списках свой: вратари → защитники → нападающие, внутри по алфавиту.
@@ -1192,6 +1197,7 @@ export const getTeamDetail = async (req, res) => {
       middleName: r.middle_name,
       photoUrl: r.photo_url,
       roles: r.roles,
+      disqualification: mapDisqualification(r),
       // Тот же набор документов, что и у игроков: наружу отдаём только факт наличия
       // и срок — сканы это персональные данные, ссылок на них публично нет.
       documents: requiredDocuments.map((doc) => ({
