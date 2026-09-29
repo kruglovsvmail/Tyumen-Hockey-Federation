@@ -35,6 +35,7 @@ const CLASSIFICATION_GROUPS = {
 };
 
 const LEAGUE_ID = Number(process.env.LEAGUE_ID);
+const PROTOCOL_IMAGE_BASE = 'https://s3.twcstorage.ru/hockeyeco-uploads/';
 
 export const getSeasons = async (req, res) => {
   const { rows } = await sharedPool.query(
@@ -400,6 +401,7 @@ const GAMES_SELECT = `
     g.game_number, g.series_number,
     g.status, g.home_score, g.away_score, g.is_technical, g.end_type,
     g.video_yt_url, g.video_vk_url,
+    g.protocol_image_key, g.protocol_image_version,
     -- Команды — по слепку заявки на дивизион (snap_*), снятому LMS при допуске
     ht.id AS home_team_id, COALESCE(tt_home.snap_name, ht.name) AS home_team_name,
     COALESCE(tt_home.snap_short_name, ht.short_name) AS home_team_short, COALESCE(tt_home.snap_logo_url, ht.logo_url) AS home_team_logo,
@@ -430,6 +432,11 @@ const mapGameRow = (r) => ({
   endType: r.end_type,
   videoYtUrl: r.video_yt_url,
   videoVkUrl: r.video_vk_url,
+  // Публикацией управляет LMS. Сайт открывает готовый WebP непосредственно из S3.
+  protocolImageUrl: ['finished', 'finished_no_result'].includes(r.status)
+      && r.protocol_image_key && r.protocol_image_version
+    ? `${PROTOCOL_IMAGE_BASE}${r.protocol_image_key.split('/').map(encodeURIComponent).join('/')}?v=${encodeURIComponent(r.protocol_image_version)}`
+    : null,
   homeTeam: { id: r.home_team_id, name: r.home_team_name, shortName: r.home_team_short, logoUrl: r.home_team_logo },
   awayTeam: { id: r.away_team_id, name: r.away_team_name, shortName: r.away_team_short, logoUrl: r.away_team_logo },
   arenaName: r.arena_name,
@@ -542,8 +549,10 @@ export const getDivisionGames = async (req, res) => {
   const { id } = req.params;
 
   const divRows = await sharedPool.query(
-    `SELECT id FROM divisions WHERE id = $1 AND is_published = true`,
-    [id]
+    `SELECT d.id FROM divisions d
+     JOIN seasons s ON s.id = d.season_id
+     WHERE d.id = $1 AND d.is_published = true AND s.league_id = $2`,
+    [id, LEAGUE_ID]
   );
   if (divRows.rows.length === 0) return res.status(404).json({ message: 'Не найдено' });
 
@@ -557,6 +566,7 @@ export const getDivisionGames = async (req, res) => {
     [id]
   );
 
+  res.setHeader('Cache-Control', 'no-store');
   res.json({ games: await attachDateEstimates(rows.map(mapGameRow)) });
 };
 

@@ -74,11 +74,22 @@ const targetText = (d, form) => {
 const penaltyText = (d) => {
   const parts = [];
 
-  const games = d.penaltyGames ?? ((d.mandatoryGames || 0) + (d.additionalGames || 0) || null);
-  if (games) parts.push(`${games} ${pluralizeMatches(games)}`);
+  const hasGamesBreakdown = d.mandatoryGames != null || d.additionalGames != null;
+  if (hasGamesBreakdown) {
+    if (d.mandatoryGames != null) parts.push(`${d.mandatoryGames} ${pluralizeMatches(d.mandatoryGames)} (обязательные)`);
+    if (d.additionalGames != null) parts.push(`${d.additionalGames} ${pluralizeMatches(d.additionalGames)} (дополнительные)`);
+  } else if (d.penaltyGames != null) {
+    parts.push(`${d.penaltyGames} ${pluralizeMatches(d.penaltyGames)}`);
+  }
 
-  if (d.penaltyAmount) {
-    const amount = `${d.penaltyAmount.toLocaleString('ru-RU')} руб.`;
+  const amountParts = [
+    d.mandatoryAmount != null ? `${d.mandatoryAmount.toLocaleString('ru-RU')} руб. (обязательный штраф)` : null,
+    d.additionalAmount != null ? `${d.additionalAmount.toLocaleString('ru-RU')} руб. (дополнительный штраф)` : null
+  ].filter(Boolean);
+  const amount = amountParts.length
+    ? amountParts.join(', ')
+    : d.penaltyAmount != null ? `${d.penaltyAmount.toLocaleString('ru-RU')} руб.` : null;
+  if (amount) {
     parts.push(d.teamPenaltyMode === 'split' ? `${amount} (сумма делится)` : amount);
   }
 
@@ -187,14 +198,14 @@ export default function SdkProtocol({ meeting, onBack }) {
               </h4>
               <ol className="sdk-protocol__items">
                 {decisions.map((d) => {
-                  const penalty = penaltyText(d);
+                  const penalty = d.decision === 'acquit' ? '' : penaltyText(d);
                   return (
                     <li key={d.id}>
                       {d.verdictDescription
                         ? <span className="sdk-protocol__verdict">{d.verdictDescription}</span>
                         : (
                           <>
-                            Наказать {targetText(d, 'accusative')}
+                            {d.decision === 'acquit' ? 'Не наказывать' : 'Наказать'} {targetText(d, 'accusative')}
                             {d.violationCode ? <> по <b>п.{d.violationCode}.</b></> : null}
                             {d.violationTitle ? ` (${d.violationTitle})` : ''}
                           </>

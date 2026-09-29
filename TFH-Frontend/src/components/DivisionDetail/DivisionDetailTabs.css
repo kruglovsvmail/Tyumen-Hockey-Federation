@@ -267,7 +267,9 @@
 
 .calendar-game {
   display: grid;
-  grid-template-columns: 300px 1fr 160px;
+  /* Левая колонка равна ширине протокола, зазора и арены справа:
+     блок команд и счёт остаются ровно в центре плашки. */
+  grid-template-columns: 212px minmax(0, 1fr) 36px 160px;
   align-items: center;
   gap: 16px;
   padding: 14px 18px;
@@ -330,7 +332,8 @@
 
 .calendar-game__match {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  min-width: 0;
   align-items: center;
   gap: 14px;
 }
@@ -376,7 +379,36 @@
   /* Обрезку длинных названий делаем на самой ссылке (.arena-link), а не здесь —
      иначе overflow:hidden на этом контейнере обрежет и всплывающую подсказку. */
 }
+.calendar-game__protocol-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+}
+.calendar-game__protocol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--innerbrd);
+  border-radius: 8px;
+  background: var(--chip);
+  color: var(--acc);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.calendar-game__protocol:hover {
+  background: var(--chipStrong);
+}
+.calendar-game__protocol:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 3px;
+}
 @media (max-width: 720px) {
+  .calendar-game__protocol-slot:empty {
+    display: none;
+  }
   .calendar-game__arena {
     text-align: center;
   }

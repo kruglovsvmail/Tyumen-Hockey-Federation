@@ -97,6 +97,23 @@ function GameRow({ g, isAdmin, onEditDate, onClearDate }) {
           <span className="calendar-game__team-name">{g.awayTeam.name}</span>
         </div>
       </div>
+      <div className="calendar-game__protocol-slot">
+        {g.protocolImageUrl && ['finished', 'finished_no_result'].includes(g.status) && (
+          <a
+            className="calendar-game__protocol"
+            href={g.protocolImageUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Открыть протокол матча ${g.homeTeam.name} — ${g.awayTeam.name} (в новой вкладке)`}
+            title="Открыть протокол матча"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <path d="M14 2v6h6M8 13h8M8 17h6" />
+            </svg>
+          </a>
+        )}
+      </div>
       <div className="calendar-game__arena">
         <ArenaLink name={g.arenaName} city={g.arenaCity} address={g.arenaAddress} />
       </div>

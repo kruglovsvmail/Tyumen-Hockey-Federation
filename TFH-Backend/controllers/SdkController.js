@@ -153,9 +153,9 @@ export const getMeeting = async (req, res) => {
   // Снимки нарушения и ФИО берём из решения, а не из справочников: справочник
   // потом правят, а протокол должен остаться таким, каким его вынесли
   const decisionsRes = await sharedPool.query(
-    `SELECT dec.id, dec.target_type, dec.other_person_name, dec.verdict_description,
+    `SELECT dec.id, dec.target_type, dec.other_person_name, dec.decision, dec.verdict_description,
             dec.penalty_games, dec.mandatory_games, dec.additional_games,
-            dec.penalty_amount, dec.team_penalty_mode,
+            dec.penalty_amount, dec.mandatory_amount, dec.additional_amount, dec.team_penalty_mode,
             dec.hearing_basis, dec.hearing_basis_type,
             COALESCE(dec.violation_code_snapshot, vt.code) AS violation_code,
             COALESCE(dec.violation_title_snapshot, vt.title) AS violation_title,
@@ -204,12 +204,15 @@ export const getMeeting = async (req, res) => {
         teamName: d.team_name,
         violationCode: d.violation_code,
         violationTitle: d.violation_title,
+        decision: d.decision,
         verdictDescription: d.verdict_description,
         penaltyGames: d.penalty_games,
         mandatoryGames: d.mandatory_games,
         additionalGames: d.additional_games,
         // Копейки в решениях не используются — на витрине показываем целые рубли
         penaltyAmount: d.penalty_amount == null ? null : Math.round(Number(d.penalty_amount)),
+        mandatoryAmount: d.mandatory_amount == null ? null : Math.round(Number(d.mandatory_amount)),
+        additionalAmount: d.additional_amount == null ? null : Math.round(Number(d.additional_amount)),
         teamPenaltyMode: d.team_penalty_mode,
         basis: basisText(d),
         gameNumber: d.game_number,
