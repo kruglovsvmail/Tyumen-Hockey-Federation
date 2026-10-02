@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { apiGet, apiSendJson } from '../api/client.js';
 import { useAdmin } from '../context/AdminContext.jsx';
 import { getImageUrl } from '../utils/getImageUrl.js';
-import { formatGameDate, formatGameTime } from '../utils/formatDate.js';
+import { formatGameDate, formatGameTime, formatDateEstimate } from '../utils/formatDate.js';
 import GameScore from './DivisionDetail/GameScore.jsx';
 import ArenaLink from './DivisionDetail/ArenaLink.jsx';
 import MatchesWidgetSettingsModal from './MatchesWidgetSettingsModal.jsx';
@@ -42,9 +42,16 @@ function PlayIcon() {
 function MatchCard({ g }) {
   return (
     <div className="week-match-card">
-      <div className="week-match-card__date">
-        {formatGameDate(g.date)} · {formatGameTime(g.date)}
-      </div>
+      {/* Пока в LMS нет даты, бэкенд отдаёт матч только с прикидкой админа ТФХ */}
+      {g.date ? (
+        <div className="week-match-card__date">
+          {formatGameDate(g.date)} · {formatGameTime(g.date)}
+        </div>
+      ) : (
+        <div className="week-match-card__date week-match-card__date--estimate">
+          {formatDateEstimate(g.dateEstimate)}
+        </div>
+      )}
 
       <div className="week-match-card__teams">
         <div className="week-match-card__team">

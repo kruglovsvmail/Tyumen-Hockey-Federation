@@ -570,40 +570,86 @@ export const getDivisionGames = async (req, res) => {
   res.json({ games: await attachDateEstimates(rows.map(mapGameRow)) });
 };
 
+// Календарный день "сегодня" для прикидочных дат считаем по месту лиги, а не по UTC
+// контейнера — иначе до 5 утра по Тюмени прикидка на вчера ещё считалась бы живой.
+// Та же переменная окружения, что в ConsentController.
+const LEAGUE_TIMEZONE = process.env.LEAGUE_TIMEZONE || 'Asia/Yekaterinburg';
+
+// Действующие прикидки: хотя бы один их день ещё не прошёл. Если прошли все, а даты
+// в LMS так и нет — матч перенесли или прикидку забыли обновить; в ближайших такой
+// не показываем (в прошедших у него нет счёта, в предстоящих — неправда), его видно
+// в календаре, где админ его и поправит. Таблица маленькая — читаем целиком.
+const loadActiveDateEstimates = async () => {
+  const { rows } = await tfhPool.query(
+    `SELECT game_id, (SELECT min(d) FROM unnest(dates) AS d)::text AS first_date
+     FROM game_date_estimates
+     WHERE (SELECT max(d) FROM unnest(dates) AS d) >= (now() AT TIME ZONE $1)::date`,
+    [LEAGUE_TIMEZONE]
+  );
+  return rows;
+};
+
 // N ближайших по дате матчей: total всего, из них past уже сыгранных, остальные —
 // предстоящие. Одна логика для виджета на странице дивизиона и карусели на главной,
 // различается только область — join и условие WHERE приходят снаружи ($1 — их параметр).
 //
 // Граница "прошедший/предстоящий" — по дате относительно текущего момента, а не по
 // статусу: матч, которому забыли закрыть протокол, всё равно уже прошёл, и в верхушке
-// предстоящих ему делать нечего. Игры без даты сюда не попадают — у них нет "близости".
-// Отменённые тоже: это не матч, на который кто-то соберётся.
+// предстоящих ему делать нечего. Отменённые сюда не попадают: это не матч, на который
+// кто-то соберётся.
+//
+// Матчи сами и всё о них — только из LMS. Если в LMS у матча нет даты, а у админа ТФХ
+// есть действующая прикидка (game_date_estimates, своя БД), матч встаёт в предстоящие
+// по первому дню прикидки — после матчей с точным временем в этот день, поэтому ключ
+// сортировки у него — начало следующего дня по времени лиги. Прикидки в другой БД,
+// поэтому в запрос они приходят массивами. Появилась дата в LMS — прикидка больше
+// не учитывается. Матчи без даты и без прикидки не показываем: у них нет "близости".
 //
 // С каждой стороны берём по total, а не по своей доле: если с одной стороны матчей
 // меньше настроенного (в начале сезона прошедших ещё нет, в конце — предстоящих уже
 // нет), остаток добираем с другой, чтобы блок показывал total матчей, а не пустел.
 const selectNearestGames = async ({ joins = '', scopeWhere, scopeParam, total, past }) => {
-  const query = (dateCondition, order) => sharedPool.query(
-    `${GAMES_SELECT}
-     ${joins}
-     WHERE ${scopeWhere} AND g.status NOT IN ('draft', 'cancelled')
-       AND g.game_date ${dateCondition} now()
-     ORDER BY g.game_date ${order}
-     LIMIT $2`,
-    [scopeParam, total]
-  );
+  const estimates = await loadActiveDateEstimates();
 
-  const [pastRes, upcomingRes] = await Promise.all([query('<', 'DESC'), query('>=', 'ASC')]);
+  const [pastRes, upcomingRes] = await Promise.all([
+    sharedPool.query(
+      `${GAMES_SELECT}
+       ${joins}
+       WHERE ${scopeWhere} AND g.status NOT IN ('draft', 'cancelled')
+         AND g.game_date < now()
+       ORDER BY g.game_date DESC
+       LIMIT $2`,
+      [scopeParam, total]
+    ),
+    sharedPool.query(
+      `${GAMES_SELECT}
+       ${joins}
+       LEFT JOIN unnest($3::int[], $4::date[]) AS est(game_id, first_date)
+         ON est.game_id = g.id AND g.game_date IS NULL
+       WHERE ${scopeWhere} AND g.status NOT IN ('draft', 'cancelled')
+         AND (g.game_date >= now() OR est.game_id IS NOT NULL)
+       ORDER BY COALESCE(g.game_date, (est.first_date + 1)::timestamp AT TIME ZONE $5::text),
+                g.game_number NULLS LAST
+       LIMIT $2`,
+      [
+        scopeParam,
+        total,
+        estimates.map((e) => e.game_id),
+        estimates.map((e) => e.first_date),
+        LEAGUE_TIMEZONE,
+      ]
+    ),
+  ]);
 
   const pastWanted = Math.min(past, pastRes.rows.length);
   const upcomingCount = Math.min(total - pastWanted, upcomingRes.rows.length);
   const pastCount = Math.min(total - upcomingCount, pastRes.rows.length);
 
   // Прошедшие выбраны от сегодня назад — разворачиваем, чтобы весь список шёл хронологически
-  return [
+  return attachDateEstimates([
     ...pastRes.rows.slice(0, pastCount).reverse(),
     ...upcomingRes.rows.slice(0, upcomingCount),
-  ].map(mapGameRow);
+  ].map(mapGameRow));
 };
 
 // Ближайшие матчи дивизиона — виджет-сайдбар на вкладке "Таблица". Раньше брались матчи

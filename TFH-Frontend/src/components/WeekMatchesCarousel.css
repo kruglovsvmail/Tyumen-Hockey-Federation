@@ -98,6 +98,10 @@
   color: var(--muted);
   text-align: center;
 }
+/* Прикидочная дата — тем же цветом, что в календаре */
+.week-match-card__date--estimate {
+  color: var(--acc);
+}
 
 .week-match-card__teams {
   display: grid;

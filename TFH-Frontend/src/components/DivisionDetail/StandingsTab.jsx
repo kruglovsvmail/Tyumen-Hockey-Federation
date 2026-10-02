@@ -4,7 +4,7 @@ import { apiGet, apiSendJson } from '../../api/client.js';
 import { useAdmin } from '../../context/AdminContext.jsx';
 import Loader from '../Loader.jsx';
 import PlaceholderSection from '../PlaceholderSection.jsx';
-import { formatGameDate, formatGameTime } from '../../utils/formatDate.js';
+import { formatGameDate, formatGameTime, formatDateEstimate } from '../../utils/formatDate.js';
 import { getImageUrl } from '../../utils/getImageUrl.js';
 import GameScore from './GameScore.jsx';
 import ArenaLink from './ArenaLink.jsx';
@@ -177,9 +177,16 @@ export default function StandingsTab({ divisionId, teamLinkBase }) {
             <div className="week-games__list" ref={nearestGamesListRef}>
               {nearestGames.map((g) => (
                 <div key={g.id} className="week-games__item">
-                  <span className="week-games__date">
-                    {formatGameDate(g.date)} · {formatGameTime(g.date)}
-                  </span>
+                  {/* Пока в LMS нет даты, бэкенд отдаёт матч только с прикидкой админа ТФХ */}
+                  {g.date ? (
+                    <span className="week-games__date">
+                      {formatGameDate(g.date)} · {formatGameTime(g.date)}
+                    </span>
+                  ) : (
+                    <span className="week-games__date week-games__date--estimate">
+                      {formatDateEstimate(g.dateEstimate)}
+                    </span>
+                  )}
                   <div className="week-games__match">
                     <span className="week-games__team">{g.homeTeam.shortName || g.homeTeam.name}</span>
                     {g.homeTeam.logoUrl ? <img src={getImageUrl(g.homeTeam.logoUrl)} alt="" /> : <span className="week-games__logo-placeholder" />}
