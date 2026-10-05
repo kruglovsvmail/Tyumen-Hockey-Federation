@@ -118,7 +118,9 @@ function PlayerCard({ player, equipmentMarks }) {
           ))}
         </span>
         {equipmentMark && (
-          <span className="app-print__equip-badge" title={equipmentMark.title}>{equipmentMark.code}</span>
+          <span className="app-print__equip-badge" title={equipmentMark.title}>
+            <span className="app-print__equip-badge-text">{equipmentMark.code}</span>
+          </span>
         )}
       </div>
       <div className="app-print__main">
