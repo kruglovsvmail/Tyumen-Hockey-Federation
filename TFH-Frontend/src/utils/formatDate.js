@@ -34,6 +34,22 @@ const parseDateOnly = (dateStr) => {
   return new Date(y, m - 1, d);
 };
 
+// Матч без точного начала, но с датой в расписании LMS (черновик: организатор вписал
+// день, а арену или время ещё нет). Дата 'YYYY-MM-DD' и время 'HH:MM' — уже по часам
+// арены, пояс не пересчитываем. '2026-10-18', null -> '18 окт · время уточняется'.
+export function formatDraftSchedule(draftDate, draftTime) {
+  if (!draftDate) return '';
+  const d = parseDateOnly(draftDate);
+  return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]} · ${draftTime || 'время уточняется'}`;
+}
+
+// Время из черновика LMS без даты: организатор знает час, но не день. Дописываем его
+// к тому, что стоит на месте даты — прикидке ТФХ или «Дата не назначена».
+// 'Дата не назначена', '19:30' -> 'Дата не назначена · 19:30'.
+export function withDraftTime(dateText, draftTime) {
+  return draftTime ? `${dateText} · ${draftTime}` : dateText;
+}
+
 // '1990-05-20' -> '20.05.1990'. Дата рождения приходит без времени, поэтому просто
 // переставляем компоненты строки — через Date она могла бы съехать на день из-за часового пояса.
 export function formatBirthDate(dateStr) {

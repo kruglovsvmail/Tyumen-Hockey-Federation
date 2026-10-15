@@ -4,7 +4,7 @@ import { apiGet, apiSendJson } from '../../api/client.js';
 import { useAdmin } from '../../context/AdminContext.jsx';
 import Loader from '../Loader.jsx';
 import PlaceholderSection from '../PlaceholderSection.jsx';
-import { formatGameDate, formatGameTime, formatDateEstimate } from '../../utils/formatDate.js';
+import { formatGameDate, formatGameTime, formatDateEstimate, formatDraftSchedule, withDraftTime } from '../../utils/formatDate.js';
 import { getImageUrl } from '../../utils/getImageUrl.js';
 import GameScore from './GameScore.jsx';
 import ArenaLink from './ArenaLink.jsx';
@@ -182,9 +182,13 @@ export default function StandingsTab({ divisionId, teamLinkBase }) {
                     <span className="week-games__date">
                       {formatGameDate(g.date)} · {formatGameTime(g.date)}
                     </span>
+                  ) : g.draftDate ? (
+                    <span className="week-games__date">
+                      {formatDraftSchedule(g.draftDate, g.draftTime)}
+                    </span>
                   ) : (
                     <span className="week-games__date week-games__date--estimate">
-                      {formatDateEstimate(g.dateEstimate)}
+                      {withDraftTime(formatDateEstimate(g.dateEstimate), g.draftTime)}
                     </span>
                   )}
                   <div className="week-games__match">

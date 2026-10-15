@@ -3,7 +3,7 @@ import { apiGet, apiSendJson, apiDelete } from '../../api/client.js';
 import { useAdmin } from '../../context/AdminContext.jsx';
 import Loader from '../Loader.jsx';
 import PlaceholderSection from '../PlaceholderSection.jsx';
-import { formatGameDate, formatGameTime, formatDateEstimate, getPlayoffStageDisplayLabel } from '../../utils/formatDate.js';
+import { formatGameDate, formatGameTime, formatDateEstimate, formatDraftSchedule, withDraftTime, getPlayoffStageDisplayLabel } from '../../utils/formatDate.js';
 import { getImageUrl } from '../../utils/getImageUrl.js';
 import GameScore from './GameScore.jsx';
 import ArenaLink from './ArenaLink.jsx';
@@ -47,10 +47,15 @@ function GameRow({ g, isAdmin, onEditDate, onClearDate }) {
           <span className="calendar-game__date">
             {formatGameDate(g.date)} · {formatGameTime(g.date)}
           </span>
+        ) : g.draftDate ? (
+          // Дата в LMS есть, точного начала ещё нет — прикидка не нужна
+          <span className="calendar-game__date">
+            {formatDraftSchedule(g.draftDate, g.draftTime)}
+          </span>
         ) : (
           <span className="calendar-game__date-row">
             <span className={`calendar-game__date ${g.dateEstimate ? 'calendar-game__date--estimate' : 'calendar-game__date--unset'}`}>
-              {g.dateEstimate ? formatDateEstimate(g.dateEstimate) : 'Дата не назначена'}
+              {withDraftTime(g.dateEstimate ? formatDateEstimate(g.dateEstimate) : 'Дата не назначена', g.draftTime)}
             </span>
             {isAdmin && (
               <button

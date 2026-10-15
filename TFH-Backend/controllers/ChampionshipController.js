@@ -398,6 +398,10 @@ export const getDivisionStandings = async (req, res) => {
 const GAMES_SELECT = `
   SELECT
     g.id, g.game_date, g.division_id, g.stage_type, g.stage_label, g.playoff_match_type,
+    -- Черновик расписания LMS: дата и время по часам арены, есть и у матчей без точного
+    -- начала (game_date появляется, только когда известны арена, дата и время).
+    -- Строками: голый date драйвер pg превращает в полночь по часам процесса.
+    to_char(g.draft_date, 'YYYY-MM-DD') AS draft_date, to_char(g.draft_time, 'HH24:MI') AS draft_time,
     g.game_number, g.series_number,
     g.status, g.home_score, g.away_score, g.is_technical, g.end_type,
     g.video_yt_url, g.video_vk_url,
@@ -419,6 +423,8 @@ const GAMES_SELECT = `
 const mapGameRow = (r) => ({
   id: r.id,
   date: r.game_date,
+  draftDate: r.draft_date,
+  draftTime: r.draft_time,
   divisionId: r.division_id,
   stageType: r.stage_type,
   stageLabel: r.stage_label,
@@ -460,7 +466,8 @@ const toIsoDateOnly = (v) => {
 
 // Прикидочные даты (game_date_estimates) живут в отдельной БД (tfhPool), а не в общей
 // LMS/TR (sharedPool) — join одним SQL-запросом невозможен, подтягиваем и мёржим вручную.
-// Имеет смысл только для игр без реальной даты (g.date === null).
+// Имеет смысл только для игр без реальной даты: ни точного начала (g.date), ни даты
+// в черновике расписания LMS (g.draftDate).
 // Наградные номинации дивизиона вместе с рассчитанными участниками.
 // Правило задаётся в конструкторе LMS, здесь только считается и отдаётся:
 // результат нигде не хранится, поправили протокол — поменялся и лидер.
@@ -528,7 +535,8 @@ export const getDivisionNominations = async (req, res) => {
 };
 
 const attachDateEstimates = async (games) => {
-  const undatedIds = games.filter((g) => !g.date).map((g) => g.id);
+  const isUndated = (g) => !g.date && !g.draftDate;
+  const undatedIds = games.filter(isUndated).map((g) => g.id);
   if (undatedIds.length === 0) return games;
 
   const { rows } = await tfhPool.query(
@@ -539,7 +547,7 @@ const attachDateEstimates = async (games) => {
 
   return games.map((g) => ({
     ...g,
-    dateEstimate: g.date ? null : estimateByGameId.get(g.id) || null,
+    dateEstimate: isUndated(g) ? estimateByGameId.get(g.id) || null : null,
   }));
 };
 
@@ -562,7 +570,7 @@ export const getDivisionGames = async (req, res) => {
   const { rows } = await sharedPool.query(
     `${GAMES_SELECT}
      WHERE g.division_id = $1 AND g.status <> 'draft'
-     ORDER BY g.game_number ASC NULLS LAST, g.game_date ASC NULLS LAST`,
+     ORDER BY g.game_number ASC NULLS LAST, g.draft_date ASC NULLS LAST, g.draft_time ASC NULLS LAST, g.game_date ASC NULLS LAST`,
     [id]
   );
 
@@ -604,6 +612,9 @@ const loadActiveDateEstimates = async () => {
 // сортировки у него — начало следующего дня по времени лиги. Прикидки в другой БД,
 // поэтому в запрос они приходят массивами. Появилась дата в LMS — прикидка больше
 // не учитывается. Матчи без даты и без прикидки не показываем: у них нет "близости".
+// Дата в LMS бывает и без точного начала — организатор вписал день, а арену или время
+// ещё нет (черновик расписания, draft_date/draft_time). Такой матч встаёт по своей дате и
+// времени по часам лиги, без времени — в конец дня; прошедшая черновая дата не показывается.
 //
 // С каждой стороны берём по total, а не по своей доле: если с одной стороны матчей
 // меньше настроенного (в начале сезона прошедших ещё нет, в конце — предстоящих уже
@@ -625,10 +636,17 @@ const selectNearestGames = async ({ joins = '', scopeWhere, scopeParam, total, p
       `${GAMES_SELECT}
        ${joins}
        LEFT JOIN unnest($3::int[], $4::date[]) AS est(game_id, first_date)
-         ON est.game_id = g.id AND g.game_date IS NULL
+         ON est.game_id = g.id AND g.game_date IS NULL AND g.draft_date IS NULL
        WHERE ${scopeWhere} AND g.status NOT IN ('draft', 'cancelled')
-         AND (g.game_date >= now() OR est.game_id IS NOT NULL)
-       ORDER BY COALESCE(g.game_date, (est.first_date + 1)::timestamp AT TIME ZONE $5::text),
+         AND (g.game_date >= now()
+              OR (g.game_date IS NULL AND g.draft_date >= (now() AT TIME ZONE $5::text)::date)
+              OR est.game_id IS NOT NULL)
+       ORDER BY COALESCE(
+                  g.game_date,
+                  -- Дата из LMS без точного начала: по своему времени, а без него — в конец дня
+                  (g.draft_date + COALESCE(g.draft_time, time '24:00'))::timestamp AT TIME ZONE $5::text,
+                  -- Прикидка ТФХ: по времени из черновика LMS, если оно известно, иначе в конец дня
+                  (est.first_date + COALESCE(g.draft_time, time '24:00'))::timestamp AT TIME ZONE $5::text),
                 g.game_number NULLS LAST
        LIMIT $2`,
       [
@@ -1271,11 +1289,11 @@ export const setGameDateEstimate = async (req, res) => {
     return res.status(400).json({ message: 'Передайте непустой список дат в формате YYYY-MM-DD' });
   }
 
-  const gameRows = await sharedPool.query(`SELECT id, game_date FROM games WHERE id = $1`, [gameId]);
+  const gameRows = await sharedPool.query(`SELECT id, game_date, draft_date IS NOT NULL AS has_draft_date FROM games WHERE id = $1`, [gameId]);
   const game = gameRows.rows[0];
   if (!game) return res.status(404).json({ message: 'Матч не найден' });
-  if (game.game_date) {
-    return res.status(409).json({ message: 'У матча уже есть точная дата в LMS — прикидочная не нужна' });
+  if (game.game_date || game.has_draft_date) {
+    return res.status(409).json({ message: 'У матча уже есть дата в LMS — прикидочная не нужна' });
   }
 
   const uniqueSortedDates = [...new Set(dates)].sort();
