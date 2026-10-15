@@ -1,5 +1,43 @@
 .date-picker-modal {
-  max-width: 360px;
+  max-width: 600px;
+}
+
+/* Календарь слева фиксированной ширины, время дней — справа; высота правой колонки не
+   больше календаря, длинный список прокручивается внутри неё */
+.date-picker__body {
+  display: grid;
+  grid-template-columns: 308px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.date-picker__calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.date-picker__side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding-left: 20px;
+  border-left: 1px solid var(--innerbrd);
+}
+.date-picker__side-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+@media (max-width: 640px) {
+  .date-picker__body {
+    grid-template-columns: 1fr;
+  }
+  .date-picker__side {
+    padding-left: 0;
+    border-left: none;
+  }
 }
 
 .date-picker__hint {
@@ -92,8 +130,9 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: 180px;
+  max-height: 300px;
   overflow-y: auto;
+  padding-right: 4px;
 }
 .date-picker__time-row {
   display: flex;

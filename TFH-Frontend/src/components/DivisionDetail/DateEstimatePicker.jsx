@@ -187,6 +187,10 @@ export default function DateEstimatePicker({ initialDates, lmsTime = null, onSav
           То же самое — стрелками и Enter/Space с клавиатуры.
         </p>
 
+        {/* Календарь слева, время выбранных дней — справа: в столбик под календарём
+            список дней растягивал окно вниз. На узком экране колонки встают друг под другом. */}
+        <div className="date-picker__body">
+        <div className="date-picker__calendar">
         <div className="date-picker__month-nav">
           <button type="button" onClick={() => shiftMonth(-1)} aria-label="Предыдущий месяц">‹</button>
           <span>{MONTHS_FULL[viewMonth.getMonth()]} {viewMonth.getFullYear()}</span>
@@ -225,6 +229,34 @@ export default function DateEstimatePicker({ initialDates, lmsTime = null, onSav
             )
           )}
         </div>
+        </div>
+
+        <div className="date-picker__side">
+          <span className="date-picker__side-title">Время</span>
+          {sortedSelected.length > 0 ? (
+            <div className="date-picker__times">
+              {sortedSelected.map((date) => (
+                <label key={date} className="date-picker__time-row">
+                  <span>{formatDateEstimate([date])}</span>
+                  <input
+                    type="time"
+                    value={times[date] || ''}
+                    onChange={(e) => setTimes((prev) => ({ ...prev, [date]: e.target.value || null }))}
+                    aria-label={`Время ${formatDateEstimate([date])}`}
+                  />
+                </label>
+              ))}
+            </div>
+          ) : (
+            <p className="date-picker__hint">Выберите дни в календаре — здесь можно указать время для каждого.</p>
+          )}
+          {lmsTime && (
+            <p className="date-picker__hint">
+              В LMS у матча уже указано время {lmsTime} — на сайте показывается оно, время у дней не учитывается.
+            </p>
+          )}
+        </div>
+        </div>
 
         <div className="date-picker__preview">
           {sortedSelected.length > 0 ? (
@@ -233,27 +265,6 @@ export default function DateEstimatePicker({ initialDates, lmsTime = null, onSav
             'Даты не выбраны'
           )}
         </div>
-
-        {sortedSelected.length > 0 && (
-          <div className="date-picker__times">
-            {sortedSelected.map((date) => (
-              <label key={date} className="date-picker__time-row">
-                <span>{formatDateEstimate([date])}</span>
-                <input
-                  type="time"
-                  value={times[date] || ''}
-                  onChange={(e) => setTimes((prev) => ({ ...prev, [date]: e.target.value || null }))}
-                  aria-label={`Время ${formatDateEstimate([date])}`}
-                />
-              </label>
-            ))}
-            {lmsTime && (
-              <p className="date-picker__hint">
-                В LMS у матча уже указано время {lmsTime} — на сайте показывается оно, время у дней не учитывается.
-              </p>
-            )}
-          </div>
-        )}
 
         {error && <div className="admin-modal__error">{error}</div>}
 
