@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { apiGet, apiSendJson } from '../api/client.js';
 import { useAdmin } from '../context/AdminContext.jsx';
 import { getImageUrl } from '../utils/getImageUrl.js';
-import { formatGameDate, formatGameTime, formatDateEstimate, formatDraftSchedule, withDraftTime } from '../utils/formatDate.js';
+import { formatGameDate, formatGameTime, formatDateEstimate, formatDraftSchedule } from '../utils/formatDate.js';
 import GameScore from './DivisionDetail/GameScore.jsx';
 import ArenaLink from './DivisionDetail/ArenaLink.jsx';
 import MatchesWidgetSettingsModal from './MatchesWidgetSettingsModal.jsx';
@@ -53,7 +53,7 @@ function MatchCard({ g }) {
         </div>
       ) : (
         <div className="week-match-card__date week-match-card__date--estimate">
-          {withDraftTime(formatDateEstimate(g.dateEstimate), g.draftTime)}
+          {formatDateEstimate(g.dateEstimate, g.draftTime)}
         </div>
       )}
 

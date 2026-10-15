@@ -464,6 +464,14 @@ const toIsoDateOnly = (v) => {
   return String(v).slice(0, 10);
 };
 
+// Прикидка на фронт — список дней со своим временем: [{ date: 'YYYY-MM-DD', time: 'HH:MM' | null }].
+// Время лежит в times по тем же номерам, что и дни в dates; у старых прикидок колонки
+// нет вовсе (NULL) — значит, время ни у одного дня не указано.
+const toEstimateEntries = (dates, times) => dates.map((d, i) => ({
+  date: toIsoDateOnly(d),
+  time: times && times[i] ? String(times[i]).slice(0, 5) : null,
+}));
+
 // Прикидочные даты (game_date_estimates) живут в отдельной БД (tfhPool), а не в общей
 // LMS/TR (sharedPool) — join одним SQL-запросом невозможен, подтягиваем и мёржим вручную.
 // Имеет смысл только для игр без реальной даты: ни точного начала (g.date), ни даты
@@ -540,10 +548,10 @@ const attachDateEstimates = async (games) => {
   if (undatedIds.length === 0) return games;
 
   const { rows } = await tfhPool.query(
-    `SELECT game_id, dates FROM game_date_estimates WHERE game_id = ANY($1::int[])`,
+    `SELECT game_id, dates, times::text[] AS times FROM game_date_estimates WHERE game_id = ANY($1::int[])`,
     [undatedIds]
   );
-  const estimateByGameId = new Map(rows.map((r) => [r.game_id, r.dates.map(toIsoDateOnly)]));
+  const estimateByGameId = new Map(rows.map((r) => [r.game_id, toEstimateEntries(r.dates, r.times)]));
 
   return games.map((g) => ({
     ...g,
@@ -588,8 +596,10 @@ const LEAGUE_TIMEZONE = process.env.LEAGUE_TIMEZONE || 'Asia/Yekaterinburg';
 // не показываем (в прошедших у него нет счёта, в предстоящих — неправда), его видно
 // в календаре, где админ его и поправит. Таблица маленькая — читаем целиком.
 const loadActiveDateEstimates = async () => {
+  // first_time — время первого дня прикидки, если админ его указал (см. times)
   const { rows } = await tfhPool.query(
-    `SELECT game_id, (SELECT min(d) FROM unnest(dates) AS d)::text AS first_date
+    `SELECT game_id, (SELECT min(d) FROM unnest(dates) AS d)::text AS first_date,
+            (SELECT u.t FROM unnest(dates, times) AS u(d, t) ORDER BY u.d LIMIT 1)::text AS first_time
      FROM game_date_estimates
      WHERE (SELECT max(d) FROM unnest(dates) AS d) >= (now() AT TIME ZONE $1)::date`,
     [LEAGUE_TIMEZONE]
@@ -635,7 +645,7 @@ const selectNearestGames = async ({ joins = '', scopeWhere, scopeParam, total, p
     sharedPool.query(
       `${GAMES_SELECT}
        ${joins}
-       LEFT JOIN unnest($3::int[], $4::date[]) AS est(game_id, first_date)
+       LEFT JOIN unnest($3::int[], $4::date[], $6::time[]) AS est(game_id, first_date, first_time)
          ON est.game_id = g.id AND g.game_date IS NULL AND g.draft_date IS NULL
        WHERE ${scopeWhere} AND g.status NOT IN ('draft', 'cancelled')
          AND (g.game_date >= now()
@@ -645,8 +655,10 @@ const selectNearestGames = async ({ joins = '', scopeWhere, scopeParam, total, p
                   g.game_date,
                   -- Дата из LMS без точного начала: по своему времени, а без него — в конец дня
                   (g.draft_date + COALESCE(g.draft_time, time '24:00'))::timestamp AT TIME ZONE $5::text,
-                  -- Прикидка ТФХ: по времени из черновика LMS, если оно известно, иначе в конец дня
-                  (est.first_date + COALESCE(g.draft_time, time '24:00'))::timestamp AT TIME ZONE $5::text),
+                  -- Прикидка ТФХ: по времени из черновика LMS — оно главнее, это скорее всего
+                  -- уже точное время, только без дня; иначе по времени первого дня прикидки,
+                  -- а без него — в конец дня
+                  (est.first_date + COALESCE(g.draft_time, est.first_time, time '24:00'))::timestamp AT TIME ZONE $5::text),
                 g.game_number NULLS LAST
        LIMIT $2`,
       [
@@ -655,6 +667,7 @@ const selectNearestGames = async ({ joins = '', scopeWhere, scopeParam, total, p
         estimates.map((e) => e.game_id),
         estimates.map((e) => e.first_date),
         LEAGUE_TIMEZONE,
+        estimates.map((e) => e.first_time),
       ]
     ),
   ]);
@@ -1001,7 +1014,7 @@ export const getTeamDetail = async (req, res) => {
 
   const { rows } = await sharedPool.query(
     `SELECT
-       tt.id AS tournament_team_id, tt.custom_description, tt.custom_jersey_light_url, tt.custom_jersey_dark_url,
+       tt.id AS tournament_team_id, tt.status AS application_status, tt.custom_description, tt.custom_jersey_light_url, tt.custom_jersey_dark_url,
        tt.custom_team_photo_url,
        -- Название, аббревиатура, лого — по слепку заявки (snap_*); форма, описание и фото
        -- при допуске ложатся в custom_* (см. takeTeamSnapshot в LMS), поэтому там COALESCE ниже
@@ -1216,7 +1229,14 @@ export const getTeamDetail = async (req, res) => {
   const isAdmitted = (r) => r.application_status === 'approved';
   const isDisqualified = (r) => Number(r.dq_total) > 0;
 
-  const notAdmittedRows = rosterRes.rows.filter((r) => !isAdmitted(r)).sort(byPositionThenName);
+  // Пока заявку команды проверяет лига, недопуск ещё ни о чём не говорит — игроков просто
+  // не смотрели. Блок «Недопущенные» и представителей в это время не показываем вовсе
+  // (решение Сергея 15.10.2026). Вместе с ними уходит и кнопка «Заполнить» согласие: на
+  // время проверки согласия подписывают до подачи заявки или на бумаге.
+  const isUnderReview = row.application_status === 'pending';
+  const notAdmittedRows = isUnderReview
+    ? []
+    : rosterRes.rows.filter((r) => !isAdmitted(r)).sort(byPositionThenName);
   const disqualifiedRows = rosterRes.rows.filter((r) => isAdmitted(r) && isDisqualified(r)).sort(byPositionThenName);
   const admittedRows = rosterRes.rows.filter((r) => isAdmitted(r) && !isDisqualified(r));
 
@@ -1232,6 +1252,8 @@ export const getTeamDetail = async (req, res) => {
       jerseyLightUrl: row.custom_jersey_light_url || row.jersey_light_url,
       jerseyDarkUrl: row.custom_jersey_dark_url || row.jersey_dark_url,
       city: row.city,
+      // Статус заявки команды в дивизионе: 'pending' — на проверке у лиги
+      applicationStatus: row.application_status,
       division: {
         id: row.division_id,
         name: row.division_name,
@@ -1253,7 +1275,9 @@ export const getTeamDetail = async (req, res) => {
       mouthguardEnabled: row.equip_mark_mouthguard_enabled,
       mouthguardBornAfter: row.equip_mark_mouthguard_born_after,
     },
-    staff: staffRes.rows.map((r) => ({
+    // Представителей на время проверки заявки тоже не показываем — как и недопущенных
+    // игроков (см. isUnderReview выше)
+    staff: (isUnderReview ? [] : staffRes.rows).map((r) => ({
       userId: r.user_id,
       fullName: formatPlayerName(r),
       lastName: r.last_name,
@@ -1280,13 +1304,23 @@ export const getTeamDetail = async (req, res) => {
 // может задать диапазон/набор дат для отображения на сайте. Хранится ТОЛЬКО в БД ТФХ
 // (game_date_estimates) — общую БД LMS/TR не трогаем ни при каких условиях.
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
+// Тело: { dates: [{ date: 'YYYY-MM-DD', time: 'HH:MM' | null }] } — у каждого дня своё
+// необязательное время. Старый вид (просто строки дат) тоже принимаем: открытая до
+// обновления вкладка админа шлёт именно его.
 export const setGameDateEstimate = async (req, res) => {
   const { gameId } = req.params;
   const { dates } = req.body;
 
-  if (!Array.isArray(dates) || dates.length === 0 || !dates.every((d) => DATE_RE.test(d))) {
+  const entries = Array.isArray(dates)
+    ? dates.map((d) => (typeof d === 'string' ? { date: d, time: null } : { date: d?.date, time: d?.time || null }))
+    : [];
+  if (entries.length === 0 || !entries.every((e) => DATE_RE.test(e.date))) {
     return res.status(400).json({ message: 'Передайте непустой список дат в формате YYYY-MM-DD' });
+  }
+  if (!entries.every((e) => e.time === null || TIME_RE.test(e.time))) {
+    return res.status(400).json({ message: 'Время указывается в формате ЧЧ:ММ' });
   }
 
   const gameRows = await sharedPool.query(`SELECT id, game_date, draft_date IS NOT NULL AS has_draft_date FROM games WHERE id = $1`, [gameId]);
@@ -1296,16 +1330,19 @@ export const setGameDateEstimate = async (req, res) => {
     return res.status(409).json({ message: 'У матча уже есть дата в LMS — прикидочная не нужна' });
   }
 
-  const uniqueSortedDates = [...new Set(dates)].sort();
+  // Один день — одна запись (при повторе берём последнее время), по порядку дней
+  const byDate = new Map(entries.map((e) => [e.date, e.time]));
+  const sortedDates = [...byDate.keys()].sort();
+  const sortedTimes = sortedDates.map((d) => byDate.get(d));
 
   await tfhPool.query(
-    `INSERT INTO game_date_estimates (game_id, dates, updated_at)
-     VALUES ($1, $2, now())
-     ON CONFLICT (game_id) DO UPDATE SET dates = EXCLUDED.dates, updated_at = now()`,
-    [gameId, uniqueSortedDates]
+    `INSERT INTO game_date_estimates (game_id, dates, times, updated_at)
+     VALUES ($1, $2::date[], $3::time[], now())
+     ON CONFLICT (game_id) DO UPDATE SET dates = EXCLUDED.dates, times = EXCLUDED.times, updated_at = now()`,
+    [gameId, sortedDates, sortedTimes]
   );
 
-  res.json({ dateEstimate: uniqueSortedDates });
+  res.json({ dateEstimate: sortedDates.map((date, i) => ({ date, time: sortedTimes[i] })) });
 };
 
 export const deleteGameDateEstimate = async (req, res) => {

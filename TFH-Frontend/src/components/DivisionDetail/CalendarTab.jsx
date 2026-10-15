@@ -55,7 +55,7 @@ function GameRow({ g, isAdmin, onEditDate, onClearDate }) {
         ) : (
           <span className="calendar-game__date-row">
             <span className={`calendar-game__date ${g.dateEstimate ? 'calendar-game__date--estimate' : 'calendar-game__date--unset'}`}>
-              {withDraftTime(g.dateEstimate ? formatDateEstimate(g.dateEstimate) : 'Дата не назначена', g.draftTime)}
+              {g.dateEstimate ? formatDateEstimate(g.dateEstimate, g.draftTime) : withDraftTime('Дата не назначена', g.draftTime)}
             </span>
             {isAdmin && (
               <button
@@ -183,6 +183,7 @@ export default function CalendarTab({ divisionId }) {
       {editingGame && (
         <DateEstimatePicker
           initialDates={editingGame.dateEstimate}
+          lmsTime={editingGame.draftTime}
           onSave={handleSaveEstimate}
           onClose={() => setEditingGameId(null)}
         />

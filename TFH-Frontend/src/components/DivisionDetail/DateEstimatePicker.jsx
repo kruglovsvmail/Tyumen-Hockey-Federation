@@ -37,10 +37,17 @@ const rangeIso = (fromIso, toIsoStr) => {
 // выделить диапазон от последней выбранной даты (anchor) до этой. То же самое доступно
 // с клавиатуры: стрелки двигают фокус, Enter/Space — как Ctrl+клик, Shift+Enter/Space —
 // как Shift+клик. Рендерится порталом в body — модалка, вне вёрстки страницы.
-export default function DateEstimatePicker({ initialDates, onSave, onClose }) {
-  const initial = initialDates && initialDates.length > 0 ? [...initialDates].sort() : null;
+//
+// У каждого выбранного дня можно указать время (необязательно). Прикидка приходит и
+// уходит списком [{ date, time }]; lmsTime — время из черновика LMS: если оно есть, на
+// сайте показывается оно, а время у дней не учитывается — об этом подсказка под списком.
+export default function DateEstimatePicker({ initialDates, lmsTime = null, onSave, onClose }) {
+  const initialEntries = (initialDates || []).map((e) => (typeof e === 'string' ? { date: e, time: null } : e));
+  const initial = initialEntries.length > 0 ? initialEntries.map((e) => e.date).sort() : null;
 
   const [selected, setSelected] = useState(() => new Set(initial || []));
+  // Время по дням. Хранится и для снятых с выбора дней — вернул день, время на месте
+  const [times, setTimes] = useState(() => Object.fromEntries(initialEntries.filter((e) => e.time).map((e) => [e.date, e.time])));
   const [anchor, setAnchor] = useState(initial ? initial[0] : null);
   const [focused, setFocused] = useState(initial ? initial[0] : toIso(new Date()));
   const [viewMonth, setViewMonth] = useState(() => {
@@ -156,13 +163,14 @@ export default function DateEstimatePicker({ initialDates, onSave, onClose }) {
 
   const todayIso = toIso(new Date());
   const sortedSelected = [...selected].sort();
+  const selectedEntries = sortedSelected.map((date) => ({ date, time: times[date] || null }));
 
   const handleSave = async () => {
     if (sortedSelected.length === 0) return;
     setSaving(true);
     setError(null);
     try {
-      await onSave(sortedSelected);
+      await onSave(selectedEntries);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -220,11 +228,32 @@ export default function DateEstimatePicker({ initialDates, onSave, onClose }) {
 
         <div className="date-picker__preview">
           {sortedSelected.length > 0 ? (
-            <>Выбрано: <strong>{formatDateEstimate(sortedSelected)}</strong></>
+            <>Выбрано: <strong>{formatDateEstimate(selectedEntries, lmsTime)}</strong></>
           ) : (
             'Даты не выбраны'
           )}
         </div>
+
+        {sortedSelected.length > 0 && (
+          <div className="date-picker__times">
+            {sortedSelected.map((date) => (
+              <label key={date} className="date-picker__time-row">
+                <span>{formatDateEstimate([date])}</span>
+                <input
+                  type="time"
+                  value={times[date] || ''}
+                  onChange={(e) => setTimes((prev) => ({ ...prev, [date]: e.target.value || null }))}
+                  aria-label={`Время ${formatDateEstimate([date])}`}
+                />
+              </label>
+            ))}
+            {lmsTime && (
+              <p className="date-picker__hint">
+                В LMS у матча уже указано время {lmsTime} — на сайте показывается оно, время у дней не учитывается.
+              </p>
+            )}
+          </div>
+        )}
 
         {error && <div className="admin-modal__error">{error}</div>}
 

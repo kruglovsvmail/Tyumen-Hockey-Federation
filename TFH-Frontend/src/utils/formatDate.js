@@ -44,7 +44,7 @@ export function formatDraftSchedule(draftDate, draftTime) {
 }
 
 // Время из черновика LMS без даты: организатор знает час, но не день. Дописываем его
-// к тому, что стоит на месте даты — прикидке ТФХ или «Дата не назначена».
+// к «Дата не назначена» (к прикидке его дописывает formatDateEstimate).
 // 'Дата не назначена', '19:30' -> 'Дата не назначена · 19:30'.
 export function withDraftTime(dateText, draftTime) {
   return draftTime ? `${dateText} · ${draftTime}` : dateText;
@@ -70,42 +70,28 @@ export function formatAge(years) {
   return `${years} ${word}`;
 }
 
-const isNextCalendarDay = (a, b) => {
-  const next = new Date(a);
-  next.setDate(next.getDate() + 1);
-  return next.toDateString() === b.toDateString();
-};
+// Прикидка [{ date: 'YYYY-MM-DD', time: 'HH:MM' | null }, ...] -> строка. Дни идут через
+// черту, месяц пишется после последнего дня своего месяца, время дня — в скобках:
+// '19 | 20 (21:30) | 21 окт', '30 | 31 окт | 1 ноя'. Подряд идущие дни в диапазон не
+// склеиваются: лига выбирает конкретные дни, «19–21» читалось бы как «весь период».
+// draftTime — время из черновика LMS: оно главнее времени прикидки (скорее всего это уже
+// точное время, неизвестен только день), тогда у дней время не пишем, а ставим его в конце:
+// '19 | 20 | 21 окт · 21:30'. Старый вид — просто массив строк дат — тоже понимаем.
+export function formatDateEstimate(estimate, draftTime = null) {
+  if (!estimate || estimate.length === 0) return '';
+  const entries = estimate
+    .map((e) => (typeof e === 'string' ? { date: e, time: null } : e))
+    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
-// Массив дат ['2026-02-12', '2026-02-13', ...] -> человекочитаемая строка. Идущие подряд
-// даты схлопываются в диапазон ("12–15 фев"), остальные перечисляются через запятую
-// ("12, 17 фев") — деления на "диапазон"/"список" в данных нет, это просто вопрос вывода.
-export function formatDateEstimate(dates) {
-  if (!dates || dates.length === 0) return '';
-  const parsed = [...dates].sort().map(parseDateOnly);
+  const parts = entries.map((e, i) => {
+    const d = parseDateOnly(e.date);
+    const next = entries[i + 1] ? parseDateOnly(entries[i + 1].date) : null;
+    const isLastOfMonth = !next || next.getMonth() !== d.getMonth() || next.getFullYear() !== d.getFullYear();
+    const month = isLastOfMonth ? ` ${MONTHS_SHORT[d.getMonth()]}` : '';
+    const time = !draftTime && e.time ? ` (${e.time})` : '';
+    return `${d.getDate()}${month}${time}`;
+  });
 
-  const runs = [];
-  let runStart = parsed[0];
-  let runEnd = parsed[0];
-  for (let i = 1; i < parsed.length; i++) {
-    if (isNextCalendarDay(runEnd, parsed[i])) {
-      runEnd = parsed[i];
-    } else {
-      runs.push([runStart, runEnd]);
-      runStart = parsed[i];
-      runEnd = parsed[i];
-    }
-  }
-  runs.push([runStart, runEnd]);
-
-  const formatRun = ([start, end]) => {
-    if (start.getTime() === end.getTime()) {
-      return `${start.getDate()} ${MONTHS_SHORT[start.getMonth()]}`;
-    }
-    if (start.getMonth() === end.getMonth()) {
-      return `${start.getDate()}–${end.getDate()} ${MONTHS_SHORT[start.getMonth()]}`;
-    }
-    return `${start.getDate()} ${MONTHS_SHORT[start.getMonth()]} – ${end.getDate()} ${MONTHS_SHORT[end.getMonth()]}`;
-  };
-
-  return runs.map(formatRun).join(', ');
+  const text = parts.join(' | ');
+  return draftTime ? `${text} · ${draftTime}` : text;
 }

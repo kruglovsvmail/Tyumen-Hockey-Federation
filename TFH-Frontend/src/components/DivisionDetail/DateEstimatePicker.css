@@ -86,3 +86,35 @@
 .date-picker__preview strong {
   color: var(--accnum);
 }
+
+/* Время по выбранным дням: список под календарём, при длинной прикидке прокручивается */
+.date-picker__times {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.date-picker__time-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--body1);
+}
+.date-picker__time-row input {
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--innerbrd);
+  background: var(--inner);
+  color: var(--body1);
+}
+.date-picker__time-row input:focus {
+  outline: none;
+  border-color: var(--accbrd);
+}
