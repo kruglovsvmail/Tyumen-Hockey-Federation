@@ -6,7 +6,8 @@ import { METRIC_DEFS } from './nominationMetrics.js';
  *
  * Копия LMS-Backend/utils/nominationCalculator.js: TFH — отдельный деплой,
  * который ходит в ту же общую базу через sharedPool. Тот же приём уже применён
- * к playerGameStatsCalculator.js. Правки нужно вносить в обе копии.
+ * к playerGameStatsCalculator.js. Третья копия — Team-Room/TR-Backend (вкладка
+ * «Номинации» в приложении команд). Правки нужно вносить во все три.
  *
  * Считается на лету при каждом запросе: правило хранится, результат — нет.
  * Поправили протокол матча — поменялся и лидер номинации.

@@ -2,11 +2,12 @@
 // (games.stage_label, например "Финал") физически может содержать несколько разных пар —
 // за 1-е место и, например, за 3-е. games.playoff_match_type это различает: null — обычная/
 // главная пара (используем stage_label как есть), "place_3"/"place_5"/... — подменяем текст
-// на "Матч за N-е место", иначе матч за 3-е место выглядел бы как ещё один "Финал".
+// на "За N-е место" (без слова «Матч» — так во всей системе), иначе матч за 3-е место
+// выглядел бы как ещё один "Финал".
 export function getPlayoffStageDisplayLabel(stageLabel, playoffMatchType) {
   if (!playoffMatchType) return stageLabel;
   const n = playoffMatchType.replace('place_', '');
-  return `Матч за ${n}-е место`;
+  return `За ${n}-е место`;
 }
 
 const MONTHS_SHORT = [
