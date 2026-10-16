@@ -3,6 +3,8 @@
 // Как это устроено целиком:
 //   1. На публичной странице команды у игрока в подсказке к иконке «Согласие на обработку
 //      данных» появляется кнопка «Заполнить», если документа ещё нет или он просрочен.
+//      Та же кнопка есть в окне «Резервные вратари» дивизиона — у вратаря резерва лиги,
+//      которому лига поставила согласие обязательным, а его нет (эндпоинты /reserve/…).
 //   2. Игрок вводит паспортные данные и адрес регистрации и ставит галочку — сам бланк
 //      предусматривает, что галочка заменяет собственноручную подпись.
 //   3. Здесь из этого собирается PDF сразу с двумя согласиями (обработка + распространение),
@@ -119,6 +121,39 @@ const PERSON_QUERY = `
     AND d.is_published = true
 `;
 
+// Резервный вратарь лиги в дивизионе — человек и всё для бланка. Согласие то же, что у
+// игрока в заявке: на «человек + сезон», сезон — дивизиона. Подписать можно только то, что
+// показывает окно «Резервные вратари» на сайте: дивизион опубликован, механика у лиги
+// включена, вратарь отмечен в этом дивизионе и не выключен. Требует ли лига согласие от
+// резерва — reserve_goalie_req_consent (под тем же именем req_consent, что и у дивизиона).
+const RESERVE_PERSON_QUERY = `
+  SELECT
+    lrg.id AS reserve_goalie_id,
+    lrg.player_id,
+    d.season_id,
+    usc.consent_url,
+    to_char(usc.consent_expires_at, 'YYYY-MM-DD') AS consent_expires_at,
+    u.first_name, u.last_name, u.middle_name,
+    to_char(u.birth_date, 'YYYY-MM-DD') AS birth_date,
+    l.reserve_goalie_req_consent AS req_consent,
+    d.name AS division_name,
+    to_char(s.end_date, 'YYYY-MM-DD') AS season_end_date,
+    s.league_id
+  FROM divisions d
+  JOIN seasons s ON s.id = d.season_id
+  JOIN leagues l ON l.id = s.league_id
+  JOIN league_reserve_goalie_divisions lrgd ON lrgd.division_id = d.id
+  JOIN league_reserve_goalies lrg ON lrg.id = lrgd.reserve_goalie_id AND lrg.league_id = s.league_id
+  JOIN users u ON u.id = lrg.player_id
+  LEFT JOIN user_season_consents usc
+         ON usc.user_id = lrg.player_id AND usc.season_id = d.season_id
+  WHERE d.id = $1
+    AND lrg.player_id = $2
+    AND d.is_published = true
+    AND l.reserve_goalies_enabled
+    AND lrg.is_active
+`;
+
 // Единая проверка «можно ли подписывать» для обоих эндпоинтов: GET по ней рисует форму
 // или объяснение, POST по ней же отказывает. Возвращает текст причины или null.
 const signingBlockedReason = (roster) => {
@@ -227,56 +262,141 @@ export const getBlankConsent = async (req, res) => {
   }
 };
 
-// GET /api/consent/:appId/:userId — что показать в модалке: форму или причину отказа.
-// Публичный эндпоинт, поэтому наружу отдаём только то, что и так есть на странице
-// команды (ФИО, команда, дивизион). Телефон и прочие контакты — не отдаём.
+// Человек и всё для бланка — по заявке команды или по резерву лиги. Значения из адреса
+// нечисловые — сразу «не найдено», до запроса.
+const loadApplicationPerson = async ({ appId, userId }) => {
+  const app = parseId(appId);
+  const user = parseId(userId);
+  if (!app || !user) return null;
+  const { rows } = await sharedPool.query(PERSON_QUERY, [app, user]);
+  return rows[0] || null;
+};
+
+const loadReservePerson = async ({ divisionId, userId }) => {
+  const division = parseId(divisionId);
+  const user = parseId(userId);
+  if (!division || !user) return null;
+  const { rows } = await sharedPool.query(RESERVE_PERSON_QUERY, [division, user]);
+  return rows[0] || null;
+};
+
+// Что показать в модалке: форму или причину отказа. Публичный эндпоинт, поэтому наружу
+// отдаём только то, что и так есть на странице (ФИО, команда, дивизион). Телефон и прочие
+// контакты — не отдаём.
+const sendConsentState = (res, person) => {
+  const blockedReason = signingBlockedReason(person);
+
+  res.json({
+    canSign: blockedReason === null,
+    reason: blockedReason,
+    // Версия бланка уходит на фронт только затем, чтобы подставить её в адрес ссылки
+    // на пустой бланк: у тех, кто успел закэшировать прошлую редакцию до запрета
+    // кэширования, новый адрес заставит браузер скачать документ заново.
+    formVersion: CONSENT_FORM_VERSION,
+    playerName: fullNameOf(person),
+    // У резервного вратаря команды нет — он в резерве лиги
+    teamName: person.team_name || null,
+    divisionName: person.division_name,
+    // Срок действия согласия в системе — до конца сезона: на следующий сезон документ
+    // подписывается заново. Со сроком обработки ПД из текста бланка (не менее 50 лет)
+    // это не связано.
+    expiresAt: person.season_end_date,
+  });
+};
+
+// GET /api/consent/:appId/:userId — человек в заявке команды
 export const getConsentState = async (req, res) => {
   try {
-    const appId = parseId(req.params.appId);
-    const userId = parseId(req.params.userId);
-    if (!appId || !userId) return res.status(404).json({ message: 'Заявка не найдена' });
-
-    const { rows } = await sharedPool.query(PERSON_QUERY, [appId, userId]);
-    const roster = rows[0];
-    if (!roster) return res.status(404).json({ message: 'Заявка не найдена' });
-
-    const blockedReason = signingBlockedReason(roster);
-
-    res.json({
-      canSign: blockedReason === null,
-      reason: blockedReason,
-      // Версия бланка уходит на фронт только затем, чтобы подставить её в адрес ссылки
-      // на пустой бланк: у тех, кто успел закэшировать прошлую редакцию до запрета
-      // кэширования, новый адрес заставит браузер скачать документ заново.
-      formVersion: CONSENT_FORM_VERSION,
-      playerName: fullNameOf(roster),
-      teamName: roster.team_name,
-      divisionName: roster.division_name,
-      // Срок действия согласия в системе — до конца сезона: на следующий сезон документ
-      // подписывается заново. Со сроком обработки ПД из текста бланка (не менее 50 лет)
-      // это не связано.
-      expiresAt: roster.season_end_date,
-    });
+    const person = await loadApplicationPerson(req.params);
+    if (!person) return res.status(404).json({ message: 'Заявка не найдена' });
+    sendConsentState(res, person);
   } catch (err) {
     console.error('Ошибка получения состояния согласия:', err);
     res.status(500).json({ message: 'Ошибка сервера' });
   }
 };
 
-// POST /api/consent/:appId/:userId — собрать PDF, положить в S3 и прописать в заявку.
-export const signConsent = async (req, res) => {
+// GET /api/consent/reserve/:divisionId/:userId — резервный вратарь лиги в дивизионе
+export const getReserveConsentState = async (req, res) => {
+  try {
+    const person = await loadReservePerson(req.params);
+    if (!person) return res.status(404).json({ message: 'Вратарь не найден в резерве этого дивизиона' });
+    sendConsentState(res, person);
+  } catch (err) {
+    console.error('Ошибка получения состояния согласия резервного вратаря:', err);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+};
+
+// Куда ложится подписанное согласие. Само согласие одно — на «человек + сезон»
+// (user_season_consents), — но путь до него разный:
+//  • человек в заявке команды — функция tfh_sign_consent, она пишет и в заявку, и в журнал
+//    заявки (tournament_person_log);
+//  • резервный вратарь лиги — функция tfh_sign_reserve_consent: заявки у него может не быть
+//    вовсе, и проверяет она, что он правда в резерве лиги на этот сезон.
+// Обе принадлежат владельцу базы и работают его правами (SECURITY DEFINER), у сайта — только
+// право их вызвать. Вторая запись в общую базу — вторая функция, а не грант (см. AGENTS.md).
+const APPLICATION_TARGET = {
+  functionName: 'tfh_sign_consent',
+  // Имя файла — та же схема, что у сканов, которые вручную грузят в LMS и в кабинете
+  // команды (uploads/tournament_person_{заявка}_{человек}_consent.*), плюс случайный хвост.
+  s3Key: (p, token) => `uploads/tournament_person_${p.tournament_team_id}_${p.player_id}_consent_${token}.pdf`,
+  writeJournal: (client, p, sig) => client.query(
+    `INSERT INTO roster_consent_signatures
+       (tournament_roster_id, tournament_team_id, user_id, document_code, form_version, file_url, expires_at, ip, user_agent)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [
+      // У представителя строки состава нет вовсе — заявка и человек есть всегда
+      p.tournament_roster_id,
+      p.tournament_team_id,
+      p.player_id,
+      sig.documentCode,
+      CONSENT_FORM_VERSION,
+      sig.fileUrl,
+      p.season_end_date,
+      sig.ip,
+      sig.userAgent,
+    ]
+  ),
+  writeShared: (p, fileUrl) => sharedPool.query(
+    'SELECT public.tfh_sign_consent($1, $2, $3, $4)',
+    [p.tournament_team_id, p.player_id, fileUrl, p.season_end_date]
+  ),
+};
+
+const RESERVE_TARGET = {
+  functionName: 'tfh_sign_reserve_consent',
+  // Та же схема, что у согласия, загруженного лигой во вкладке «Резерв. вратари» в LMS
+  // (uploads/reserve_goalie_{резерв}_{человек}_consent…), плюс случайный хвост
+  s3Key: (p, token) => `uploads/reserve_goalie_${p.reserve_goalie_id}_${p.player_id}_consent_${token}.pdf`,
+  // Заявки нет — в журнале вместо неё резерв лиги
+  writeJournal: (client, p, sig) => client.query(
+    `INSERT INTO roster_consent_signatures
+       (tournament_roster_id, tournament_team_id, reserve_goalie_id, user_id, document_code, form_version, file_url, expires_at, ip, user_agent)
+     VALUES (NULL, NULL, $1, $2, $3, $4, $5, $6, $7, $8)`,
+    [
+      p.reserve_goalie_id,
+      p.player_id,
+      sig.documentCode,
+      CONSENT_FORM_VERSION,
+      sig.fileUrl,
+      p.season_end_date,
+      sig.ip,
+      sig.userAgent,
+    ]
+  ),
+  writeShared: (p, fileUrl) => sharedPool.query(
+    'SELECT public.tfh_sign_reserve_consent($1, $2, $3, $4)',
+    [p.reserve_goalie_id, p.season_id, fileUrl, p.season_end_date]
+  ),
+};
+
+// Собрать PDF, положить в S3 и прописать в базу лиги — общая часть для заявки и резерва.
+const signFor = async (req, res, person, target) => {
   let uploadedKey = null;
 
   try {
-    const appId = parseId(req.params.appId);
-    const userId = parseId(req.params.userId);
-    if (!appId || !userId) return res.status(404).json({ message: 'Заявка не найдена' });
-
-    const { rows } = await sharedPool.query(PERSON_QUERY, [appId, userId]);
-    const roster = rows[0];
-    if (!roster) return res.status(404).json({ message: 'Заявка не найдена' });
-
-    const blockedReason = signingBlockedReason(roster);
+    const blockedReason = signingBlockedReason(person);
     if (blockedReason) return res.status(409).json({ message: blockedReason });
 
     const validationError = validateForm(req.body);
@@ -295,8 +415,8 @@ export const signConsent = async (req, res) => {
     let pdfBuffer;
     try {
       pdfBuffer = await renderConsentPdf({
-        fullName: fullNameOf(roster),
-        initials: initialsOf(roster),
+        fullName: fullNameOf(person),
+        initials: initialsOf(person),
         passportSeries: trimmed(req.body.passportSeries, 4),
         passportNumber: trimmed(req.body.passportNumber, 6),
         passportIssueDate: isoToRu(req.body.passportIssueDate),
@@ -314,9 +434,7 @@ export const signConsent = async (req, res) => {
       });
     }
 
-    // Имя файла — та же схема, что у сканов, которые вручную грузят в LMS и в кабинете
-    // команды (uploads/tournament_rosters_{id}_consent.*), плюс случайный хвост.
-    const s3Key = `uploads/tournament_person_${roster.tournament_team_id}_${roster.player_id}_consent_${token}.pdf`;
+    const s3Key = target.s3Key(person, token);
     try {
       await s3.send(new PutObjectCommand({
         Bucket: SHARED_S3_BUCKET,
@@ -339,52 +457,43 @@ export const signConsent = async (req, res) => {
     // LMS и кабинет команды понимают, что документ есть, в любой заявке игрока в сезоне.
     //
     // В общую базу сайт НЕ пишет сам — у роли tfh_reader прав на запись там нет вообще.
-    // Запись делает функция tfh_sign_consent(), она принадлежит владельцу базы и работает
+    // Запись делает функция (target.functionName), она принадлежит владельцу базы и работает
     // его правами (SECURITY DEFINER); у сайта есть только право её вызвать. Раньше сайт
     // писал напрямую по колоночным грантам, и они трижды слетали — при пересоздании
     // таблицы и от любого REVOKE «для порядка» — а подписание падало до следующей
     // попытки подписать. Функцию такие уборки не трогают.
     //
-    // Порядок такой: открываем транзакцию в своей базе, пишем журнал, правим заявку
-    // в общей базе и только после её успеха фиксируем журнал. Если общая база недоступна
-    // или функции в ней нет, журнал откатывается — и в системе не остаётся следов
-    // наполовину выполненной операции.
+    // Порядок такой: открываем транзакцию в своей базе, пишем журнал, правим общую базу
+    // и только после её успеха фиксируем журнал. Если общая база недоступна или функции
+    // в ней нет, журнал откатывается — и в системе не остаётся следов наполовину
+    // выполненной операции.
     const tfhClient = await tfhPool.connect();
     try {
       await tfhClient.query('BEGIN');
-      await tfhClient.query(
-        `INSERT INTO roster_consent_signatures
-           (tournament_roster_id, tournament_team_id, user_id, document_code, form_version, file_url, expires_at, ip, user_agent)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [
-          // У представителя строки состава нет вовсе — заявка и человек есть всегда
-          roster.tournament_roster_id,
-          roster.tournament_team_id,
-          roster.player_id,
-          documentCode,
-          CONSENT_FORM_VERSION,
-          `/${s3Key}`,
-          roster.season_end_date,
-          getClientIp(req),
-          (req.headers['user-agent'] || '').slice(0, 255),
-        ]
-      );
-      await sharedPool.query(
-        'SELECT public.tfh_sign_consent($1, $2, $3, $4)',
-        [roster.tournament_team_id, roster.player_id, `/${s3Key}`, roster.season_end_date]
-      );
+      await target.writeJournal(tfhClient, person, {
+        documentCode,
+        fileUrl: `/${s3Key}`,
+        ip: getClientIp(req),
+        userAgent: (req.headers['user-agent'] || '').slice(0, 255),
+      });
+      await target.writeShared(person, `/${s3Key}`);
       await tfhClient.query('COMMIT');
     } catch (err) {
       await tfhClient.query('ROLLBACK').catch(() => {});
       console.error('Согласие: не удалось записать результат подписания:', err);
       // Файл без записи в базе никому не виден и не нужен — убираем его сразу.
       await s3.send(new DeleteObjectCommand({ Bucket: SHARED_S3_BUCKET, Key: s3Key })).catch(() => {});
-      // Три ошибки называем прямо: их чинит администратор, и «попробуйте позже» тут
+      uploadedKey = null;
+      // Ошибки настройки называем прямо: их чинит администратор, и «попробуйте позже» тут
       // только собьёт с толку — само оно не заработает никогда.
       const SETUP_ERRORS = {
         42501: 'У сайта нет права вызвать функцию записи в базе лиги. Так подписание работать не будет — сообщите об этом администратору.',
-        42883: 'В базе лиги нет функции tfh_sign_consent. Подписание не заработает, пока её не создадут — сообщите администратору.',
+        42883: `В базе лиги нет функции ${target.functionName}. Подписание не заработает, пока её не создадут — сообщите администратору.`,
         '42P01': 'В базе сайта нет таблицы журнала согласий. Подписание не заработает, пока её не создадут — сообщите администратору.',
+        // Журнал сайта ещё не готов к резервным вратарям: нет колонки reserve_goalie_id
+        // или колонка заявки обязательна
+        42703: 'Журнал согласий в базе сайта не готов к резервным вратарям. Сообщите об этом администратору.',
+        23502: 'Журнал согласий в базе сайта не готов к резервным вратарям. Сообщите об этом администратору.',
       };
       return res.status(500).json({
         message: SETUP_ERRORS[err.code]
@@ -396,12 +505,14 @@ export const signConsent = async (req, res) => {
 
     // Предыдущий файл (просроченное согласие или скан, загруженный руководителем) удаляем
     // уже после успешной записи — иначе при сбое в БД заявка осталась бы вообще без
-    // документа. Трогаем только то, что лежит по «нашему» имени для этой же заявки.
-    const previousKey = (roster.consent_url || '').replace(/^\//, '');
+    // документа. Трогаем только файлы согласия этого же человека.
+    const previousKey = (person.consent_url || '').replace(/^\//, '');
     // Согласие общее на сезон, так что прежний файл мог быть загружен под другой заявкой
-    // игрока: своим считаем любой файл согласия этого человека. Плюс старый формат ключа,
-    // от строки ростера, — под ним лежат согласия, подписанные до переезда документов.
-    const isOwnPreviousKey = new RegExp(`^uploads/tournament_person_\\d+_${roster.player_id}_consent`).test(previousKey)
+    // игрока или в резерве лиги: своим считаем любой файл согласия этого человека. Плюс
+    // старый формат ключа, от строки ростера, — под ним лежат согласия, подписанные до
+    // переезда документов.
+    const isOwnPreviousKey = new RegExp(`^uploads/tournament_person_\\d+_${person.player_id}_consent`).test(previousKey)
+      || new RegExp(`^uploads/reserve_goalie_\\d+_${person.player_id}_consent`).test(previousKey)
       || /^uploads\/tournament_rosters_\d+_consent/.test(previousKey);
     if (previousKey && previousKey !== s3Key && isOwnPreviousKey) {
       await s3
@@ -412,7 +523,7 @@ export const signConsent = async (req, res) => {
     // Ссылку на файл отдаём только тому, кто прямо сейчас его и заполнил, — чтобы человек
     // мог сохранить себе копию подписанного документа. На странице команды и в любом
     // другом ответе сайта ссылок на согласия нет: это персональные данные.
-    res.json({ success: true, expiresAt: roster.season_end_date, documentCode, fileUrl: `/${s3Key}` });
+    res.json({ success: true, expiresAt: person.season_end_date, documentCode, fileUrl: `/${s3Key}` });
   } catch (err) {
     console.error('Ошибка подписания согласия:', err);
     // Файл уже улетел в S3, а дальше что-то упало — убираем за собой, чтобы в бакете
@@ -423,6 +534,31 @@ export const signConsent = async (req, res) => {
         .send(new DeleteObjectCommand({ Bucket: SHARED_S3_BUCKET, Key: uploadedKey }))
         .catch(() => {});
     }
+    res.status(500).json({ message: 'Не удалось сохранить согласие. Попробуйте позже' });
+  }
+};
+
+// POST /api/consent/:appId/:userId — человек в заявке команды
+export const signConsent = async (req, res) => {
+  try {
+    const person = await loadApplicationPerson(req.params);
+    if (!person) return res.status(404).json({ message: 'Заявка не найдена' });
+    await signFor(req, res, person, APPLICATION_TARGET);
+  } catch (err) {
+    console.error('Ошибка подписания согласия:', err);
+    res.status(500).json({ message: 'Не удалось сохранить согласие. Попробуйте позже' });
+  }
+};
+
+// POST /api/consent/reserve/:divisionId/:userId — резервный вратарь лиги в дивизионе.
+// Сезон согласия — сезон дивизиона: в нём вратарь и будет выходить на матчи.
+export const signReserveConsent = async (req, res) => {
+  try {
+    const person = await loadReservePerson(req.params);
+    if (!person) return res.status(404).json({ message: 'Вратарь не найден в резерве этого дивизиона' });
+    await signFor(req, res, person, RESERVE_TARGET);
+  } catch (err) {
+    console.error('Ошибка подписания согласия резервного вратаря:', err);
     res.status(500).json({ message: 'Не удалось сохранить согласие. Попробуйте позже' });
   }
 };

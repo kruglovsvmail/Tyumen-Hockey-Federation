@@ -8,6 +8,7 @@ import {
   DISPLAY_SETTINGS_LIMITS,
 } from '../utils/divisionDisplaySettings.js';
 import { loadSiteSettings } from '../utils/siteSettings.js';
+import { listedReserveGoaliesSql } from '../utils/reserveGoalies.js';
 
 // Мягкая проверка токена — в отличие от middleware/auth.js не роняет запрос при
 // отсутствии/невалидности токена, просто считает запрос анонимным. Нужна там, где
@@ -167,10 +168,10 @@ export const getDivisionDetail = async (req, res) => {
     `SELECT d.id, d.name, d.short_name, d.logo_url, d.description, d.classification,
             d.is_tournament, s.name AS season_name,
             -- Есть ли у дивизиона резервные вратари: по этому флагу страница решает,
-            -- показывать ли кнопку. Мало включить механику в лиге — список ещё должен
-            -- быть непустым, иначе кнопка открывала бы пустое окно.
+            -- показывать ли кнопку. Мало включить механику в лиге — в дивизионе должен
+            -- быть хоть один включённый вратарь, иначе кнопка открывала бы пустое окно.
             (l.reserve_goalies_enabled
-             AND EXISTS (SELECT 1 FROM division_reserve_goalies drg WHERE drg.division_id = d.id)
+             AND EXISTS (${listedReserveGoaliesSql('d.id')})
             ) AS has_reserve_goalies
      FROM divisions d
      JOIN seasons s ON s.id = d.season_id
@@ -228,11 +229,12 @@ export const getDivisionReserveGoalies = async (req, res) => {
 
   const { rows } = await sharedPool.query(
     `SELECT
-       drg.player_id, drg.jersey_number, drg.note,
+       rg.player_id, rg.jersey_number, rg.note, rg.docs_ok,
+       rg.consent_required, rg.consent_present, rg.consent_expires_at,
        u.first_name, u.last_name, u.middle_name, u.phone,
-       -- Личный аватар на сайте лиги не показываем: сначала снимок из заявки этой лиги
-       -- (фото на момент допуска), иначе последнее фото человека в составе команды
-       COALESCE(photo.snapshot_url, photo.member_url) AS avatar_url,
+       -- Личный аватар на сайте лиги не показываем: сначала фото, загруженное лигой для
+       -- резерва, иначе снимок из заявки этой лиги (фото на момент допуска)
+       COALESCE(rg.photo_url, photo.snapshot_url) AS avatar_url,
        COALESCE(st.games_played, 0)   AS games_played,
        COALESCE(st.goals_against, 0)  AS goals_against,
        COALESCE(st.saves, 0)          AS saves,
@@ -246,8 +248,8 @@ export const getDivisionReserveGoalies = async (req, res) => {
        -- матчей наружу не идут — это разбирательство лиги с игроком.
        COALESCE(dq.has_reserve_dq, false) AS dq_has_reserve,
        COALESCE(dq.has_own_dq, false)     AS dq_has_own
-     FROM division_reserve_goalies drg
-     JOIN users u ON u.id = drg.player_id
+     FROM (${listedReserveGoaliesSql('$1')}) rg
+     JOIN users u ON u.id = rg.player_id
      LEFT JOIN LATERAL (
        SELECT
          (SELECT tr.photo_snapshot_url
@@ -255,13 +257,9 @@ export const getDivisionReserveGoalies = async (req, res) => {
             JOIN tournament_teams tt ON tt.id = tr.tournament_team_id
             JOIN divisions d3 ON d3.id = tt.division_id
             JOIN seasons s3 ON s3.id = d3.season_id
-           WHERE tr.player_id = drg.player_id AND s3.league_id = $2
+           WHERE tr.player_id = rg.player_id AND s3.league_id = $2
              AND tr.photo_snapshot_url IS NOT NULL
-           ORDER BY tr.id DESC LIMIT 1) AS snapshot_url,
-         (SELECT tm3.photo_url
-            FROM team_members tm3
-           WHERE tm3.user_id = drg.player_id AND tm3.photo_url IS NOT NULL
-           ORDER BY tm3.id DESC LIMIT 1) AS member_url
+           ORDER BY tr.id DESC LIMIT 1) AS snapshot_url
      ) photo ON true
      LEFT JOIN LATERAL (
        SELECT
@@ -277,19 +275,19 @@ export const getDivisionReserveGoalies = async (req, res) => {
                     FROM reserve_goalie_game_statistics r2
                     JOIN teams t ON t.id = r2.team_id
                     LEFT JOIN tournament_teams tt2 ON tt2.division_id = r2.division_id AND tt2.team_id = r2.team_id
-                   WHERE r2.division_id = drg.division_id AND r2.player_id = drg.player_id
+                   WHERE r2.division_id = $1 AND r2.player_id = rg.player_id
                    GROUP BY COALESCE(tt2.snap_short_name, tt2.snap_name, t.short_name, t.name)) x) AS teams
        FROM reserve_goalie_game_statistics r
-       WHERE r.division_id = drg.division_id AND r.player_id = drg.player_id
+       WHERE r.division_id = $1 AND r.player_id = rg.player_id
      ) st ON true
      LEFT JOIN LATERAL (
        SELECT
          bool_or(d2.is_reserve_goalie)     AS has_reserve_dq,
          bool_or(NOT d2.is_reserve_goalie) AS has_own_dq
        FROM disqualifications d2
-       WHERE d2.user_id = drg.player_id AND d2.league_id = $2 AND d2.status = 'active'
+       WHERE d2.user_id = rg.player_id AND d2.league_id = $2 AND d2.status = 'active'
      ) dq ON true
-     WHERE drg.division_id = $1
+     WHERE rg.league_id = $2
      ORDER BY u.last_name, u.first_name`,
     [id, div.league_id]
   );
@@ -306,7 +304,17 @@ export const getDivisionReserveGoalies = async (req, res) => {
       lastName: r.last_name,
       middleName: r.middle_name,
       avatarUrl: r.avatar_url,
-      phone: r.phone,
+      // Без обязательных документов вратарь в списке есть, но номер не отдаём: договориться
+      // с ним нельзя, пока лига его не допустит. Вместо номера окно пишет «не доступен»
+      phone: r.docs_ok ? r.phone : null,
+      isUnavailable: !r.docs_ok,
+      // Согласие — как документ у игрока в составе команды: есть ли и до какого числа.
+      // Нет или истекло — окно даёт подписать его здесь же (ConsentController.
+      // signReserveConsent). null — лига согласие от резерва не требует, значка нет.
+      // Справку и полис на сайте не показываем: их загружает лига
+      consent: r.consent_required
+        ? { present: r.consent_present, expiresAt: r.consent_expires_at }
+        : null,
       jerseyNumber: r.jersey_number,
       note: r.note,
       gamesPlayed: r.games_played,

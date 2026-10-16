@@ -79,9 +79,28 @@
   text-decoration: underline;
 }
 
-/* Строка вратаря, которому сейчас закрыт выход резервным */
-.reserve-goalies__row.is-blocked .reserve-goalies__name,
-.reserve-goalies__row.is-blocked td {
+/* Вместо номера у вратаря без обязательных документов */
+.reserve-goalies__unavailable {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Значок согласия — последней колонкой, после статистики; тот же, что у игроков
+   на странице команды */
+.reserve-goalies__doc-cell {
+  width: 1%;
+}
+
+/* Фон окна стеклянный и светлее таблицы состава: бледно-серый значок «нет документа»
+   на нём терялся. Здесь он в цвет подписей и на подложке плотнее — в обеих темах */
+.reserve-goalies .team-roster__doc-btn--missing {
+  color: var(--label);
+  background: var(--chipStrong);
+}
+
+/* Строка вратаря, которому сейчас закрыт выход резервным. Приглушаем всё, кроме
+   значка согласия: через него вратарь как раз и становится доступным. */
+.reserve-goalies__row.is-blocked td:not(.reserve-goalies__doc-cell) {
   opacity: .65;
 }
 

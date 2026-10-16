@@ -109,25 +109,47 @@ tfhPool.query('SELECT NOW()')
   .then((res) => console.log('PostgreSQL (TFH) connected:', res.rows[0].now))
   .catch((err) => console.error('PostgreSQL (TFH) connection check failed:', err.message));
 
-// Подписание согласий — единственная запись сайта в общую базу, и идёт она через функцию
-// tfh_sign_consent (см. ConsentController). Проверяем на старте, что функция есть и её
-// можно вызвать: иначе о поломке узнаёт игрок при следующей попытке подписать, а между
-// попытками, как показывал лог, проходят дни. Порт при этом открываем всё равно — сайт
-// без подписания лучше, чем сайт, который не поднялся.
-sharedPool.query(
-  `SELECT has_function_privilege(current_user, 'public.tfh_sign_consent(int, int, text, date)', 'EXECUTE') AS ok`
+// Подписание согласий — единственная запись сайта в общую базу, и идёт она через функции:
+// tfh_sign_consent (человек в заявке команды) и tfh_sign_reserve_consent (резервный вратарь
+// лиги), см. ConsentController. Проверяем на старте, что обе есть и их можно вызвать: иначе
+// о поломке узнаёт игрок при следующей попытке подписать, а между попытками, как показывал
+// лог, проходят дни. Порт при этом открываем всё равно — сайт без подписания лучше, чем
+// сайт, который не поднялся.
+const CONSENT_FUNCTIONS = [
+  { name: 'tfh_sign_consent', what: 'ПОДПИСАНИЕ СОГЛАСИЙ НЕ РАБОТАЕТ' },
+  { name: 'tfh_sign_reserve_consent', what: 'ПОДПИСАНИЕ СОГЛАСИЙ РЕЗЕРВНЫМИ ВРАТАРЯМИ НЕ РАБОТАЕТ' },
+];
+
+for (const fn of CONSENT_FUNCTIONS) {
+  sharedPool.query(
+    `SELECT has_function_privilege(current_user, 'public.${fn.name}(int, int, text, date)', 'EXECUTE') AS ok`
+  )
+    .then(({ rows }) => {
+      if (rows[0]?.ok) {
+        console.log(`PostgreSQL (shared): функция ${fn.name} доступна`);
+      } else {
+        console.error(`🚨 PostgreSQL (shared): у роли нет права вызвать ${fn.name} — ${fn.what}. Нужен GRANT EXECUTE от владельца базы.`);
+      }
+    })
+    .catch((err) => {
+      // 42883 = функции нет вовсе (не создали или удалили вместе с чем-то ещё)
+      const reason = err.code === '42883'
+        ? `функции ${fn.name} нет в базе`
+        : `проверка не удалась: ${err.message}`;
+      console.error(`🚨 PostgreSQL (shared): ${reason} — ${fn.what}.`);
+    });
+}
+
+// Журнал подписаний в базе сайта должен принимать подписи резервных вратарей: у них нет
+// заявки, вместо неё — reserve_goalie_id. Без этой колонки подписание резервом падает
+// на записи журнала.
+tfhPool.query(
+  `SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'roster_consent_signatures' AND column_name = 'reserve_goalie_id'`
 )
-  .then(({ rows }) => {
-    if (rows[0]?.ok) {
-      console.log('PostgreSQL (shared): функция tfh_sign_consent доступна, подписание согласий работает');
-    } else {
-      console.error('🚨 PostgreSQL (shared): у роли нет права вызвать tfh_sign_consent — ПОДПИСАНИЕ СОГЛАСИЙ НЕ РАБОТАЕТ. Нужен GRANT EXECUTE от владельца базы.');
+  .then(({ rowCount }) => {
+    if (rowCount === 0) {
+      console.error('🚨 PostgreSQL (TFH): в журнале roster_consent_signatures нет колонки reserve_goalie_id — ПОДПИСАНИЕ СОГЛАСИЙ РЕЗЕРВНЫМИ ВРАТАРЯМИ НЕ РАБОТАЕТ.');
     }
   })
-  .catch((err) => {
-    // 42883 = функции нет вовсе (не создали или удалили вместе с чем-то ещё)
-    const reason = err.code === '42883'
-      ? 'функции tfh_sign_consent нет в базе'
-      : `проверка не удалась: ${err.message}`;
-    console.error(`🚨 PostgreSQL (shared): ${reason} — ПОДПИСАНИЕ СОГЛАСИЙ НЕ РАБОТАЕТ.`);
-  });
+  .catch((err) => console.error('PostgreSQL (TFH): проверка журнала согласий не удалась:', err.message));

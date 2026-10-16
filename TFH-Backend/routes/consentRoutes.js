@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
-import { getBlankConsent, getConsentState, signConsent } from '../controllers/ConsentController.js';
+import {
+  getBlankConsent, getConsentState, signConsent, getReserveConsentState, signReserveConsent,
+} from '../controllers/ConsentController.js';
 import { getClientIp } from '../utils/clientIp.js';
 
 const router = Router();
@@ -33,5 +35,11 @@ const signLimiter = rateLimit({
 router.get('/blank.pdf', getBlankConsent);
 router.get('/:appId/:userId', getConsentState);
 router.post('/:appId/:userId', signLimiter, signConsent);
+
+// Резервный вратарь лиги: заявки у него может не быть вовсе, поэтому адресуемся
+// дивизионом из окна «Резервные вратари» и человеком. Ограничение частоты — общее
+// с подписанием в заявке: это тот же бланк и тот же расход на сборку PDF.
+router.get('/reserve/:divisionId/:userId', getReserveConsentState);
+router.post('/reserve/:divisionId/:userId', signLimiter, signReserveConsent);
 
 export default router;

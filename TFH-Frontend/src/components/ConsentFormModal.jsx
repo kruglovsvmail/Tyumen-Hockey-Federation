@@ -77,7 +77,11 @@ const isFormComplete = (form, agreed) => agreed
   && form.registrationAddress.trim().length >= 5
   && phoneDigits(form.phone).length === 10;
 
-export default function ConsentFormModal({ appId, userId, onClose, onSigned }) {
+// apiPath — куда ходить за формой и с подписью. По умолчанию — человек в заявке команды;
+// окно «Резервные вратари» передаёт адрес резерва (/api/consent/reserve/{дивизион}/{человек}).
+export default function ConsentFormModal({ appId, userId, apiPath, onClose, onSigned }) {
+  const path = apiPath || `/api/consent/${appId}/${userId}`;
+
   const [state, setState] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -88,11 +92,11 @@ export default function ConsentFormModal({ appId, userId, onClose, onSigned }) {
 
   useEffect(() => {
     let cancelled = false;
-    apiGet(`/api/consent/${appId}/${userId}`)
+    apiGet(path)
       .then((data) => { if (!cancelled) setState(data); })
       .catch(() => { if (!cancelled) setLoadError('Не удалось загрузить форму. Попробуйте позже'); });
     return () => { cancelled = true; };
-  }, [appId, userId]);
+  }, [path]);
 
   useEffect(() => {
     const onKeyDown = (e) => { if (e.key === 'Escape') onClose(); };
@@ -107,7 +111,7 @@ export default function ConsentFormModal({ appId, userId, onClose, onSigned }) {
     setError(null);
     setSubmitting(true);
     try {
-      const result = await apiPost(`/api/consent/${appId}/${userId}`, { ...form, agreed });
+      const result = await apiPost(path, { ...form, agreed });
       setSigned(result);
       // Обновляем состав на странице, чтобы иконка документа позеленела сразу,
       // а кнопка «Заполнить» из подсказки исчезла.

@@ -1,0 +1,91 @@
+/* Значок документа допуска и подсказки по нажатию (components/DocumentBadge.jsx).
+   Имена классов остались от страницы команды, где значки появились первыми: ими же
+   пользуется окно «Резервные вратари» дивизиона. */
+.team-roster__doc-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  border: 1px solid currentColor;
+  cursor: pointer;
+  transition: transform .2s;
+}
+.team-roster__doc-btn:hover {
+  transform: scale(1.08);
+}
+.team-roster__doc-btn svg {
+  width: 15px;
+  height: 15px;
+}
+.team-roster__doc-btn--ok {
+  color: var(--ok);
+  background: var(--okbg);
+}
+/* Нет документа или он просрочен — нейтральный серый, без «тревожного» красного:
+   на публичной странице это статус заявки, а не сигнал о нарушении. */
+.team-roster__doc-btn--missing {
+  color: var(--muted);
+  background: var(--neutralbg);
+}
+
+/* Подсказка живёт в body (портал), поэтому позиционируется фиксированно по координатам
+   кнопки. pre-line — описания квалификаций в справочнике разбиты на строки вручную. */
+.team-roster__tip {
+  position: fixed;
+  z-index: 150;
+  transform: translate(-50%, -100%) translateY(-10px);
+  width: max-content;
+  max-width: 300px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: var(--tipbg);
+  color: var(--tiptext);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: pre-line;
+  box-shadow: 0 14px 30px rgba(18, 49, 74, .3);
+  pointer-events: none;
+}
+.team-roster__tip--below {
+  transform: translate(-50%, 0) translateY(10px);
+}
+.team-roster__tip b {
+  display: block;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+/* Подсказки курсор не ловят (см. pointer-events выше) — иначе перехватывали бы клики
+   по таблице под собой. Единственной, внутри которой есть своя кнопка (согласие
+   на обработку данных), события возвращаем. */
+.team-roster__tip--interactive {
+  pointer-events: auto;
+}
+
+/* Кнопка «Заполнить» внутри подсказки. Плашка тёмная (--tipbg), поэтому кнопка светлая,
+   а не акцентная: акцент на тёмно-синем читается хуже белого. display: block — чтобы
+   встала под текстом подсказки, а не в его строку. */
+.team-roster__tip-action {
+  display: block;
+  width: max-content;
+  margin-top: 18px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--tiptext);
+  color: var(--tipbg);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.team-roster__tip-action:hover {
+  opacity: .85;
+}
